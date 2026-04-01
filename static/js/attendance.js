@@ -271,7 +271,7 @@ function renderNameTable() {
         tr.addEventListener('mouseleave', () => handleRowHover(idx, false));
         tr.addEventListener('click', () => {
             if(document.body.getAttribute('data-user-role') === 'admin') {
-                window.location.href = 'admin-attendance-detail.html';
+                window.location.href = './attendance-detail.html';
             }
         });
         tbody.appendChild(tr);
@@ -299,7 +299,7 @@ function renderStatusTable() {
         tr.addEventListener('mouseenter', () => handleRowHover(idx, true));
         tr.addEventListener('mouseleave', () => handleRowHover(idx, false));
         tr.addEventListener('click', () => {
-            window.location.href = 'admin-attendance-detail.html';
+            window.location.href = './attendance-detail.html';
         });
         tbody.appendChild(tr);
     });
@@ -346,7 +346,7 @@ function renderSessionTable() {
         tr.addEventListener('mouseenter', () => handleRowHover(idx, true));
         tr.addEventListener('mouseleave', () => handleRowHover(idx, false));
         tr.addEventListener('click', () => {
-            window.location.href = 'admin-attendance-detail.html';
+            window.location.href = './attendance-detail.html';
         });
         tbody.appendChild(tr);
     });

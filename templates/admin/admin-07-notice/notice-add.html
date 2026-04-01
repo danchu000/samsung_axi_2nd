@@ -102,7 +102,7 @@
                     <ul>
                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
+                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
                     </ul>
                 </li>
                 <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
@@ -209,9 +209,13 @@
                             <th>조회수</th>
                             <td id="noticeViews"></td>
                         </tr>
+                        <!-- 첨부파일 -->
                         <tr>
                             <th>첨부파일</th>
-                            <td colspan="12" id="noticeAttachments" style="text-align: start;"></td>
+                            <td colspan="11" style="text-align: start;">
+                            <input type="file" name="files" multiple style="border:none;" />
+                            <div id="noticeAttachments"></div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

@@ -363,7 +363,7 @@
     // 프로젝트 라우팅 규칙에 맞게 경로만 바꾸면 됨
     // 예) location.href = '/trainee/attendance';
     // 여기서는 예시로 상대 이동 처리
-    location.href = "trainee-01-attendance.html";
+    location.href = "./attendance.html";
   });
 
   // 이수증 출력(예시)

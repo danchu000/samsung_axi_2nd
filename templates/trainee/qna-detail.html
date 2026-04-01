@@ -1,21 +1,23 @@
-    <!DOCTYPE html>
-    <html lang="ko">
-    <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- 공통 -->
-    <link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
-    <link rel="stylesheet" href="/static/css/btn-style.css" />
-    <link rel="stylesheet" href="/static/css/trainee/notices-table.css"/>
-    <link rel="stylesheet" href="/static/css/trainee/notices.css" />
+  <!-- 공통 -->
+  <link rel="stylesheet" href="/static/css/basic-form-trainee.css" th:href="@{/css/basic-form-trainee.css}" />
+  <link rel="stylesheet" href="/static/css/btn-style.css" th:href="@{/css/btn-style.css}" />
 
-    <!-- 공지 전용(추가) -->
+  <!-- QnA 전용 -->
+  <link rel="stylesheet" href="/static/css/trainee/qna.css" th:href="@{/css/trainee/qna.css}" />
 
-    <script src="/static/js/trainee/notices.js" defer></script>
-    <title>Samsung Academy LXP</title>
-    </head>
-<!-- ********************************************************************************************************* -->
+  <!-- 챗봇 -->
+  <link rel="stylesheet" href="/static/css/chatbot.css"/>
+  <script src="/static/js/chatbot.js" defer></script>
+
+  <title>Samsung Academy LXP</title>
+</head>
+
 <body>
     <header>
         <div class="header-logo">
@@ -98,56 +100,179 @@
             </div>
         </nav>
     </header>
-    <!-- 메인 컨텐츠 ********************************************************************************************************* -->
+  <main>
+    <!-- 상단 타이틀 -->
+    <section class="main-content-top">
+      <div class="main-wrap">
+        <h2>QnA 상세</h2>
+      </div>
+    </section>
 
-    <main>
-        <section class="main-content-top">
-            <div class="main-wrap">
-                <h2>공지 > 상세보기</h2>
-            </div>
-        </section>
+    <!-- 상세 콘텐츠 -->
+    <section class="main-wrap" style="padding:24px 0;">
+      <!-- 상세 헤더(제목/뱃지/메타) -->
+      <div class="detail-top">
+        <div class="detail-title" id="dTitle"
+            th:text="${qna?.title}">
+            for문 조건이 헷갈려요
+        </div>
 
-        <section class="main-content" id="notice-detail-section">
-            <div class="main-wrap">
-                <table class="basic-table notice-detail-table" style="width:100%;margin-top:24px;">
-                    <colgroup>
-                        <col style="width:15%">
-                        <col style="width:35%">
-                        <col style="width:15%">
-                        <col style="width:35%">
-                    </colgroup>
-                    <tbody>
-                        <tr>
-                            <th>제목</th>
-                            <td colspan="3" id="notice-title">공지사항 제목 예시</td>
-                        </tr>
-                        <tr>
-                            <th>카테고리</th>
-                            <td id="notice-category">일반</td>
-                            <th>등록일</th>
-                            <td id="notice-date">2026-01-26</td>
-                        </tr>
-                        <tr>
-                            <th>등록인</th>
-                            <td id="notice-writer">관리자</td>
-                            <th>조회수</th>
-                            <td id="notice-views">123</td>
-                        </tr>
-                        <tr>
-                            <th>내용</th>
-                            <td colspan="3" id="notice-content" style="min-height:200px;">
-                                공지사항 상세 내용이 여기에 표시됩니다.<br>
-                                여러 줄의 공지사항 본문을 지원합니다.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div style="margin-top:32px; text-align:right;">
-                    <a href="notices.html" class="btn btn-primary">목록으로</a>
-                </div>
+        <div class="detail-meta">
+          작성일
+          <span id="dCreatedAt" th:text="${qna?.createdAt}">2026-01-25</span>
+          <span class="footer-dot">·</span>
+          조회
+          <span id="dViews" th:text="${qna?.views}">18</span>
+        </div>
+      </div>
+
+      <!-- 질문 내용 -->
+      <div class="detail-card">
+        <div class="card-title">질문 내용</div>
+        <div class="card-body" id="dBody"
+             th:text="${qna?.body}">
+          for문 조건식이 언제 평가되는지 헷갈립니다.
+          초기화/조건/증감 순서도 같이 알고 싶어요.
+        </div>
+      </div>
+
+      <!-- 답변 영역 -->
+      <!-- 답변완료일 때 -->
+      <div class="detail-card"
+           th:if="${qna?.status == 'answered'}">
+        <div class="card-title">답변</div>
+        <div class="answer-meta">
+          <span th:text="${qna?.answerWriter}">담당자</span>
+          <span class="footer-dot">·</span>
+          <span th:text="${qna?.answeredAt}">2026-01-26</span>
+        </div>
+        <div class="card-body"
+             th:text="${qna?.answer}">
+          for문은 (초기화 → 조건 검사 → 본문 → 증감 → 조건 검사…) 순서로 반복됩니다.
+          조건식은 “반복에 진입하기 전” 매 회차마다 평가돼요.
+        </div>
+      </div>
+
+      <!-- 답변대기일 때 -->
+      <div class="detail-card"
+           th:if="${qna?.status != 'answered'}">
+        <div class="card-title">답변 상태</div>
+        <div class="card-body muted">
+          아직 답변이 등록되지 않았어요. 담당자가 확인 후 답변해드릴게요.
+        </div>
+      </div>
+
+      <!-- 댓글 영역 -->
+      <div class="detail-card comment-section">
+
+        <div class="card-title">
+          댓글
+          <span class="comment-count"
+                th:text="${#lists.size(comments)} + '개'">
+            2개
+          </span>
+        </div>
+
+        <!-- 댓글 리스트 -->
+        <div class="comment-list">
+
+          <!-- 댓글 반복 -->
+          <div class="comment-item"
+              th:each="comment : ${comments}">
+            
+            <div class="comment-meta">
+              <span class="comment-writer"
+                    th:text="${comment.writer}">
+                홍길동
+              </span>
+              <div>
+                <span class="comment-date"
+                      th:text="${comment.createdAt}">
+                  2026-01-26
+                </span>
+                <!-- 상황에 따라서 삭제 버튼 -->
+                <button>X</button>
+              </div>
             </div>
-        </section>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
+
+            <div class="comment-body"
+                th:text="${comment.content}">
+              댓글 내용이 표시됩니다.
+            </div>
+
+          </div>
+
+          <!-- 댓글 없을 때 -->
+          <div class="muted"
+              th:if="${#lists.isEmpty(comments)}">
+            아직 등록된 댓글이 없습니다.
+          </div>
+
+        </div>
+
+        <!-- 댓글 작성 -->
+        <div class="comment-write">
+          <input class="textarea"
+            id="commentEditor"
+            rows="3"
+            placeholder="댓글을 입력하세요.">
+            <button type="button"
+                    class="btn btn-primary"
+                    id="commentSubmitBtn">
+              댓글 등록
+            </button>
+        </div>
+
+      </div>
+
+      <!-- 상단: 뒤로가기 + 액션 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 30px; margin-bottom:14px;">
+        <a class="btn btn-gray" th:href="@{/trainee/qna}" href="javascript:history.back()" style="padding:12px 16px;">← 목록으로</a>
+
+        <!-- 본인 글이면 노출 -->
+        <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-gray" id="btnDelete">삭제</button>
+        </div>
+      </div>
+      <!-- 하단 네비(이전/다음 글) - 옵션 -->
+        <div class="detail-nav">
+
+        <!-- 이전 글 -->
+        <div class="detail-nav-row" th:if="${prevPost != null}">
+            <span class="nav-label">이전글</span>
+
+            <a class="nav-title"
+            th:href="@{/trainee/qna/{id}(id=${prevPost?.id})}"
+            th:text="${prevPost?.title}">
+            이전글 제목 영역
+            </a>
+
+            <span class="nav-date"
+                th:text="${prevPost?.createdAt}">
+            2026-01-25
+            </span>
+        </div>
+
+        <!-- 다음 글 -->
+        <div class="detail-nav-row" th:if="${nextPost != null}">
+            <span class="nav-label">다음글</span>
+
+            <a class="nav-title"
+            th:href="@{/trainee/qna/{id}(id=${nextPost?.id})}"
+            th:text="${nextPost?.title}">
+            다음글 제목 영역
+            </a>
+
+            <span class="nav-date"
+                th:text="${nextPost?.createdAt}">
+            2026-01-26
+            </span>
+        </div>
+
+        </div>
+    </section>
+
+    <!-- 플로팅 메뉴 (AI 챗봇) -->    
         <div class="floating-chatbot-btn" id="floatingChatbotBtn">
             <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
             <span class="chatbot-hint">AI 헬피 챗봇</span>
@@ -173,76 +298,31 @@
                 <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
             </div>
         </div>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
-
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
-
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-    </main>
-
-    <!-- 푸터 ********************************************************************************************************* -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/css/chatbot.css">
-  <script src="/static/js/chatbot.js" defer></script>
-  <div class="footer-inner">
-    <span class="footer-left">
+  </main>
+  <!-- 푸터 ********************************************************************************************************* -->
+  <footer class="simple-footer">
+    <div class="footer-inner">
+      <span class="footer-left">
       © 2026 Samsung Academy LXP
-    </span>
-    <span class="footer-right">
+      </span>
+      <span class="footer-right">
       <a href="#" class="footer-link">이용약관</a>
       <span class="footer-dot">·</span>
       <a href="#" class="footer-link">개인정보처리방침</a>
-    </span>
-  </div>
-</footer>
-<style>
+      </span>
+    </div>
+	</footer>
+  <!-- (선택) 삭제/수정 버튼 스크립트 -->
+  <script>
+    document.getElementById('btnDelete')?.addEventListener('click', () => {
+      const id = /*[[${qna.id}]]*/ 'q24';
+      if(confirm('정말 삭제할까요? 삭제 후 복구할 수 없어요.')){
+        // 예: DELETE 호출 or POST 폼
+        window.location.href = '/trainee/qna/delete/' + id;
+      }
+    });
+  </script>
+  <style>
     /* ===== simple footer ===== */
 .simple-footer{
 
@@ -286,6 +366,6 @@
 }
 
 </style>
-
-    </body>
-    </html>
+	
+</body>
+</html>

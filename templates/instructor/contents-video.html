@@ -55,6 +55,7 @@
                 <li onclick="handleMenuClick(this, 'courses.html')">
                     <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">담당 과정</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/courses.html"><li>과정 관리</li></a>
                         <a href="/templates/instructor/scheduler.html"><li>일정 관리</li></a>
@@ -63,6 +64,7 @@
                 <li onclick="handleMenuClick(this, 'assignment.html')">
                     <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">평가</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/assignment.html"><li>과제 채점</li></a>
                         <a href="/templates/instructor/result.html"><li>시험 채점</li></a>
@@ -72,6 +74,7 @@
                 <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
                     <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">출결/이수 관리</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/attendance.html"><li>출결현황</li></a>
                         <a href="/templates/instructor/graduate.html"><li>이수 관리</li></a>    
@@ -80,6 +83,7 @@
                 <li onclick="handleMenuClick(this, 'notices.html')">
                     <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">소통</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/notices.html"><li>공지사항</li></a>
                         <a href="/templates/instructor/tutoring.html"><li>튜터링/Q&A</li></a>
@@ -130,9 +134,9 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label" for="previewUrl">영상 미리보기(URL)</label>
-                            <input type="url" class="form-input" id="previewUrl" name="previewUrl" placeholder="https://...">
-                            <div class="form-help">미리보기 영상이 있으면 URL을 입력하세요.</div>
+                            <label class="form-label" for="videoFile">영상 업로드</label>
+                            <input type="file" class="form-input" id="videoFile" name="videoFile" accept="video/*">
+                            <div class="form-help">업로드할 영상을 선택하세요. (mp4 등)</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="duration">영상 길이(분:초)</label>
@@ -190,50 +194,67 @@
 
     <script>
     // 예시: DB에서 받아온 영상 데이터
-    const videoData = {
-        video_id: 'V-001',
-        title: '예시 영상 1',
-        status: 'Active',
-        description: '이 영상은 예시 설명입니다.',
-        previewUrl: 'https://sample.com/video.mp4',
-        duration: '12:34',
-        difficulty: 'medium',
-        category: 'KDT',
-        usedCourseCount: 3,
-        avgAchievement: 85,
-        createdAt: '2024-01-01'
-    };
+    // const videoData = {
+    //     video_id: 'V-001',
+    //     title: '예시 영상 1',
+    //     status: 'Active',
+    //     description: '이 영상은 예시 설명입니다.',
+    //     previewUrl: 'https://sample.com/video.mp4',
+    //     duration: '12:34',
+    //     difficulty: 'medium',
+    //     category: 'KDT',
+    //     usedCourseCount: 3,
+    //     avgAchievement: 85,
+    //     createdAt: '2024-01-01'
+    // };
 
-    function renderVideoForm(data) {
-        document.getElementById('video_id').value = data.video_id || '';
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('status').value = data.status || 'Active';
-        document.getElementById('description').value = data.description || '';
-        document.getElementById('previewUrl').value = data.previewUrl || '';
-        document.getElementById('duration').value = data.duration || '';
-        document.getElementById('difficulty').value = data.difficulty || '';
-        document.getElementById('category').value = data.category || '';
-        document.getElementById('usedCourseCount').value = data.usedCourseCount || '';
-        document.getElementById('avgAchievement').value = data.avgAchievement || '';
-        document.getElementById('createdAt').value = data.createdAt || '';
-        updateVideoPreview(data.previewUrl);
-    }
+    // function renderVideoForm(data) {
+    //     document.getElementById('video_id').value = data.video_id || '';
+    //     document.getElementById('title').value = data.title || '';
+    //     document.getElementById('status').value = data.status || 'Active';
+    //     document.getElementById('description').value = data.description || '';
+    //     document.getElementById('previewUrl').value = data.previewUrl || '';
+    //     document.getElementById('duration').value = data.duration || '';
+    //     document.getElementById('difficulty').value = data.difficulty || '';
+    //     document.getElementById('category').value = data.category || '';
+    //     document.getElementById('usedCourseCount').value = data.usedCourseCount || '';
+    //     document.getElementById('avgAchievement').value = data.avgAchievement || '';
+    //     document.getElementById('createdAt').value = data.createdAt || '';
+    //     updateVideoPreview(data.previewUrl);
+    // }
 
-    function updateVideoPreview(url) {
+    // function updateVideoPreview(url) {
+    //     const area = document.getElementById('videoPreviewArea');
+    //     if (url && (url.endsWith('.mp4') || url.startsWith('http'))) {
+    //         area.innerHTML = `<video src="${url}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
+    //     } else {
+    //         area.innerHTML = '<span style="color:#aaa;">영상 URL을 입력하면 미리보기가 표시됩니다.</span>';
+    //     }
+    // }
+
+    // document.getElementById('previewUrl').addEventListener('input', function() {
+    //     updateVideoPreview(this.value);
+    // });
+
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     renderVideoForm(videoData);
+    // });
+        // 영상 파일 업로드 시 미리보기
+    document.getElementById('videoFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
         const area = document.getElementById('videoPreviewArea');
-        if (url && (url.endsWith('.mp4') || url.startsWith('http'))) {
-            area.innerHTML = `<video src="${url}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
-        } else {
+        if (!file) {
             area.innerHTML = '<span style="color:#aaa;">영상 URL을 입력하면 미리보기가 표시됩니다.</span>';
+            return;
         }
-    }
-
-    document.getElementById('previewUrl').addEventListener('input', function() {
-        updateVideoPreview(this.value);
+        const fileUrl = URL.createObjectURL(file);
+        area.innerHTML = `<video src="${fileUrl}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        renderVideoForm(videoData);
+        if (typeof renderVideoForm === 'function' && typeof videoData !== 'undefined') {
+            renderVideoForm(videoData);
+        }
     });
     </script>
 </body>

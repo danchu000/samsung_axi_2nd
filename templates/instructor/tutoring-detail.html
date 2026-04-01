@@ -1,28 +1,135 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/static/font/pretendard.css">
-    <link rel="stylesheet" href="/static/css/i-common-style.css">
-    <link rel="stylesheet" href="/static/css/i-sidebar-style.css">
-    <link rel="stylesheet" href="/static/css/btn-style.css">
-    <link rel="stylesheet" href="/static/css/result-grading.css">
-    <link rel="stylesheet" href="/static/css/pagination.css">
+    <link rel="stylesheet" href="/static/css/i-common-style.css" th:href="@{/css/i-common-style.css}">
+    <link rel="stylesheet" href="/static/css/i-sidebar-style.css" th:href="@{/css/i-sidebar-style.css}">
+    <link rel="stylesheet" href="/static/css/btn-style.css" th:href="@{/css/btn-style.css}">
+    <link rel="stylesheet" href="/static/css/admin/support-tutoring.css" th:href="@{/css/admin/support-tutoring.css}">
     
-    <script src="/static/js/pagination.js" defer></script>
-    <script src="/static/js/result-grading.js" defer></script>
-    <script src="/static/js/sidebar-function.js" defer></script>
-    <script src="/static/js/common-funtion.js" defer></script>
-    <title>Samsung Academy LXP - 강사</title>
-    <style>
-        /* 추가적인 페이지별 스타일은 여기에 작성 */
-    </style>
+    <script src="/static/js/sidebar-function.js" th:src="@{/js/sidebar-function.js}" defer></script>
+    <script src="/static/js/common-function.js" th:src="@{/js/common-function.js}" defer></script>
+    <title>Samsung Academy LXP - 관리자</title>
 </head>
+<style>
+    /* ===== 우측 채팅(현재 페이지 구조에서 실제 사용) ===== */
+
+    .tutor-right {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    }
+
+    /* 상단 바 */
+    .chat-topbar {
+    padding: 12px 14px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+    }
+
+    .chat-scope {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .chat-scope-text {
+    color: #555;
+    }
+
+    /* 채팅 로그 */
+    .chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    overflow-y: auto;
+    background: #ffffff;
+    }
+
+    /* 메시지 */
+    .msg-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+    }
+
+    .msg-row.bot {
+    align-self: flex-start;
+    }
+
+    .msg-row.user {
+    align-self: flex-end;
+    text-align: right;
+    }
+
+    .msg-row.bot .msg-bubble {
+    background: #eeeeee;
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 14px 14px 14px 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .msg-row.user .msg-bubble {
+    background: #d9f1ff;
+    color: #1a1a1a;
+    padding: 12px 16px;
+    border-radius: 14px 14px 4px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .msg-meta {
+    font-size: 12px;
+    color: #888;
+    margin-top: 6px;
+    }
+
+    /* 입력 영역 */
+    .chat-inputbar {
+    border-top: 1px solid #eee;
+    padding: 12px;
+    background: #fafafa;
+    }
+
+    .input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    }
+
+    .chat-input {
+    flex: 1;
+    resize: none;
+    min-height: 40px;
+    max-height: 140px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #d9d9d9;
+    font-size: 13px;
+    line-height: 1.4;
+    }
+
+    .chat-help {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #777;
+    }
+</style>
 <body>
-    <!-- 상단 헤더 -->
+        <!-- 상단 헤더 -->
     <header class="header">
-        <h1>평가 > 시험 채점 > 시험 상세</h1>
+        <h1>소통 > 튜터링/Q&A > 튜터링 상세</h1>
         <!-- icon -->
         <div class="icon-container">
             <div class="icon-box"><a href="/templates/instructor/alarm.html"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
@@ -31,7 +138,7 @@
         </div>
     </header>
 
-    <!-- 왼쪽 사이드바 -->
+<!-- 왼쪽 사이드바 -->
     <aside class="sidebar">
         <!-- 사이드바 메뉴 내용 -->
 
@@ -108,68 +215,50 @@
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
-        <!-- 훈련생 관리 -->
-        <section class="main-content-inner">
-            <!-- 상단 시험 정보 영역 -->
-            <div id="examInfoCardContainer"></div>
-
-            <!-- 필터 / 검색 영역 -->
-            <div class="exam-filter-area">
-                <input type="text" class="filter-input" id="filterNameInput" placeholder="이름 검색" style="width:140px;">
-                <select class="filter-select" id="filterGradingStatus">
-                    <option value="">채점상태 전체</option>
-                    <option value="미채점">미채점</option>
-                    <option value="채점중">채점중</option>
-                    <option value="채점완료">채점완료</option>
-                    <option value="확정">확정</option>
-                </select>
-                <select class="filter-select" id="filterScoreStatus">
-                    <option value="">점수상태 전체</option>
-                    <option value="합격">합격</option>
-                    <option value="불합격">불합격</option>
-                    <option value="미정">미정</option>
-                </select>
-                <select class="filter-select" id="filterSort">
-                    <option value="time">응시시간순</option>
-                    <option value="name">이름순</option>
-                    <option value="score">점수순</option>
-                </select>
-                <button type="button" class="btn btn-secondary">검색하기</button>
-            </div>
-            <!-- 학생 목록 (메인컨텐츠) -->
-            <div class="student-table-wrap">
-                <table class="student-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" /></th>
-                            <th style="width:48px;">No</th>
-                            <th style="width:120px;">학생명</th>
-                            <th style="width:120px;">학생ID</th>
-                            <th style="width:120px;">응시시간</th>
-                            <th style="width:80px;">점수</th>
-                            <th style="width:100px;">상태</th>
-                            <th style="width:90px;">채점</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody">
-                        <!-- JS로 동적 렌더링 -->
-                    </tbody>
-                </table>
+        <section class="tutor-right" style="margin: 24px auto 0 auto;">
+            <div class="chat-topbar">
+              <!-- ✅ 미선택 안내 대신 선택된 상태로 정적 표시 -->
+              <div class="chat-scope" id="chatScope">
+                <span class="chat-scope-text">풀스택 웹 개발 (React &amp; Node.js) / 3차시</span>
+                <a class="link" href="javascript:history.back()">← 목록으로</a>
+              </div>
             </div>
 
-            <!-- 페이지네이션 -->
-            <div class="pagination" style="margin-top: 25px;">
-                <div class="page-info">
-                    <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+            <!-- ✅ JS 렌더 제거: 채팅 로그를 정적으로 하드코딩 -->
+            <div class="chat-window" id="chatWindow" aria-live="polite">
+              <div class="msg-row bot">
+                <div class="msg-bubble">
+                  안녕하세요! 선택한 범위(풀스택 웹 개발 · 3차시)에서 궁금한 점을 질문해보세요.
                 </div>
-                <div class="pagination-controls">
-                    <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
-                    <div id="pageNumbers"></div>
-                    <button id="nextPage" onclick="changePage(1)">다음</button>
+                <div class="msg-meta">홍길동 학생 · 10:02</div>
+              </div>
+
+              <div class="msg-row user">
+                <div class="msg-bubble">
+                  for문에서 조건식은 언제 평가돼?
                 </div>
+                <div class="msg-meta">나 · 10:03</div>
+              </div>
+
+              <div class="msg-row bot">
+                <div class="msg-bubble">
+                  for문은 (초기화 → 조건 검사 → 본문 → 증감 → 조건 검사…) 순서로 반복돼요.
+                  조건식은 “반복에 진입하기 전” 매 회차마다 평가됩니다.
+                </div>
+                <div class="msg-meta">홍길동 학생 · 10:03</div>
+              </div>
+            </div>
+
+            <!-- ✅ 입력도 정적으로 활성화(나중에 서버/권한/범위선택 연동 시 disabled 제어) -->
+            <div class="chat-inputbar">
+              <div class="input-wrap">
+                <textarea id="chatInput" class="chat-input" rows="1" placeholder="질문을 입력하세요 (Shift+Enter 줄바꿈)"></textarea>
+                <button type="button" class="btn btn-primary" id="btnSend">전송</button>
+              </div>
+              <div class="chat-help" id="chatHelp">학습 범위를 기반으로 질문을 작성해보세요.</div>
             </div>
         </section>
-    </main> 
+
+    </main>
 </body>
 </html>
-            

@@ -134,7 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '강의': '강의 등록',
         '퀴즈': '퀴즈 등록',
         '과제': '과제 등록',
-        '문제': '시험 등록',
+        '문제': '문제 등록',
+        '시험': '시험 등록'
     };
     
     // 탭 클릭 시 필터링 (window._questionList 기준으로 항상 테이블 갱신)

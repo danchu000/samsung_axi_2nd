@@ -11,14 +11,172 @@
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 강사</title>
-    <style>
-        /* 추가적인 페이지별 스타일은 여기에 작성 */
+<style>
+    /* =========================
+    Tabs
+    ========================= */
+    .tab-row { margin-bottom: 0; }
+
+    .tab-btn{
+    background:#f5f5f5;
+    border:none;
+    border-radius:24px;
+    padding:12px 32px;
+    font-size:17px;
+    color:#666;
+    font-weight:500;
+    cursor:pointer;
+    transition:background .2s, color .2s;
+    }
+
+    .tab-btn.active{
+    background: var(--color-deep-primary);
+    color:#fff;
+    }
+
+    .tab-btn:hover:not(.active){
+    background:#ededed;
+    }
+
+    .tab-tooltip{
+    position:absolute;
+    left:0%;
+    top:110%;
+    background:#444;
+    color:#fff;
+    padding:7px 16px;
+    border-radius:7px;
+    font-size:14px;
+    white-space:nowrap;
+    z-index:10;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .15s;
+    }
+
+    /* =========================
+    Cards (QnA/Tutoring 공통)
+    ========================= */
+    .qna-card-row,
+    .tutoring-card-row{
+    display:flex;
+    gap:18px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    }
+
+    .qna-card,
+    .tutoring-card{
+    flex:1;
+    min-width:180px;
+    background:#f8f9fa;
+    border-radius:12px;
+    padding:18px 22px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    }
+
+    .card-title{ font-size:15px; color:#888; margin-bottom:7px; }
+    .card-value{ font-size:28px; font-weight:700; color:#2a5ada; }
+
+    .card-value-sub{
+    font-size:17px;
+    font-weight:600;
+    color:#333;
+    margin-bottom:4px;
+    }
+
+    .card-desc{ font-size:14px; color:#888; }
+
+    .card-value-danger{
+    font-size:17px;
+    font-weight:600;
+    color:#d32f2f;
+    margin-bottom:4px;
+    }
+
+    /* 긴 텍스트 자동 스크롤(옵션) */
+    .scroll-animation{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:block;
+    position:relative;
+    max-width:100%;
+    }
+    .scroll-animation span{
+    display:inline-block;
+    white-space:nowrap;
+    animation: scrollText 6s linear infinite;
+    }
+    @keyframes scrollText{
+    0%{ transform: translateX(0); }
+    10%{ transform: translateX(0); }
+    90%{ transform: translateX(-50%); }
+    100%{ transform: translateX(-50%); }
+    }
+
+    /* =========================
+    QnA List UI
+    ========================= */
+    .qna-filter-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin:12px 0 16px 0;
+    flex-wrap:wrap;
+    }
+
+    .qna-filter-row .form-input{
+    padding:8px 10px;
+    font-size:14px;
+    }
+
+    .qna-search{ width:260px; }
+
+    .qna-table-wrap{ overflow-x:auto; }
+
+    .qna-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    }
+
+    .qna-table th,
+    .qna-table td{
+    padding:10px 12px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+    vertical-align:middle;
+    }
+
+    .qna-table th{
+    background:#fafafa;
+    color:#666;
+    font-weight:600;
+    }
+
+    .qna-table tbody tr:hover{
+    background:#fbfbff;
+    }
+
+    .qna-badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:6px;
+    font-size:13px;
+    }
+
+    .qna-badge.wait{ background:#fff3cd; color:#856404; }
+    .qna-badge.open{ background:#e3e7fa; color:#2a5ada; }
     </style>
 </head>
 <body>
     <!-- 상단 헤더 -->
     <header class="header">
-        <h1> > </h1>
+        <h1>소통 > 튜터링/Q&A</h1>
         <!-- icon -->
         <div class="icon-container">
             <div class="icon-box"><a href="/templates/instructor/alarm.html"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
@@ -54,6 +212,7 @@
                 <li onclick="handleMenuClick(this, 'courses.html')">
                     <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">담당 과정</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/courses.html"><li>과정 관리</li></a>
                         <a href="/templates/instructor/scheduler.html"><li>일정 관리</li></a>
@@ -62,6 +221,7 @@
                 <li onclick="handleMenuClick(this, 'assignment.html')">
                     <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">평가</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/assignment.html"><li>과제 채점</li></a>
                         <a href="/templates/instructor/result.html"><li>시험 채점</li></a>
@@ -71,6 +231,7 @@
                 <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
                     <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">출결/이수 관리</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/attendance.html"><li>출결현황</li></a>
                         <a href="/templates/instructor/graduate.html"><li>이수 관리</li></a>    
@@ -79,6 +240,7 @@
                 <li onclick="handleMenuClick(this, 'notices.html')">
                     <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                     <span class="menu-text">소통</span>
+                    <span class="chev" aria-hidden="true">▾</span>
                     <ul>
                         <a href="/templates/instructor/notices.html"><li>공지사항</li></a>
                         <a href="/templates/instructor/tutoring.html"><li>튜터링/Q&A</li></a>
@@ -102,95 +264,279 @@
     <main class="main-content">
         <!-- 훈련생 관리 -->
         <section class="main-content-inner">
-            <!-- 필터 영역 -->
-            <div class="filter-section">
-                <div class="filter-row">
-                    <div>
-                        <label>구분</label>
-                        <select id="typeFilter">
-                            <option value="">전체</option>
-                            <option value="QnA">QnA</option>
-                            <option value="튜터링">튜터링</option>
-                        </select>
+            <!-- 상단: 탭 영역 -->
+                <div class="tab-section" style="margin-bottom:20px;">
+                    <div class="tab-row" style="display:flex; gap:8px;">
+                        <div style="position:relative;">
+                            <button class="tab-btn flex active" data-type="문제">튜터링</button>
+                        </div>
+                        <div style="position:relative;">
+                            <button class="tab-btn flex" data-type="과제">Q&A</button>
+                        </div>
                     </div>
-                    <div>
-                        <label>유형</label>
-                        <select id="categoryFilter">
-                            <option value="">전체</option>
-                            <option value="수업">수업</option>
-                            <option value="진도">진도</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>상태</label>
-                        <select id="statusFilter">
-                            <option value="">전체</option>
-                            <option value="미답변">미답변</option>
-                            <option value="진행중">진행중</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>과정</label>
-                        <select id="courseSessionFilter">
-                            <option value="">전체</option>
-                            <option value="AI 분석 / 3차시">AI 분석 / 3차시</option>
-                            <option value="AI 기초 / 2차시">AI 기초 / 2차시</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>요청자</label>
-                        <input type="text" id="requesterFilter" placeholder="요청자명 입력">
-                    </div>
-                    <div>
-                        <label>담당자</label>
-                        <select id="managerFilter">
-                            <option value="">전체</option>
-                            <option value="미배정">미배정</option>
-                            <option value="홍길동">홍길동</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary" onclick="filterResponseTable()">
-                        검색하기
-                    </button>
                 </div>
-            </div>
+                <!-- 탭별 컨텐츠 영역 -->
+                <!-- 튜터링 -->
+                <div id="tutoringContent" class="tab-content" style="display:block;">
+                    <!-- 튜터링 카드영역 -->
+                    <div class="tutoring-card-row">
+                        <div class="tutoring-card">
+                            <div class="card-title">처리 대기 튜터링 수</div>
+                            <div class="card-value">7</div>
+                        </div>
+                        <div class="tutoring-card">
+                            <div class="card-title">평균 첫 응답 시간</div>
+                            <div class="card-value">1.8시간</div>
+                        </div>
+                        <div class="tutoring-card">
+                            <div class="card-title">진행 중 튜터링 건수</div>
+                            <div class="card-value">4</div>
+                        </div>
+                        <div class="tutoring-card">
+                            <div class="card-title">출결/이수 위험 연계 건수</div>
+                            <div class="card-value">1</div>
+                        </div>
+                        <div class="tutoring-card">
+                            <div class="card-title">튜터별 처리 현황 요약</div>
+                            <div class="card-value-sub scroll-animation"><span>홍길동 3건 / 김민아 2건/홍길동 3건 / 김민아 2건</span></div>
+                            <div class="card-desc">(최근 7일 기준)</div>
+                        </div>
+                        <div class="tutoring-card">
+                            <div class="card-title">최근 24시간 무응답 건</div>
+                            <div class="card-value-danger">2건</div>
+                            <div class="card-desc">즉시 확인 필요</div>
+                        </div>
+                    </div>
 
-            <!-- 정렬 -->
-            <div class="sort-section" style="margin: 10px 0 18px 0; display: flex; align-items: center; gap: 10px;">
-                <label for="sortSelect" style="font-weight:500;">정렬 기준</label>
-                <select id="sortSelect" style="height:32px; min-width:120px;">
-                    <option value="status">상태순</option>
-                    <option value="elapsed">경과시간순</option>
-                </select>
-                <button id="sortOrderBtn" type="button" aria-label="정렬 순서 변경" style="background:#f5f5f5; border:1px solid #ccc; border-radius:4px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <span id="sortOrderIcon" style="font-size:16px;">▲</span>
-                </button>
-            </div>
-            
+                    <div class="divider"></div>
 
-            <!-- 테이블 영역 -->
-            <table class=" history-table">
-                <thead>
-                    <tr>
-                    <th>구분</th>
-                    <th>유형</th>
-                    <th>상태</th>
-                    <th>과정</th>
-                    <th>요청자</th>
-                    <th>담당자</th>
-                    <th>경과시간</th>
-                    <th>관리</th>
-                    </tr>
-                </thead>
+                    <!-- 튜터링 필터+리스트 / 튜터링 상세(대화) -->
+                    <div class="qna-list-area">
+                        <div class="qna-filter-row">
+                            <select class="form-input">
+                                <option>전체 상태</option>
+                                <option>대기</option>
+                                <option>답변완료</option>
+                            </select>
+                            <input type="text" class="form-input qna-search" placeholder="제목/작성자 검색">
+                            <button class="btn btn-secondary">검색</button>
+                        </div>
 
-                <tbody>
-                    <!-- 동적 생성 영역 -->
-                    <tbody id="responseTableBody"></tbody>
-                </tbody>
-            </table>
+                        <div class="qna-table-wrap">
+                            <table class="qna-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;"><input type="checkbox" id="qna-select-all"></th>
+                                        <th>상태</th>
+                                        <th>과정명</th>
+                                        <th>차시</th>
+                                        <th>작성자</th>
+                                        <th>등록일</th>
+                                        <th>조회수</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox" class="qna-row-checkbox"></td>
+                                        <td><span class="qna-badge wait">대기</span></td>
+                                        <td>자바스크립트</td>
+                                        <td>1차시</td>
+                                        <td>김OO</td>
+                                        <td>03/12</td>
+                                        <td>98</td>
+                                        <td><button class="btn btn-secondary" type="button" onclick="location.href='./tutoring-detail.html'">상세보기</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
+                        <!-- Bulk action buttons -->
+                        <div class="bulk-action-area" style="display:flex; gap:10px; margin:16px 0 0 0;">
+                            <button class="btn btn-gray btn-sm" id="bulkDeleteBtn" data-user-role="admin">선택 삭제</button>
+                        </div>
+
+                        <!-- 페이지네이션 -->
+                        <div class="pagination">
+                            <div class="page-info">
+                                <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
+                                <div id="pageNumbers"></div>
+                                <button id="nextPage" onclick="changePage(1)">다음</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q&A -->
+                <div id="qnaContent" class="tab-content" style="display:none;">
+                    <!-- QnA 카드영역 -->
+                    <div class="qna-card-row">
+                            <div class="qna-card">
+                                <div class="card-title">미답변 질문 수</div>
+                                <div class="card-value">7</div>
+                            </div>
+                            <div class="qna-card">
+                                <div class="card-title">평균 답변 소요 시간</div>
+                                <div class="card-value">1.8시간</div>
+                            </div>
+                            <div class="qna-card">
+                                <div class="card-title">최근 7일 신규 질문 수</div>
+                                <div class="card-value">4</div>
+                            </div>
+                            <div class="qna-card">
+                                <div class="card-title">FAQ 전환 건수</div>
+                                <div class="card-value">1</div>
+                            </div>
+                            <div class="qna-card">
+                                <div class="card-title">조회수 TOP Q&A</div>
+                                <div class="card-value-sub scroll-animation"><span>"자바스크립트 비동기 처리란?"</span></div>
+                                <div class="card-desc">조회수 98회</div>
+                            </div>
+                            <div class="qna-card">
+                                <div class="card-title">최근 24시간 무응답 건</div>
+                                <div class="card-value-danger">2건</div>
+                                <div class="card-desc">즉시 확인 필요</div>
+                            </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Q&A 리스트 -->
+                    <div class="qna-list-area">
+                        <div class="qna-filter-row">
+                            <select class="form-input">
+                                <option>전체 상태</option>
+                                <option>대기</option>
+                                <option>답변완료</option>
+                            </select>
+                            <input type="text" class="form-input qna-search" placeholder="제목/작성자 검색">
+                            <button class="btn btn-secondary">검색</button>
+                        </div>
+
+                        <div class="qna-table-wrap">
+                            <table class="qna-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;"><input type="checkbox" id="qna-select-all"></th>
+                                        <th>상태</th>
+                                        <th>질문 제목</th>
+                                        <th>작성자</th>
+                                        <th>등록일</th>
+                                        <th>조회수</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox" class="qna-row-checkbox"></td>
+                                        <td><span class="qna-badge wait">대기</span></td>
+                                        <td>자바스크립트 비동기 처리란?</td>
+                                        <td>김OO</td>
+                                        <td>03/12</td>
+                                        <td>98</td>
+                                        <td><button class="btn btn-secondary" type="button" onclick="location.href='./qna-detail.html'">상세보기</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Bulk action buttons -->
+                        <div class="bulk-action-area" style="display:flex; gap:10px; margin:16px 0 0 0;">
+                            <button class="btn btn-gray btn-sm" id="bulkDeleteBtn" data-user-role="admin">선택 삭제</button>
+                        </div>
+
+                        <!-- 페이지네이션 -->
+                        <div class="pagination">
+                            <div class="page-info">
+                                <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
+                                <div id="pageNumbers"></div>
+                                <button id="nextPage" onclick="changePage(1)">다음</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         </section>
-    </main>  
+    </main>
 </body>
+ <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+    // 정렬 오름/내림차순 토글 (UI만)
+    const sortOrderBtn = document.getElementById('sortOrderBtn');
+    let sortAsc = true;
+    if (sortOrderBtn) {
+        sortOrderBtn.addEventListener('click', function () {
+        sortAsc = !sortAsc;
+        const icon = sortAsc ? '▲' : '▼';
+        sortOrderBtn.innerHTML = `<span aria-hidden="true">${icon}</span>`;
+        });
+    }
+
+    // 탭 전환
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tutoringContent = document.getElementById('tutoringContent');
+    const qnaContent = document.getElementById('qnaContent');
+
+    const tabTooltips = {
+'튜터링': '강의 내용, 과제, 기술 질문 등 학습과 직접 관련된 내용을 질문하고 도움을 받을 수 있습니다.',
+'Q&A': '행정 절차, 기숙사, 출결, 수료 등 학습 외 문의 사항을 질문하고 답변을 확인할 수 있습니다.'
+    };
+
+    function activateTab(tabName) {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        if (tabName === 'qna') {
+        tabBtns.forEach(b => { if (b.textContent.trim() === 'Q&A') b.classList.add('active'); });
+        tutoringContent.style.display = 'none';
+        qnaContent.style.display = 'block';
+        } else {
+        tabBtns.forEach(b => { if (b.textContent.trim() === '튜터링') b.classList.add('active'); });
+        tutoringContent.style.display = 'block';
+        qnaContent.style.display = 'none';
+        }
+    }
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+        activateTab(this.textContent.trim() === 'Q&A' ? 'qna' : 'tutoring');
+        });
+
+        // 툴팁
+        btn.addEventListener('mouseenter', function () {
+        let tooltip = btn.parentElement.querySelector('.tab-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'tab-tooltip';
+            btn.parentElement.appendChild(tooltip);
+        }
+        tooltip.textContent = tabTooltips[btn.textContent.trim()] || '';
+        tooltip.style.opacity = '1';
+        });
+
+        btn.addEventListener('mouseleave', function () {
+        const tooltip = btn.parentElement.querySelector('.tab-tooltip');
+        if (tooltip) tooltip.style.opacity = '0';
+        });
+    });
+
+    // 쿼리스트링(tab=qna) 있으면 Q&A 탭 활성화
+    const params = new URLSearchParams(window.location.search);
+    activateTab(params.get('tab') === 'qna' ? 'qna' : 'tutoring');
+
+    // QnA 전체선택
+    const qnaSelectAll = document.getElementById('qna-select-all');
+    if (qnaSelectAll) {
+        qnaSelectAll.addEventListener('change', function () {
+        document.querySelectorAll('.qna-row-checkbox')
+            .forEach(cb => cb.checked = qnaSelectAll.checked);
+        });
+    }
+    });
+    </script>
 </html>
             

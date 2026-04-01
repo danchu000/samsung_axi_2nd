@@ -55,6 +55,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
+}
+.sidebar .menu ul li .chev {
+    margin-left: auto;
+    opacity: 0.8;
 }
 
 .sidebar .menu ul li .submenu {

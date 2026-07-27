@@ -1,0 +1,641 @@
+package com.ssa.lms.exam.service;
+
+import com.ssa.lms.auth.IdentityVerificationException;
+import com.ssa.lms.auth.IdentityVerificationService;
+import com.ssa.lms.auth.VerifyRequest;
+import com.ssa.lms.course.service.CourseQueryService;
+import com.ssa.lms.exam.dto.AttemptQuestionRow;
+import com.ssa.lms.exam.dto.AttemptResultView;
+import com.ssa.lms.exam.dto.AttemptView;
+import com.ssa.lms.exam.dto.ExamTakeRow;
+import com.ssa.lms.exam.entity.*;
+import com.ssa.lms.exam.entity.ExamAttempt.AttemptStatus;
+import com.ssa.lms.exam.repository.AnswerRepository;
+import com.ssa.lms.exam.repository.ExamAttemptRepository;
+import com.ssa.lms.exam.repository.ExamRefRepository;
+import com.ssa.lms.exam.repository.ExamTakeRepository;
+import com.ssa.lms.proctor.entity.ExamEventLog;
+import com.ssa.lms.proctor.service.ExamEventLogService;
+import com.ssa.lms.user.entity.User;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+/**
+ * 시험 응시/제출 서비스 — 내역서 필수 요건이 가장 많이 걸린 자리.
+ *
+ * <p>지켜야 하는 불변식 3가지</p>
+ * <ol>
+ *   <li><b>본인인증</b> — {@code Exam.requireIdentityVerification=true} 면 인증 없이는 회차 자체가 만들어지지 않는다.
+ *       최근 {@value #VERIFY_VALID_MINUTES}분 이내 인증 이력이 있으면 재인증을 면제한다.</li>
+ *   <li><b>서버 타이머</b> — 마감 시각은 시작 시점에 서버가 계산해 {@code ExamAttempt.expiresAt} 에 박는다.
+ *       제출 마감 판정은 오직 이 컬럼으로만 한다. 화면 타이머는 표시용이라 조작돼도 결과가 달라지지 않는다.</li>
+ *   <li><b>출제 문항의 단일 진실은 {@code Exam.examQuestions}</b> — 응시 경로에서 {@code ExamQuestionRule} 은
+ *       절대 읽지 않는다. 규칙은 확정 전 조건일 뿐이라 응시 때마다 문항이 달라져 3년 재현이 깨진다.</li>
+ * </ol>
+ *
+ * <p>수동 채점(서술형/코딩)과 Grade 반영은 다음 슬라이스(시험 채점) 담당이라 여기서 하지 않는다.</p>
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ExamAttemptService {
+
+    /** 최근 본인인증 유효시간(분). 이 안이면 시험 입장 시 재인증을 면제한다. */
+    public static final int VERIFY_VALID_MINUTES = 30;
+
+    /** 최근 인증 이력으로 면제된 경우의 수단 코드. 신규 인증(PASSWORD 등)과 구분해 감사에 남긴다. */
+    public static final String METHOD_RECENT = "RECENT";
+
+    /** 훈련생에게 보이는 시험 상태. DRAFT(작성중)/ARCHIVED(보관)는 노출하지 않는다. */
+    private static final List<Exam.ExamStatus> VISIBLE_STATUSES =
+            List.of(Exam.ExamStatus.SCHEDULED, Exam.ExamStatus.OPEN, Exam.ExamStatus.CLOSED);
+
+    private static final DateTimeFormatter LIST_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter FULL_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private final ExamTakeRepository examTakeRepository;
+    private final ExamAttemptRepository examAttemptRepository;
+    private final AnswerRepository answerRepository;
+    private final ExamRefRepository examRefRepository;
+    private final CourseQueryService courseQueryService;
+    private final IdentityVerificationService identityVerificationService;
+    private final ExamEventLogService examEventLogService;
+    private final AutoGrader autoGrader;
+
+    /* ===================== 목록 ===================== */
+
+    /**
+     * 응시 가능 시험 목록.
+     *
+     * readOnly 가 아닌 이유: 조회하는 김에 "기간 내 재접속 없이 만료된 진행중 회차"를 자동 제출로 닫는다.
+     * 안 닫으면 IN_PROGRESS 가 영원히 남아 재응시 횟수를 잡아먹는다.
+     */
+    @Transactional
+    public List<ExamTakeRow> availableExams(Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Long> courseIds = myCourseIds(userId);
+        if (courseIds.isEmpty()) {
+            return List.of();
+        }
+        List<Exam> exams = examTakeRepository.findVisibleByCourses(courseIds, VISIBLE_STATUSES);
+        if (exams.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> examIds = exams.stream().map(Exam::getId).toList();
+        Map<Long, Long> questionCounts = toCountMap(examTakeRepository.countExamQuestions(examIds));
+        Map<Long, String> typeTexts = toTypeTextMap(examTakeRepository.countExamQuestionTypes(examIds));
+
+        Map<Long, List<ExamAttempt>> byExam = new HashMap<>();
+        for (ExamAttempt attempt : examAttemptRepository.findByUserAndExams(userId, examIds)) {
+            if (attempt.getStatus() == AttemptStatus.IN_PROGRESS && attempt.isExpired(now)) {
+                finish(attempt, now, AttemptStatus.AUTO_SUBMITTED, null);
+            }
+            byExam.computeIfAbsent(attempt.getExam().getId(), k -> new ArrayList<>()).add(attempt);
+        }
+
+        List<ExamTakeRow> rows = new ArrayList<>();
+        for (Exam exam : exams) {
+            rows.add(toRow(exam, byExam.getOrDefault(exam.getId(), List.of()),
+                    questionCounts.getOrDefault(exam.getId(), 0L).intValue(),
+                    typeTexts.getOrDefault(exam.getId(), "-"), now));
+        }
+        return rows;
+    }
+
+    /* ===================== 응시 시작 ===================== */
+
+    /**
+     * 응시 시작(또는 이어하기).
+     *
+     * @param credential 본인인증 자격값(비밀번호). 최근 인증 이력이 있으면 없어도 된다.
+     * @return 응시 회차 id
+     */
+    @Transactional
+    public Long start(Long examId, Long userId, String verifyMethod, String credential,
+                      String ip, String userAgent) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Exam exam = examTakeRepository.findWithExamQuestions(examId)
+                .orElseThrow(() -> new ExamTakeException("NOT_FOUND", "시험을 찾을 수 없습니다."));
+
+        ensureEnrolled(userId, exam);
+
+        if (exam.getStatus() == Exam.ExamStatus.DRAFT || exam.getStatus() == Exam.ExamStatus.ARCHIVED) {
+            throw new ExamTakeException("NOT_OPEN", "아직 공개되지 않은 시험입니다.");
+        }
+        if (!exam.isWithinWindow(now)) {
+            throw new ExamTakeException("OUT_OF_WINDOW",
+                    "응시 가능 기간이 아닙니다. (" + LIST_FORMAT.format(exam.getWindowStart())
+                            + " ~ " + LIST_FORMAT.format(exam.getWindowEnd()) + ")");
+        }
+        if (exam.getStatus() == Exam.ExamStatus.CLOSED) {
+            throw new ExamTakeException("CLOSED", "종료 처리된 시험입니다.");
+        }
+        // 규칙(ExamQuestionRule)만 있고 확정 문항이 0건이면 응시 진입 자체를 막는다.
+        // 여기서 규칙을 보고 즉석에서 문항을 뽑으면 응시자마다 문제가 달라져 재현이 불가능해진다.
+        if (exam.getExamQuestions().isEmpty()) {
+            throw new ExamTakeException("NOT_READY",
+                    "출제 문항이 확정되지 않은 시험입니다. 담당 강사에게 문의하세요.");
+        }
+
+        // 진행 중이던 회차 처리 — 만료됐으면 자동 제출로 닫고, 살아 있으면 이어하기
+        List<ExamAttempt> attempts =
+                examAttemptRepository.findByExamIdAndUserIdOrderByAttemptNoDesc(examId, userId);
+        ExamAttempt inProgress = attempts.stream()
+                .filter(a -> a.getStatus() == AttemptStatus.IN_PROGRESS)
+                .findFirst().orElse(null);
+
+        if (inProgress != null) {
+            if (inProgress.isExpired(now)) {
+                finish(inProgress, now, AttemptStatus.AUTO_SUBMITTED, ip);
+            } else {
+                VerifyOutcome resume = verifyIdentity(userId, verifyMethod, credential,
+                        exam.isRequireIdentityVerification());
+                if (resume.at() != null) {
+                    inProgress.markIdentityVerified(resume.at(), resume.method());
+                }
+                examEventLogService.append(inProgress, ExamEventLog.EventType.RESUME,
+                        "이어하기 (회차 " + inProgress.getAttemptNo() + ")", ip);
+                return inProgress.getId();
+            }
+        }
+
+        long used = examAttemptRepository.countByExamIdAndUserId(examId, userId);
+        int max = maxAttempts(exam);
+        if (used >= max) {
+            throw new ExamTakeException("NO_ATTEMPT_LEFT",
+                    exam.isRetakeAllowed()
+                            ? "재응시 가능 횟수(" + max + "회)를 모두 사용했습니다."
+                            : "재응시가 허용되지 않는 시험입니다.");
+        }
+
+        VerifyOutcome verified = verifyIdentity(userId, verifyMethod, credential,
+                exam.isRequireIdentityVerification());
+        if (exam.isRequireIdentityVerification() && verified.at() == null) {
+            // verifyIdentity 가 이미 막지만, 요건이 요건인 만큼 마지막 방어선을 하나 더 둔다.
+            throw ExamTakeException.identityRequired("응시 전 본인인증이 필요합니다.");
+        }
+
+        User user = examRefRepository.findUser(userId)
+                .orElseThrow(() -> new ExamTakeException("NOT_FOUND", "사용자를 찾을 수 없습니다."));
+
+        ExamAttempt attempt = ExamAttempt.builder()
+                .exam(exam)
+                .user(user)
+                .attemptNo((int) used + 1)
+                .startedAt(now)
+                // ★ 마감 시각은 서버가 계산해 박는다. 이후 판정은 오직 이 값으로만 한다.
+                .expiresAt(now.plusMinutes(exam.getTimeLimitMin()))
+                .status(AttemptStatus.IN_PROGRESS)
+                .identityVerifiedAt(verified.at())
+                .identityVerifyMethod(verified.method())
+                .ip(ip)
+                .userAgent(truncate(userAgent, 255))
+                .build();
+        examAttemptRepository.save(attempt);
+
+        examEventLogService.append(attempt, ExamEventLog.EventType.ENTER,
+                "응시 시작 (회차 " + attempt.getAttemptNo() + ", 본인인증="
+                        + (verified.method() == null ? "면제" : verified.method()) + ")", ip);
+        return attempt.getId();
+    }
+
+    /* ===================== 응시 화면 ===================== */
+
+    /**
+     * 응시 화면 모델. 만료된 회차면 여기서 자동 제출로 닫고 그 상태를 그대로 돌려준다
+     * (컨트롤러가 status != IN_PROGRESS 를 보고 결과 화면으로 보낸다).
+     */
+    @Transactional
+    public AttemptView loadAttempt(Long attemptId, Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        ExamAttempt attempt = attemptWithQuestions(attemptId);
+        ensureOwner(attempt, userId);
+
+        if (attempt.getStatus() == AttemptStatus.IN_PROGRESS && attempt.isExpired(now)) {
+            finish(attempt, now, AttemptStatus.AUTO_SUBMITTED, null);
+        }
+
+        Exam exam = attempt.getExam();
+        Map<Long, Answer> saved = new HashMap<>();
+        for (Answer a : answerRepository.findAllByAttemptId(attemptId)) {
+            saved.put(a.getQuestion().getId(), a);
+        }
+
+        List<ExamQuestion> ordered = orderQuestions(exam, attempt);
+        // 보기는 별도 쿼리로 한 번에 초기화한다 (문항 컬렉션과 겹쳐 fetch 하면 카테시안 곱).
+        List<Long> questionIds = ordered.stream().map(eq -> eq.getQuestion().getId()).toList();
+        if (!questionIds.isEmpty()) {
+            examTakeRepository.findQuestionsWithChoices(questionIds);
+        }
+
+        List<AttemptQuestionRow> questions = new ArrayList<>();
+        int no = 0;
+        for (ExamQuestion eq : ordered) {
+            questions.add(AttemptQuestionRow.of(eq, ++no, saved.get(eq.getQuestion().getId())));
+        }
+
+        long remain = attempt.getExpiresAt() == null
+                ? 0L
+                : Math.max(0L, Duration.between(now, attempt.getExpiresAt()).getSeconds());
+
+        return new AttemptView(
+                String.valueOf(attempt.getId()),
+                String.valueOf(exam.getId()),
+                exam.getExamName(),
+                exam.getCourse() == null ? "-" : exam.getCourse().getCourseName(),
+                exam.getNote(),
+                attempt.getAttemptNo(),
+                maxAttempts(exam),
+                attempt.getStatus().name(),
+                format(attempt.getExpiresAt(), FULL_FORMAT),
+                FULL_FORMAT.format(now),
+                remain,
+                exam.isBlockTabSwitch(),
+                exam.isBlockCopyPaste(),
+                exam.isProctorEnabled(),
+                exam.isRequireWebcam(),
+                format(attempt.getIdentityVerifiedAt(), FULL_FORMAT),
+                attempt.getIdentityVerifyMethod(),
+                questions);
+    }
+
+    /* ===================== 답안 임시저장 ===================== */
+
+    /**
+     * 답안 임시저장. (attempt, question) 유니크라 항상 같은 행을 upsert 한다 — 행이 늘어나면 안 된다.
+     * 제출 여부는 Answer 가 아니라 ExamAttempt.status 로만 판정하므로 여기서 상태를 바꾸지 않는다.
+     *
+     * @return 저장 시각
+     */
+    @Transactional
+    public LocalDateTime saveAnswer(Long attemptId, Long userId, Long questionId,
+                                    Long choiceId, String answerText) {
+        LocalDateTime now = LocalDateTime.now();
+        ExamAttempt attempt = attemptWithQuestions(attemptId);
+        ensureOwner(attempt, userId);
+
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            throw new ExamTakeException("ALREADY_SUBMITTED", "이미 종료된 응시 회차입니다.");
+        }
+        if (attempt.isExpired(now)) {
+            // 서버 시계 기준으로 이미 마감. 화면 타이머가 뭐라 하든 저장하지 않는다.
+            throw new ExamTakeException("EXPIRED", "제한시간이 만료되어 답안을 저장할 수 없습니다.");
+        }
+
+        ExamQuestion examQuestion = attempt.getExam().getExamQuestions().stream()
+                .filter(eq -> eq.getQuestion().getId().equals(questionId))
+                .findFirst()
+                .orElseThrow(() -> new ExamTakeException("BAD_QUESTION", "이 시험에 편성되지 않은 문항입니다."));
+        Question question = examQuestion.getQuestion();
+
+        QuestionChoice choice = null;
+        if (choiceId != null) {
+            choice = question.getChoices().stream()
+                    .filter(c -> c.getId().equals(choiceId))
+                    .findFirst()
+                    .orElseThrow(() -> new ExamTakeException("BAD_CHOICE", "이 문항의 보기가 아닙니다."));
+        }
+        String text = (answerText == null || answerText.isBlank()) ? null : answerText;
+
+        Answer answer = answerRepository.findByAttemptIdAndQuestionId(attemptId, questionId).orElse(null);
+        if (answer == null) {
+            answerRepository.save(Answer.builder()
+                    .attempt(attempt)
+                    .question(question)
+                    .choice(choice)
+                    .answerText(text)
+                    .savedAt(now)
+                    .build());
+        } else {
+            answer.updateAnswer(choice, text, now);
+        }
+        return now;
+    }
+
+    /* ===================== 제출 ===================== */
+
+    /**
+     * 최종 제출. 만료 후 들어온 제출은 {@code AUTO_SUBMITTED} 로 기록하고 결과에 그 사실을 담아 돌려준다.
+     * 이미 종료된 회차에 다시 들어오면 에러 대신 기존 결과를 돌려준다(멱등) — 네트워크 재시도 때문.
+     */
+    @Transactional
+    public AttemptResultView submit(Long attemptId, Long userId, String ip) {
+        LocalDateTime now = LocalDateTime.now();
+        ExamAttempt attempt = attemptWithQuestions(attemptId);
+        ensureOwner(attempt, userId);
+
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            return resultView(attempt);
+        }
+        AttemptStatus status = attempt.isExpired(now)
+                ? AttemptStatus.AUTO_SUBMITTED
+                : AttemptStatus.SUBMITTED;
+        return finish(attempt, now, status, ip);
+    }
+
+    /** 제출 결과 조회 (결과 화면 새로고침용). */
+    @Transactional(readOnly = true)
+    public AttemptResultView loadResult(Long attemptId, Long userId) {
+        ExamAttempt attempt = attemptWithQuestions(attemptId);
+        ensureOwner(attempt, userId);
+        return resultView(attempt);
+    }
+
+    /* ===================== 부정행위 이벤트 ===================== */
+
+    /**
+     * 화면이 보낸 이벤트를 append-only 로 기록.
+     * 알 수 없는 타입은 저장하지 않고 false 를 돌려준다(클라이언트 입력을 그대로 믿지 않는다).
+     */
+    @Transactional
+    public boolean recordEvent(Long attemptId, Long userId, String eventType, String detail, String ip) {
+        ExamAttempt attempt = examAttemptRepository.findWithExam(attemptId)
+                .orElseThrow(() -> new ExamTakeException("NOT_FOUND", "응시 회차를 찾을 수 없습니다."));
+        ensureOwner(attempt, userId);
+
+        ExamEventLog.EventType type = examEventLogService.parseType(eventType);
+        if (type == null) {
+            return false;
+        }
+        examEventLogService.append(attempt, type, detail, ip);
+        return true;
+    }
+
+    /* ===================== 내부 ===================== */
+
+    /** 자동 채점 + 상태 확정 + 퇴장 로그. 제출/자동제출 두 경로가 공유한다. */
+    private AttemptResultView finish(ExamAttempt attempt, LocalDateTime now,
+                                     AttemptStatus status, String ip) {
+        Exam exam = attempt.getExam();
+
+        Map<Long, Answer> answers = new HashMap<>();
+        for (Answer a : answerRepository.findAllByAttemptId(attempt.getId())) {
+            answers.put(a.getQuestion().getId(), a);
+        }
+
+        int autoScore = 0;
+        int answered = 0;
+        boolean manualPending = false;
+
+        for (ExamQuestion eq : exam.getExamQuestions()) {
+            Question question = eq.getQuestion();
+            Answer answer = answers.get(question.getId());
+            if (answer != null && (answer.getChoice() != null
+                    || (answer.getAnswerText() != null && !answer.getAnswerText().isBlank()))) {
+                answered++;
+            }
+            if (!question.isAutoGradable()) {
+                // 서술형/코딩 — 다음 슬라이스(시험 채점)에서 사람이 채점한다.
+                manualPending = true;
+                continue;
+            }
+            AutoGrader.Result result = autoGrader.grade(question, answer, eq.resolveScore());
+            autoScore += result.score();
+            if (answer != null) {
+                answer.gradeAuto(result.correct(), result.score(), now);
+            }
+        }
+
+        attempt.submit(now, status);
+        // 수동 채점이 남아 있으면 passScore 를 넘기지 않는다 — 합격 여부를 미리 확정하면 안 되기 때문.
+        attempt.applyScore(autoScore, null, manualPending ? null : exam.getPassScore());
+
+        examEventLogService.append(attempt, ExamEventLog.EventType.EXIT,
+                status == AttemptStatus.AUTO_SUBMITTED
+                        ? "제한시간 만료 — 서버 자동 제출"
+                        : "응시자 최종 제출",
+                ip);
+
+        return buildResult(attempt, exam, answered, manualPending);
+    }
+
+    private AttemptResultView resultView(ExamAttempt attempt) {
+        Exam exam = attempt.getExam();
+        int answered = 0;
+        boolean manualPending = false;
+        Map<Long, Answer> answers = new HashMap<>();
+        for (Answer a : answerRepository.findAllByAttemptId(attempt.getId())) {
+            answers.put(a.getQuestion().getId(), a);
+        }
+        for (ExamQuestion eq : exam.getExamQuestions()) {
+            Answer answer = answers.get(eq.getQuestion().getId());
+            if (answer != null && (answer.getChoice() != null
+                    || (answer.getAnswerText() != null && !answer.getAnswerText().isBlank()))) {
+                answered++;
+            }
+            if (!eq.getQuestion().isAutoGradable()) {
+                manualPending = true;
+            }
+        }
+        return buildResult(attempt, exam, answered, manualPending);
+    }
+
+    private AttemptResultView buildResult(ExamAttempt attempt, Exam exam,
+                                          int answered, boolean manualPending) {
+        return new AttemptResultView(
+                String.valueOf(attempt.getId()),
+                exam.getExamName(),
+                attempt.getStatus().name(),
+                attempt.getStatus() == AttemptStatus.AUTO_SUBMITTED,
+                format(attempt.getSubmittedAt(), FULL_FORMAT),
+                attempt.getAutoScore(),
+                attempt.getTotalScore(),
+                exam.getTotalScore(),
+                exam.getPassScore(),
+                attempt.getPassed(),
+                manualPending,
+                answered,
+                exam.getExamQuestions().size());
+    }
+
+    /**
+     * 본인인증 판정.
+     *
+     * 순서가 중요하다: 최근 인증 면제를 먼저 보고, 그 다음에 자격값 검증을 한다.
+     * required=true 인데 둘 다 없으면 여기서 막혀 회차가 만들어지지 않는다 (내역서 요건).
+     */
+    private VerifyOutcome verifyIdentity(Long userId, String method, String credential, boolean required) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Optional<LocalDateTime> last = identityVerificationService.lastVerifiedAt(userId);
+        if (last.isPresent() && last.get().isAfter(now.minusMinutes(VERIFY_VALID_MINUTES))) {
+            return new VerifyOutcome(last.get(), METHOD_RECENT);
+        }
+        if (credential == null || credential.isBlank()) {
+            if (required) {
+                throw ExamTakeException.identityRequired(
+                        "응시 전 본인인증이 필요합니다. (최근 " + VERIFY_VALID_MINUTES + "분 이내 인증 이력 없음)");
+            }
+            return new VerifyOutcome(null, null);
+        }
+        try {
+            String used = identityVerificationService.verify(userId, new VerifyRequest(
+                    (method == null || method.isBlank()) ? VerifyRequest.METHOD_PASSWORD : method.strip(),
+                    credential));
+            return new VerifyOutcome(now, used);
+        } catch (IdentityVerificationException e) {
+            throw ExamTakeException.identityRequired("본인인증에 실패했습니다. " + e.getMessage());
+        }
+    }
+
+    private record VerifyOutcome(LocalDateTime at, String method) {
+    }
+
+    /**
+     * 출제 순서. randomOrder=true 면 섞되 <b>회차 id 를 시드로 고정</b>한다.
+     * 매번 다시 섞으면 새로고침마다 문항 순서가 바뀌어 응시자가 자기 답안을 찾지 못한다.
+     */
+    private List<ExamQuestion> orderQuestions(Exam exam, ExamAttempt attempt) {
+        List<ExamQuestion> ordered = new ArrayList<>(exam.getExamQuestions());
+        ordered.sort(Comparator.comparing(ExamQuestion::getSeq));
+        if (exam.isRandomOrder()) {
+            Collections.shuffle(ordered, new Random(attempt.getId()));
+        }
+        return ordered;
+    }
+
+    private ExamTakeRow toRow(Exam exam, List<ExamAttempt> attempts, int questionCount,
+                              String typeText, LocalDateTime now) {
+        int max = maxAttempts(exam);
+        int used = attempts.size();
+
+        ExamAttempt inProgress = attempts.stream()
+                .filter(a -> a.getStatus() == AttemptStatus.IN_PROGRESS)
+                .findFirst().orElse(null);
+        ExamAttempt lastFinished = attempts.stream()
+                .filter(a -> a.getStatus() == AttemptStatus.SUBMITTED
+                        || a.getStatus() == AttemptStatus.AUTO_SUBMITTED)
+                .reduce((a, b) -> b).orElse(null);
+
+        boolean ready = questionCount > 0;
+        boolean beforeWindow = now.isBefore(exam.getWindowStart());
+        boolean afterWindow = now.isAfter(exam.getWindowEnd()) || exam.getStatus() == Exam.ExamStatus.CLOSED;
+
+        String status;
+        String blockReason = null;
+        if (inProgress != null) {
+            status = "in_progress";
+        } else if (beforeWindow) {
+            status = "scheduled";
+            blockReason = "응시 시작 전입니다.";
+        } else if (afterWindow) {
+            status = "ended";
+            blockReason = "응시 기간이 종료되었습니다.";
+        } else if (used >= max) {
+            status = "completed";
+            blockReason = "응시 가능 횟수를 모두 사용했습니다.";
+        } else {
+            status = "available";
+        }
+        if (blockReason == null && !ready) {
+            blockReason = "출제 문항이 확정되지 않았습니다. 담당 강사에게 문의하세요.";
+        }
+        boolean startable = ready && blockReason == null;
+
+        return new ExamTakeRow(
+                String.valueOf(exam.getId()),
+                exam.getExamName(),
+                exam.getCourse() == null ? "" : String.valueOf(exam.getCourse().getId()),
+                exam.getCourse() == null ? "-" : exam.getCourse().getCourseName(),
+                exam.getSession() == null ? "-" : exam.getSession().getName(),
+                format(exam.getWindowStart(), LIST_FORMAT),
+                format(exam.getWindowEnd(), LIST_FORMAT),
+                exam.getTimeLimitMin(),
+                questionCount,
+                typeText,
+                exam.isRetakeAllowed() ? "가능(최대 " + max + "회)" : "불가",
+                used,
+                max,
+                status,
+                exam.getNote(),
+                exam.isRequireIdentityVerification(),
+                inProgress == null ? null : String.valueOf(inProgress.getId()),
+                lastFinished == null ? null : String.valueOf(lastFinished.getId()),
+                ready,
+                startable,
+                blockReason);
+    }
+
+    /** 수강생 명단은 A 의 계약(CourseQueryService)으로만 얻는다. A 리포지토리를 직접 쓰지 않는다. */
+    private List<Long> myCourseIds(Long userId) {
+        List<Long> result = new ArrayList<>();
+        for (var course : examRefRepository.findAllCourses()) {
+            if (courseQueryService.findUserIdsByCourseId(course.getId()).contains(userId)) {
+                result.add(course.getId());
+            }
+        }
+        return result;
+    }
+
+    private void ensureEnrolled(Long userId, Exam exam) {
+        Long courseId = exam.getCourse() == null ? null : exam.getCourse().getId();
+        if (courseId == null
+                || !courseQueryService.findUserIdsByCourseId(courseId).contains(userId)) {
+            throw new AccessDeniedException("수강 중인 과정의 시험이 아닙니다.");
+        }
+    }
+
+    /** 남의 응시 회차 접근은 403. 본인 확인은 모든 진입점에서 반드시 통과해야 한다. */
+    private void ensureOwner(ExamAttempt attempt, Long userId) {
+        if (attempt.getUser() == null || !attempt.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("본인의 응시 회차가 아닙니다.");
+        }
+    }
+
+    private ExamAttempt attemptWithQuestions(Long attemptId) {
+        return examAttemptRepository.findWithExamQuestions(attemptId)
+                .orElseThrow(() -> new ExamTakeException("NOT_FOUND", "응시 회차를 찾을 수 없습니다."));
+    }
+
+    private int maxAttempts(Exam exam) {
+        if (!exam.isRetakeAllowed()) {
+            return 1;
+        }
+        return exam.getMaxAttempts() == null ? 1 : Math.max(1, exam.getMaxAttempts());
+    }
+
+    private static String format(LocalDateTime at, DateTimeFormatter formatter) {
+        return at == null ? null : formatter.format(at);
+    }
+
+    private static String truncate(String value, int max) {
+        if (value == null) {
+            return null;
+        }
+        return value.length() <= max ? value : value.substring(0, max);
+    }
+
+    private Map<Long, Long> toCountMap(List<Object[]> rows) {
+        Map<Long, Long> map = new HashMap<>();
+        for (Object[] row : rows) {
+            map.put((Long) row[0], ((Number) row[1]).longValue());
+        }
+        return map;
+    }
+
+    /** [examId, questionType, count] 를 "객관식 + 주관식" 형태 문구로 접는다. */
+    private Map<Long, String> toTypeTextMap(List<Object[]> rows) {
+        Map<Long, List<String>> grouped = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            Long examId = (Long) row[0];
+            Question.QuestionType type = (Question.QuestionType) row[1];
+            grouped.computeIfAbsent(examId, k -> new ArrayList<>())
+                    .add(AttemptQuestionRow.typeLabel(type));
+        }
+        Map<Long, String> result = new HashMap<>();
+        grouped.forEach((examId, labels) -> result.put(examId, String.join(" + ", labels)));
+        return result;
+    }
+}

@@ -6,6 +6,7 @@ import com.ssa.lms.course.entity.Subject;
 import com.ssa.lms.course.service.CourseQueryService;
 import com.ssa.lms.exam.dto.*;
 import com.ssa.lms.exam.entity.*;
+import com.ssa.lms.exam.repository.ExamAttemptRepository;
 import com.ssa.lms.exam.repository.ExamRefRepository;
 import com.ssa.lms.exam.repository.ExamRepository;
 import com.ssa.lms.exam.repository.QuestionRepository;
@@ -39,6 +40,7 @@ public class ExamService {
     private final ExamRepository examRepository;
     private final ExamRefRepository examRefRepository;
     private final QuestionRepository questionRepository;
+    private final ExamAttemptRepository examAttemptRepository;
     private final CourseQueryService courseQueryService;
 
     /* ===== 조회 ===== */
@@ -173,6 +175,7 @@ public class ExamService {
     @Transactional
     public void update(Long id, ExamForm form) {
         validate(form);
+        ensureNotAttempted(id);
 
         Exam exam = getOrThrow(id);
         exam.update(
@@ -208,6 +211,8 @@ public class ExamService {
      */
     @Transactional
     public int materializeRules(Long examId) {
+        ensureNotAttempted(examId);
+
         Exam exam = examRepository.findWithQuestions(examId)
                 .orElseThrow(() -> new IllegalArgumentException("시험을 찾을 수 없습니다. id=" + examId));
 
@@ -256,6 +261,23 @@ public class ExamService {
     }
 
     /* ===== 검증 ===== */
+
+    /**
+     * 시험 수정 잠금 — 응시 기록(ExamAttempt)이 하나라도 있으면 문항 구성을 못 바꾸게 막는다.
+     *
+     * update()/materializeRules() 는 편성 문항을 통째로 지우고 다시 만든다. 이미 응시한 사람이 있으면
+     * Answer 가 가리키던 문항이 시험에서 사라져, "응시자에게 실제로 나간 문항"을 3년간 재현하라는
+     * 내역서 요건이 그 자리에서 깨진다. (문항이 지워지는 게 아니라 Exam 과의 연결이 끊겨서
+     * 채점·통계·이의신청 화면이 전부 어긋난다)
+     *
+     * 응시 후에도 정말 바꿔야 하는 경우는 시험을 새로 만들어 대체하는 것이 맞다.
+     */
+    private void ensureNotAttempted(Long examId) {
+        if (examAttemptRepository.existsByExamId(examId)) {
+            throw new IllegalArgumentException(
+                    "이미 응시 기록이 있는 시험은 수정할 수 없습니다. 문항을 바꾸려면 시험을 새로 등록하세요.");
+        }
+    }
 
     /**
      * 화면 입력만으로는 막을 수 없는 규칙을 여기서 본다.

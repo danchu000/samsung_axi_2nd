@@ -1,4 +1,4 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.entity;
 
 public enum CourseStatus {
     DRAFT("작성중"),

@@ -1,4 +1,4 @@
-package com.ssa.lms.user;
+package com.ssa.lms.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

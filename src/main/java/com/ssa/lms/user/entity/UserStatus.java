@@ -1,4 +1,4 @@
-package com.ssa.lms.user;
+package com.ssa.lms.user.entity;
 
 public enum UserStatus {
     PENDING("승인대기"),

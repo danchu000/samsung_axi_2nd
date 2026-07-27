@@ -1,8 +1,8 @@
 package com.ssa.lms.auth;
 
-import com.ssa.lms.user.AccessLog;
-import com.ssa.lms.user.AccessLogRepository;
-import com.ssa.lms.user.UserRepository;
+import com.ssa.lms.user.entity.AccessLog;
+import com.ssa.lms.user.repository.AccessLogRepository;
+import com.ssa.lms.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

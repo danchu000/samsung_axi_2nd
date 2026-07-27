@@ -1,6 +1,6 @@
 package com.ssa.lms.auth;
 
-import com.ssa.lms.user.UserRepository;
+import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

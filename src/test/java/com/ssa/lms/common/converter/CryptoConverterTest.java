@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AesCryptoConverterTest {
+class CryptoConverterTest {
 
-    private final AesCryptoConverter converter = new AesCryptoConverter("test-secret");
+    private final CryptoConverter converter = new CryptoConverter("test-secret");
 
     @Test
     void 암호화_후_복호화하면_원문이_나온다() {
@@ -34,7 +34,7 @@ class AesCryptoConverterTest {
     @Test
     void 다른_키로는_복호화할_수_없다() {
         String encrypted = converter.convertToDatabaseColumn("1999-07-07");
-        AesCryptoConverter otherKey = new AesCryptoConverter("other-secret");
+        CryptoConverter otherKey = new CryptoConverter("other-secret");
         assertThrows(IllegalStateException.class, () -> otherKey.convertToEntityAttribute(encrypted));
     }
 }

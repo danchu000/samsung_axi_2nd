@@ -1,10 +1,10 @@
 package com.ssa.lms.config;
 
 import com.ssa.lms.course.*;
-import com.ssa.lms.user.Role;
-import com.ssa.lms.user.User;
-import com.ssa.lms.user.UserRepository;
-import com.ssa.lms.user.UserStatus;
+import com.ssa.lms.user.entity.Role;
+import com.ssa.lms.user.entity.User;
+import com.ssa.lms.user.repository.UserRepository;
+import com.ssa.lms.user.entity.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -74,9 +74,9 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .build();
 
         Subject subject = Subject.builder().name("백엔드 기초").description("Java/Spring 입문").orderNo(1).build();
-        subject.addSession(CourseSession.builder().title("1차시 - 개발환경 구축").orderNo(1)
+        subject.addSession(Session.builder().title("1차시 - 개발환경 구축").orderNo(1)
                 .lessonDate(LocalDate.now().minusDays(6)).learningMinutes(60).build());
-        subject.addSession(CourseSession.builder().title("2차시 - Java 문법 기초").orderNo(2)
+        subject.addSession(Session.builder().title("2차시 - Java 문법 기초").orderNo(2)
                 .lessonDate(LocalDate.now().minusDays(5)).learningMinutes(60).build());
         course.addSubject(subject);
         courseRepository.save(course);

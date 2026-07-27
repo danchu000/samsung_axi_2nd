@@ -1,5 +1,6 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.repository;
 
+import com.ssa.lms.course.entity.Subject;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

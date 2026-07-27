@@ -1,7 +1,7 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.entity;
 
-import com.ssa.lms.common.BaseTimeEntity;
-import com.ssa.lms.user.User;
+import com.ssa.lms.common.entity.BaseEntity;
+import com.ssa.lms.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Enrollment extends BaseTimeEntity {
+public class Enrollment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

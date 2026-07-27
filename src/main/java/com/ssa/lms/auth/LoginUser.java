@@ -1,6 +1,6 @@
 package com.ssa.lms.auth;
 
-import com.ssa.lms.user.User;
+import com.ssa.lms.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +15,7 @@ public class LoginUser implements UserDetails {
     private final String loginId;
     private final String password;
     private final String name;
-    private final com.ssa.lms.user.Role role;
+    private final com.ssa.lms.user.entity.Role role;
     private final boolean enabled;
 
     public LoginUser(User user) {
@@ -24,7 +24,7 @@ public class LoginUser implements UserDetails {
         this.password = user.getPassword();
         this.name = user.getName();
         this.role = user.getRole();
-        this.enabled = user.getStatus() == com.ssa.lms.user.UserStatus.ACTIVE;
+        this.enabled = user.getStatus() == com.ssa.lms.user.entity.UserStatus.ACTIVE;
     }
 
     public Long getId() {
@@ -35,7 +35,7 @@ public class LoginUser implements UserDetails {
         return name;
     }
 
-    public com.ssa.lms.user.Role getRole() {
+    public com.ssa.lms.user.entity.Role getRole() {
         return role;
     }
 

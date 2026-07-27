@@ -1,6 +1,6 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.entity;
 
-import com.ssa.lms.common.BaseTimeEntity;
+import com.ssa.lms.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 과목 — 과정(Course) 하위 구성 단위. 과목 아래에 차시(CourseSession)가 있다. */
+/** 과목 — 과정(Course) 하위 구성 단위. 과목 아래에 차시(Session)가 있다. */
 @Entity
 @Table(name = "subject")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Subject extends BaseTimeEntity {
+public class Subject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,8 +36,8 @@ public class Subject extends BaseTimeEntity {
     private int orderNo;
 
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("orderNo ASC")
-    private List<CourseSession> sessions = new ArrayList<>();
+    @OrderBy("seq ASC")
+    private List<Session> sessions = new ArrayList<>();
 
     @Builder
     private Subject(String name, String description, int orderNo) {
@@ -56,7 +56,7 @@ public class Subject extends BaseTimeEntity {
         this.orderNo = orderNo;
     }
 
-    public void addSession(CourseSession session) {
+    public void addSession(Session session) {
         sessions.add(session);
         session.setSubject(this);
     }

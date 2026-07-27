@@ -1,5 +1,6 @@
-package com.ssa.lms.user;
+package com.ssa.lms.user.repository;
 
+import com.ssa.lms.user.entity.AccessLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

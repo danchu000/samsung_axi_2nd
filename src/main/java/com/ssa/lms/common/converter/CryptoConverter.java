@@ -20,11 +20,11 @@ import java.util.Base64;
  * <p>알고리즘: AES-256/GCM/NoPadding, 키는 lms.crypto.secret의 SHA-256 해시(32byte).
  * 저장 형식: Base64(IV 12byte || 암호문+태그)</p>
  *
- * <p>사용: 엔티티 필드에 {@code @Convert(converter = AesCryptoConverter.class)}</p>
+ * <p>사용: 엔티티 필드에 {@code @Convert(converter = CryptoConverter.class)}</p>
  */
 @Component
 @Converter
-public class AesCryptoConverter implements AttributeConverter<String, String> {
+public class CryptoConverter implements AttributeConverter<String, String> {
 
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int IV_LENGTH = 12;
@@ -33,7 +33,7 @@ public class AesCryptoConverter implements AttributeConverter<String, String> {
     private final SecretKeySpec key;
     private final SecureRandom random = new SecureRandom();
 
-    public AesCryptoConverter(@Value("${lms.crypto.secret}") String secret) {
+    public CryptoConverter(@Value("${lms.crypto.secret}") String secret) {
         try {
             byte[] keyBytes = MessageDigest.getInstance("SHA-256")
                     .digest(secret.getBytes(StandardCharsets.UTF_8));

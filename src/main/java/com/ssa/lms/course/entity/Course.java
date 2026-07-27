@@ -1,6 +1,6 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.entity;
 
-import com.ssa.lms.common.BaseTimeEntity;
+import com.ssa.lms.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +10,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,21 +17,33 @@ import java.util.List;
  * 훈련 과정. 내역서 요건에 따라 데이터는 과정(course) 단위로 독립 수집되며,
  * 하위 도메인(시험/과제/출결 등)은 모두 course_id 를 FK 로 갖는다.
  * soft delete 적용 (3년 보존 요건).
+ *
+ * courseCode/courseName/cohort 필드명은 B 엔티티가 읽는 계약 (a-requests.md P0-3).
  */
 @Entity
-@Table(name = "course")
-@SQLDelete(sql = "UPDATE course SET deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@SQLRestriction("deleted = false")
+@Table(name = "course", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_course_code", columnNames = "course_code")
+})
+@SQLDelete(sql = "UPDATE course SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Course extends BaseTimeEntity {
+public class Course extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String name;
+    /** 과정 코드 — 화면 표기 형식: COURSE-2024-001 (PK 와 별개 컬럼) */
+    @Column(name = "course_code", nullable = false, length = 30)
+    private String courseCode;
+
+    @Column(name = "course_name", nullable = false, length = 200)
+    private String courseName;
+
+    /** 기수 — 화면 표기 형식: "1기" */
+    @Column(length = 20)
+    private String cohort;
 
     /** 과정 분류 (ex. 클라우드, AI, 웹개발 …) */
     @Column(length = 50)
@@ -63,16 +74,13 @@ public class Course extends BaseTimeEntity {
     @OrderBy("orderNo ASC")
     private List<Subject> subjects = new ArrayList<>();
 
-    @Column(nullable = false)
-    private boolean deleted = false;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @Builder
-    private Course(String name, String category, String description, LocalDate startDate,
-                   LocalDate endDate, int capacity, CourseStatus status, Integer completionProgressRate) {
-        this.name = name;
+    private Course(String courseCode, String courseName, String cohort, String category,
+                   String description, LocalDate startDate, LocalDate endDate, int capacity,
+                   CourseStatus status, Integer completionProgressRate) {
+        this.courseCode = courseCode;
+        this.courseName = courseName;
+        this.cohort = cohort;
         this.category = category;
         this.description = description;
         this.startDate = startDate;
@@ -82,9 +90,10 @@ public class Course extends BaseTimeEntity {
         this.completionProgressRate = completionProgressRate != null ? completionProgressRate : 80;
     }
 
-    public void update(String name, String category, String description, LocalDate startDate,
-                       LocalDate endDate, int capacity, Integer completionProgressRate) {
-        this.name = name;
+    public void update(String courseName, String cohort, String category, String description,
+                       LocalDate startDate, LocalDate endDate, int capacity, Integer completionProgressRate) {
+        this.courseName = courseName;
+        this.cohort = cohort;
         this.category = category;
         this.description = description;
         this.startDate = startDate;

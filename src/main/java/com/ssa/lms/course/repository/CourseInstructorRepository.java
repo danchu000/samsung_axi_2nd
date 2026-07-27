@@ -1,5 +1,6 @@
-package com.ssa.lms.course;
+package com.ssa.lms.course.repository;
 
+import com.ssa.lms.course.entity.CourseInstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -9,4 +10,6 @@ public interface CourseInstructorRepository extends JpaRepository<CourseInstruct
     List<CourseInstructor> findByCourseId(Long courseId);
 
     List<CourseInstructor> findByInstructorId(Long instructorId);
+
+    boolean existsByCourseIdAndInstructorId(Long courseId, Long instructorId);
 }

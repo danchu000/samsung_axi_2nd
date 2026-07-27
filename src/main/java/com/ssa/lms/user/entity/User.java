@@ -1,7 +1,7 @@
-package com.ssa.lms.user;
+package com.ssa.lms.user.entity;
 
-import com.ssa.lms.common.BaseTimeEntity;
-import com.ssa.lms.common.converter.AesCryptoConverter;
+import com.ssa.lms.common.converter.CryptoConverter;
+import com.ssa.lms.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  *   <li>비밀번호: bcrypt 해시로만 저장 (SecurityConfig의 PasswordEncoder)</li>
  *   <li>개인정보 컬럼(email, phone, birthDate)은 AES-256 암호화 — 내역서 증빙 요건.
  *       암호문이 저장되므로 해당 컬럼으로는 DB 검색 불가. 검색은 loginId/name 사용.</li>
- *   <li>soft delete: 삭제 시 deleted=true 로 마킹만 (훈련 정보 3년 보존 요건)</li>
+ *   <li>soft delete: 삭제 시 is_deleted 마킹만 (훈련 정보 3년 보존 요건)</li>
  * </ul>
  *
  * 스키마 변경은 공통 엔티티 규칙에 따라 A·B 합의 후 진행 (CLAUDE.md).
@@ -28,11 +28,11 @@ import java.time.LocalDateTime;
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(name = "uk_users_login_id", columnNames = "login_id")
 })
-@SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@SQLRestriction("deleted = false")
+@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseTimeEntity {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,16 +58,16 @@ public class User extends BaseTimeEntity {
 
     /* ===== 개인정보 (AES-256 암호화 저장) ===== */
 
-    @Convert(converter = AesCryptoConverter.class)
+    @Convert(converter = CryptoConverter.class)
     @Column(length = 512)
     private String email;
 
-    @Convert(converter = AesCryptoConverter.class)
+    @Convert(converter = CryptoConverter.class)
     @Column(length = 512)
     private String phone;
 
     /** yyyy-MM-dd 문자열로 암호화 저장 */
-    @Convert(converter = AesCryptoConverter.class)
+    @Convert(converter = CryptoConverter.class)
     @Column(name = "birth_date", length = 512)
     private String birthDate;
 
@@ -92,14 +92,6 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
-
-    /* ===== soft delete ===== */
-
-    @Column(nullable = false)
-    private boolean deleted = false;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     @Builder
     private User(String loginId, String password, String name, Role role, UserStatus status,

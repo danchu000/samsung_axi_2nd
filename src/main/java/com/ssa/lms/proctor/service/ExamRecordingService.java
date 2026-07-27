@@ -92,7 +92,7 @@ public class ExamRecordingService {
                     countOf(counts.get(ExamEventLog.Severity.WARN)),
                     countOf(counts.get(ExamEventLog.Severity.CRITICAL)),
                     // 파일 경로는 절대 내려보내지 않는다 — 화면은 스트리밍 URL 만 안다
-                    streamUrlPrefix + recording.getId()));
+                    streamUrlPrefix + recording.getId() + "/stream"));
         }
         return rows;
     }
@@ -105,11 +105,11 @@ public class ExamRecordingService {
      */
     public Resource stream(Long recordingId, ProctorViewer viewer) {
         ExamRecording recording = examRecordingRepository.findForStreaming(recordingId)
-                .orElseThrow(() -> new IllegalArgumentException("녹화를 찾을 수 없습니다: " + recordingId));
+                .orElseThrow(() -> new ProctorNotFoundException("녹화를 찾을 수 없습니다: " + recordingId));
         assertCanView(recording, viewer);
 
         if (recording.getStatus() != ExamRecording.RecordingStatus.AVAILABLE) {
-            throw new IllegalStateException("재생할 수 없는 녹화입니다: "
+            throw new RecordingUnavailableException("재생할 수 없는 녹화입니다: "
                     + ProctorLabels.recordingStatus(recording.getStatus()));
         }
 
@@ -121,7 +121,7 @@ public class ExamRecordingService {
         }
         FileSystemResource resource = new FileSystemResource(target);
         if (!resource.exists() || !resource.isReadable()) {
-            throw new IllegalStateException("녹화 파일이 없습니다: recordingId=" + recordingId);
+            throw new RecordingUnavailableException("녹화 파일이 없습니다: recordingId=" + recordingId);
         }
         return resource;
     }

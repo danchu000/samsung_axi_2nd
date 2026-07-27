@@ -86,7 +86,7 @@ public class ProctorWarningService {
     @Transactional
     public void acknowledge(Long warningId, Long userId) {
         ProctorWarning warning = proctorWarningRepository.findById(warningId)
-                .orElseThrow(() -> new IllegalArgumentException("경고를 찾을 수 없습니다: " + warningId));
+                .orElseThrow(() -> new ProctorNotFoundException("경고를 찾을 수 없습니다: " + warningId));
         assertOwner(warning.getAttempt(), userId);
         if (warning.getAcknowledgedAt() == null) {
             warning.acknowledge(LocalDateTime.now());

@@ -122,7 +122,7 @@ public class ProctorMonitorService {
     /** 응시자별 상태 · 남은 시간 · 이상행위 카운트. 카메라 스트리밍은 이 슬라이스 범위 밖이다. */
     public LiveMonitorView live(Long examId, ProctorViewer viewer, ProctorUrls urls) {
         Exam exam = proctorMonitorRepository.findExamForMonitoring(examId)
-                .orElseThrow(() -> new IllegalArgumentException("시험을 찾을 수 없습니다: " + examId));
+                .orElseThrow(() -> new ProctorNotFoundException("시험을 찾을 수 없습니다: " + examId));
         assertCanMonitor(exam, viewer);
 
         List<ExamAttempt> attempts = proctorMonitorRepository.findAttemptsByExam(examId);
@@ -258,7 +258,7 @@ public class ProctorMonitorService {
 
     public ExamAttempt requireAttempt(Long attemptId) {
         return proctorMonitorRepository.findAttemptWithExamAndUser(attemptId)
-                .orElseThrow(() -> new IllegalArgumentException("응시 회차를 찾을 수 없습니다: " + attemptId));
+                .orElseThrow(() -> new ProctorNotFoundException("응시 회차를 찾을 수 없습니다: " + attemptId));
     }
 
     /**

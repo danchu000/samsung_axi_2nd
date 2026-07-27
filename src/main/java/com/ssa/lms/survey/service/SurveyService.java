@@ -9,11 +9,18 @@ import com.ssa.lms.survey.dto.SurveyForm;
 import com.ssa.lms.survey.dto.SurveyListRow;
 import com.ssa.lms.survey.dto.SurveyQuestionForm;
 import com.ssa.lms.survey.dto.SurveySearchCond;
+import com.ssa.lms.survey.dto.SurveyDetailView;
+import com.ssa.lms.survey.dto.SurveySubmitForm;
+import com.ssa.lms.survey.dto.TraineeSurveyRow;
 import com.ssa.lms.survey.entity.Survey;
 import com.ssa.lms.survey.entity.SurveyChoice;
+import com.ssa.lms.survey.entity.SurveyAnswer;
 import com.ssa.lms.survey.entity.SurveyQuestion;
+import com.ssa.lms.survey.entity.SurveyResponse;
 import com.ssa.lms.survey.repository.SurveyRepository;
 import com.ssa.lms.survey.repository.SurveyResponseRepository;
+import com.ssa.lms.user.entity.User;
+import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +50,7 @@ public class SurveyService {
     private final CourseQueryService courseQueryService;
     private final CourseRepository courseRepository;
     private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
 
     /**
      * 목록 조회.
@@ -148,22 +156,68 @@ public class SurveyService {
         surveyRepository.findAllById(ids).forEach(s -> s.changeStatus(target));
     }
 
-    /**
-     * 선택 삭제. Survey 는 BaseEntity 의 보존 정책을 따르지만 @SQLDelete 가 없어
-     * 물리 삭제된다. 응답 데이터 3년 보존 요건과 맞물리므로, 응답이 1건이라도 있으면
-     * 삭제하지 않고 마감 처리로 대신한다.
-     */
+    /** 선택 삭제. Survey 및 자식 엔티티는 @SQLDelete로 보존 삭제된다. */
     @Transactional
     public void delete(List<Long> ids) {
-        Map<Long, Long> responseCounts = toLongMap(
-                ids.isEmpty() ? Collections.emptyList() : surveyResponseRepository.countBySurveyIds(ids));
-        for (Survey s : surveyRepository.findAllById(ids)) {
-            if (responseCounts.getOrDefault(s.getId(), 0L) > 0) {
-                s.changeStatus(Survey.SurveyStatus.CLOSED);
-            } else {
-                surveyRepository.delete(s);
+        surveyRepository.deleteAll(surveyRepository.findAllById(ids));
+    }
+
+    /** 로그인한 훈련생에게 배포된 설문만 보여 준다. */
+    public List<TraineeSurveyRow> findForTrainee(Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Survey> visible = surveyRepository.findVisibleToTrainee(Survey.SurveyStatus.DRAFT).stream()
+                .filter(s -> s.getCourse() == null
+                        || courseQueryService.findUserIdsByCourseId(s.getCourse().getId()).contains(userId))
+                .toList();
+        List<Long> ids = visible.stream().map(Survey::getId).toList();
+        Map<Long, Long> questionCounts = toLongMap(ids.isEmpty() ? Collections.emptyList()
+                : surveyRepository.countQuestions(ids));
+        List<Long> submitted = surveyResponseRepository.findRespondedSurveyIds(userId);
+        return visible.stream().map(s -> TraineeSurveyRow.of(s, submitted.contains(s.getId()),
+                questionCounts.getOrDefault(s.getId(), 0L), now)).toList();
+    }
+
+    /** 훈련생 상세. 대상자가 아니거나 작성중 설문은 노출하지 않는다. */
+    public SurveyDetailView detailForTrainee(Long surveyId, Long userId) {
+        Survey survey = surveyRepository.findWithQuestions(surveyId)
+                .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + surveyId));
+        requireAudience(survey, userId);
+        boolean submitted = surveyResponseRepository.existsBySurveyIdAndUserId(surveyId, userId);
+        return SurveyDetailView.of(survey, submitted, !submitted && survey.isOpenAt(LocalDateTime.now()));
+    }
+
+    /** 서버 시간과 DB의 응답 유니크 제약을 기준으로 제출을 확정한다. */
+    @Transactional
+    public void submit(Long surveyId, Long userId, SurveySubmitForm form) {
+        Survey survey = surveyRepository.findWithQuestions(surveyId)
+                .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + surveyId));
+        requireAudience(survey, userId);
+        if (!survey.isOpenAt(LocalDateTime.now())) {
+            throw new IllegalArgumentException("현재 응답할 수 없는 설문입니다.");
+        }
+        if (!survey.isAnonymous() && surveyResponseRepository.existsBySurveyIdAndUserId(surveyId, userId)) {
+            throw new IllegalArgumentException("이미 제출한 설문입니다.");
+        }
+
+        Map<Long, SurveySubmitForm.AnswerInput> inputs = new HashMap<>();
+        if (form.getAnswers() != null) {
+            for (SurveySubmitForm.AnswerInput input : form.getAnswers()) {
+                if (input != null && input.getQuestionId() != null) inputs.put(input.getQuestionId(), input);
             }
         }
+        User respondent = survey.isAnonymous() ? null : userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        SurveyResponse response = SurveyResponse.builder().survey(survey).user(respondent)
+                .submittedAt(LocalDateTime.now()).build();
+        for (SurveyQuestion question : survey.getQuestions()) {
+            SurveySubmitForm.AnswerInput input = inputs.get(question.getId());
+            List<SurveyAnswer> answers = answersFor(question, input);
+            if (question.isRequired() && answers.isEmpty()) {
+                throw new IllegalArgumentException("필수 문항에 응답하세요: " + question.getContent());
+            }
+            answers.forEach(response::addAnswer);
+        }
+        surveyResponseRepository.save(response);
     }
 
     /* ===== 내부 ===== */
@@ -220,6 +274,46 @@ public class SurveyService {
             }
             survey.addQuestion(question);
         }
+    }
+
+    private void requireAudience(Survey survey, Long userId) {
+        if (survey.getStatus() == Survey.SurveyStatus.DRAFT
+                || (survey.getCourse() != null
+                && !courseQueryService.findUserIdsByCourseId(survey.getCourse().getId()).contains(userId))) {
+            throw new IllegalArgumentException("응답 대상 설문이 아닙니다.");
+        }
+    }
+
+    private List<SurveyAnswer> answersFor(SurveyQuestion question, SurveySubmitForm.AnswerInput input) {
+        if (input == null) return Collections.emptyList();
+        return switch (question.getQuestionType()) {
+            case SINGLE, MULTI -> {
+                Map<Long, SurveyChoice> choices = new HashMap<>();
+                question.getChoices().forEach(c -> choices.put(c.getId(), c));
+                List<Long> choiceIds = input.cleanChoiceIds();
+                if (question.getQuestionType() == SurveyQuestion.SurveyQuestionType.SINGLE && choiceIds.size() > 1) {
+                    throw new IllegalArgumentException("단일 선택 문항은 하나만 선택하세요.");
+                }
+                List<SurveyAnswer> result = new ArrayList<>();
+                for (Long choiceId : choiceIds) {
+                    SurveyChoice choice = choices.get(choiceId);
+                    if (choice == null) throw new IllegalArgumentException("유효하지 않은 보기입니다.");
+                    result.add(SurveyAnswer.builder().question(question).choice(choice).build());
+                }
+                yield result;
+            }
+            case SCALE -> {
+                if (input.getScaleValue() == null) yield Collections.emptyList();
+                int max = question.getScaleMax() == null ? 5 : question.getScaleMax();
+                if (input.getScaleValue() < 1 || input.getScaleValue() > max) {
+                    throw new IllegalArgumentException("척도 응답 범위가 올바르지 않습니다.");
+                }
+                yield List.of(SurveyAnswer.builder().question(question).scaleValue(input.getScaleValue()).build());
+            }
+            case TEXT -> input.hasText()
+                    ? List.of(SurveyAnswer.builder().question(question).answerText(input.getAnswerText().strip()).build())
+                    : Collections.emptyList();
+        };
     }
 
     /** 응답률 분모 — 대상 과정의 수강생 수. 전체 대상 설문(course=null)은 0(=화면에 "-"). */

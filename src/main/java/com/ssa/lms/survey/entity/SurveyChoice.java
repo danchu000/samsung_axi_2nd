@@ -2,6 +2,8 @@ package com.ssa.lms.survey.entity;
 
 import com.ssa.lms.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +13,8 @@ import lombok.NoArgsConstructor;
  * 설문 문항의 보기. 화면의 addChoice 로 동적 추가되므로 개수 제한 없음.
  */
 @Entity
+@SQLDelete(sql = "UPDATE survey_choice SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Table(
         name = "survey_choice",
         uniqueConstraints = @UniqueConstraint(

@@ -4,6 +4,8 @@ import com.ssa.lms.common.entity.BaseEntity;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.Session;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +28,8 @@ import java.util.List;
  * (survey.status, 그리고 해당 사용자의 SurveyResponse 존재 여부)의 조합으로 만드는 파생 상태다.
  */
 @Entity
+@SQLDelete(sql = "UPDATE survey SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Table(
         name = "survey",
         indexes = {

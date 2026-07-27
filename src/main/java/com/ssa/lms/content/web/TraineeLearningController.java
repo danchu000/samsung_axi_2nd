@@ -40,9 +40,9 @@ public class TraineeLearningController {
     @GetMapping("/learning")
     public String learning(@RequestParam(required = false) Long courseId,
                            @AuthenticationPrincipal LoginUser user, Model model) {
-        var courses = progressService.enrolledCourses(user.getId());
+        var courses = progressService.enrolledCourseOptions(user.getId());
         Long targetCourseId = courseId != null ? courseId
-                : (courses.isEmpty() ? null : courses.get(0).getId());
+                : (courses.isEmpty() ? null : courses.get(0).id());
         model.addAttribute("courses", courses);
         model.addAttribute("selectedCourseId", targetCourseId);
         model.addAttribute("groups", targetCourseId != null

@@ -6,6 +6,7 @@ import com.ssa.lms.content.entity.ContentType;
 import com.ssa.lms.content.entity.Progress;
 import com.ssa.lms.content.repository.ContentRepository;
 import com.ssa.lms.content.repository.ProgressRepository;
+import com.ssa.lms.content.web.CourseOption;
 import com.ssa.lms.content.web.LearningContentView;
 import com.ssa.lms.content.web.LearningSessionGroup;
 import com.ssa.lms.content.web.ProgressRequest;
@@ -115,6 +116,13 @@ public class ProgressService {
                 .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED
                         || e.getStatus() == EnrollmentStatus.COMPLETED)
                 .map(Enrollment::getCourse)
+                .toList();
+    }
+
+    /** 학습 중인 과정 선택 옵션(id + 과정명) — 트랜잭션 안에서 스칼라만 뽑아 lazy 프록시 노출을 막는다. */
+    public List<CourseOption> enrolledCourseOptions(Long userId) {
+        return enrolledCourses(userId).stream()
+                .map(c -> new CourseOption(c.getId(), c.getCourseName()))
                 .toList();
     }
 

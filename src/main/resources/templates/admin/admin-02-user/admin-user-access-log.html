@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+
+    <script src="/static/js/sidebar-function.js" defer></script>
+    <script src="/static/js/common-funtion.js" defer></script>
+    <title>Samsung Academy LXP - 접속 이력</title>
+    <style>
+        .log-section { flex: 1; padding: 20px; overflow-y: auto; }
+        .log-meta { font-size: 14px; color: var(--color-font-gray); margin-bottom: 16px; }
+        .log-table { width: 100%; border-collapse: collapse; background: #fff; }
+        .log-table thead { background: var(--color-light-gray); }
+        .log-table th, .log-table td { padding: 10px 12px; font-size: 14px; text-align: center;
+            border-bottom: 1px solid #f0f0f0; color: var(--color-font-gray); }
+        .log-table th { border-bottom: 2px solid #ddd; font-weight: 600; }
+        .type-login { color: #1976d2; font-weight: 600; }
+        .type-logout { color: #555; }
+        .type-fail { color: #c62828; font-weight: 600; }
+        .type-verify { color: #2e7d32; font-weight: 600; }
+        .pager { display: flex; gap: 8px; align-items: center; margin-top: 16px; font-size: 14px; }
+        .ua-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <th:block th:with="active=${user.role.name() == 'INSTRUCTOR'} ? 'user-instructor' : 'user-trainee'">
+        <header th:replace="~{fragments/admin :: header('사용자 관리 > 접속 이력')}"></header>
+        <th:block th:replace="~{fragments/admin :: sidebar(${active})}"/>
+    </th:block>
+
+    <main class="main-content">
+        <section class="log-section">
+            <div class="section-header">
+                <h2>접속 이력</h2>
+            </div>
+
+            <div class="log-meta">
+                <strong th:text="${user.name}">이름</strong>
+                (<span th:text="${user.loginId}">loginId</span> · <span th:text="${user.role.label}">유형</span>)
+                — 로그인/로그아웃·본인인증 기록 (최신순). 총
+                <strong th:text="${logs.totalElements}">0</strong>건.
+            </div>
+
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>일시</th>
+                        <th>유형</th>
+                        <th>IP 주소</th>
+                        <th>User-Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${logs.content}">
+                        <td th:text="${#temporals.format(log.occurredAt, 'yyyy-MM-dd HH:mm:ss')}">2026-01-01 00:00:00</td>
+                        <td th:switch="${log.type.name()}">
+                            <span th:case="'LOGIN'" class="type-login">로그인</span>
+                            <span th:case="'LOGOUT'" class="type-logout">로그아웃</span>
+                            <span th:case="'LOGIN_FAIL'" class="type-fail">로그인 실패</span>
+                            <span th:case="'IDENTITY_VERIFY'" class="type-verify">본인인증</span>
+                            <span th:case="*" th:text="${log.type}">-</span>
+                        </td>
+                        <td th:text="${log.ipAddress ?: '-'}">-</td>
+                        <td class="ua-cell" th:title="${log.userAgent}" th:text="${log.userAgent ?: '-'}">-</td>
+                    </tr>
+                    <tr th:if="${logs.isEmpty()}">
+                        <td colspan="4" style="padding:40px; color:#999;">접속 이력이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pager" th:if="${logs.totalPages > 1}">
+                <a th:if="${!logs.first}" class="btn-small btn-secondary"
+                   th:href="@{/admin/users/{id}/access-history(id=${user.id}, page=${logs.number - 1})}">이전</a>
+                <span th:text="${logs.number + 1} + ' / ' + ${logs.totalPages}">1 / 1</span>
+                <a th:if="${!logs.last}" class="btn-small btn-secondary"
+                   th:href="@{/admin/users/{id}/access-history(id=${user.id}, page=${logs.number + 1})}">다음</a>
+            </div>
+
+            <div style="margin-top:20px;">
+                <a th:href="@{/admin/users/{path}(path=${user.role.name() == 'INSTRUCTOR'} ? 'instructors' : 'trainees', selected=${user.id})}"
+                   class="btn btn-back">목록으로</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

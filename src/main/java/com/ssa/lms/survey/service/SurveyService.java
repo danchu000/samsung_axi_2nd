@@ -58,6 +58,24 @@ public class SurveyService {
      * 문항 수·응답 건수는 페이지에 담긴 id 묶음으로 한 번씩만 집계한다 (행마다 조회하면 N+1).
      * 응답률 분모만은 과정 단위라 courseId 별로 캐시해 중복 호출을 막는다.
      */
+    /**
+     * 설문 대상 과정 셀렉트 옵션.
+     * 임시로 A 소유 CourseRepository 를 읽기 전용으로 쓴다.
+     * A 가 CourseQueryService 에 과정 목록 조회를 추가하면 그쪽으로 옮긴다 (docs/a-requests.md).
+     */
+    public List<CourseOption> courseOptions() {
+        return courseRepository.findAll().stream()
+                .map(c -> new CourseOption(c.getId(), c.getCourseCode(), c.getCourseName(), c.getCohort()))
+                .toList();
+    }
+
+    /** 과정 셀렉트 한 줄. */
+    public record CourseOption(Long id, String code, String name, String cohort) {
+        public String label() {
+            return cohort == null || cohort.isBlank() ? name : name + " (" + cohort + ")";
+        }
+    }
+
     public List<SurveyListRow> search(SurveySearchCond cond) {
         List<Survey> surveys = surveyRepository.search(
                 cond.courseId(), cond.statusOrNull(), cond.keywordOrNull());
@@ -88,6 +106,8 @@ public class SurveyService {
     public SurveyForm loadForm(Long id) {
         Survey survey = surveyRepository.findWithQuestions(id)
                 .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + id));
+        // 보기(choices)는 bag 두 개를 동시에 fetch 할 수 없어 여기서 한 번 더 채운다
+        surveyRepository.fetchChoices(id);
         return SurveyForm.from(survey);
     }
 
@@ -118,6 +138,8 @@ public class SurveyService {
         validate(form);
         Survey survey = surveyRepository.findWithQuestions(id)
                 .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + id));
+        // 보기(choices)는 bag 두 개를 동시에 fetch 할 수 없어 여기서 한 번 더 채운다
+        surveyRepository.fetchChoices(id);
 
         survey.update(
                 form.getTitle().strip(), form.toSurveyType(),
@@ -181,6 +203,8 @@ public class SurveyService {
     public SurveyDetailView detailForTrainee(Long surveyId, Long userId) {
         Survey survey = surveyRepository.findWithQuestions(surveyId)
                 .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + surveyId));
+        // 보기(choices)는 bag 두 개를 동시에 fetch 할 수 없어 여기서 한 번 더 채운다
+        surveyRepository.fetchChoices(surveyId);
         requireAudience(survey, userId);
         boolean submitted = surveyResponseRepository.existsBySurveyIdAndUserId(surveyId, userId);
         return SurveyDetailView.of(survey, submitted, !submitted && survey.isOpenAt(LocalDateTime.now()));
@@ -191,6 +215,8 @@ public class SurveyService {
     public void submit(Long surveyId, Long userId, SurveySubmitForm form) {
         Survey survey = surveyRepository.findWithQuestions(surveyId)
                 .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다. id=" + surveyId));
+        // 보기(choices)는 bag 두 개를 동시에 fetch 할 수 없어 여기서 한 번 더 채운다
+        surveyRepository.fetchChoices(surveyId);
         requireAudience(survey, userId);
         if (!survey.isOpenAt(LocalDateTime.now())) {
             throw new IllegalArgumentException("현재 응답할 수 없는 설문입니다.");

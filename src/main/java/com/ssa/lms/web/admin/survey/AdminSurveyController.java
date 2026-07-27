@@ -32,13 +32,14 @@ public class AdminSurveyController {
         SurveyForm form = new SurveyForm();
         form.getQuestions().add(defaultQuestion());
         model.addAttribute("form", form);
+        model.addAttribute("courses", surveyService.courseOptions());
         return "admin/admin-05-attendance/admin-attendance-survey-add";
     }
 
     @PostMapping
-    public String create(@Valid @ModelAttribute("form") SurveyForm form, BindingResult errors,
+    public String create(@Valid @ModelAttribute("form") SurveyForm form, BindingResult errors, Model model,
                          RedirectAttributes redirect) {
-        if (errors.hasErrors()) return "admin/admin-05-attendance/admin-attendance-survey-add";
+        if (errors.hasErrors()) { model.addAttribute("courses", surveyService.courseOptions()); return "admin/admin-05-attendance/admin-attendance-survey-add"; }
         surveyService.create(form);
         redirect.addFlashAttribute("message", "설문을 등록하고 배포 상태를 설정했습니다.");
         return "redirect:/admin/survey";
@@ -47,13 +48,14 @@ public class AdminSurveyController {
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
         model.addAttribute("form", surveyService.loadForm(id));
+        model.addAttribute("courses", surveyService.courseOptions());
         return "admin/admin-05-attendance/admin-attendance-survey-add";
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute("form") SurveyForm form,
+    public String update(@PathVariable Long id, @Valid @ModelAttribute("form") SurveyForm form, Model model,
                          BindingResult errors, RedirectAttributes redirect) {
-        if (errors.hasErrors()) return "admin/admin-05-attendance/admin-attendance-survey-add";
+        if (errors.hasErrors()) { model.addAttribute("courses", surveyService.courseOptions()); return "admin/admin-05-attendance/admin-attendance-survey-add"; }
         surveyService.update(id, form);
         redirect.addFlashAttribute("message", "설문을 수정했습니다.");
         return "redirect:/admin/survey";

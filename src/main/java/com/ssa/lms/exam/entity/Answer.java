@@ -70,6 +70,13 @@ public class Answer extends BaseEntity {
     @Column(name = "saved_at", nullable = false)
     private LocalDateTime savedAt;
 
+    /**
+     * 수동 채점 코멘트 (학생에게 공개). 채점 팝업의 "채점 코멘트" 입력란.
+     * 시험 채점 슬라이스에서 추가 — 자동 채점에는 쓰지 않는다.
+     */
+    @Column(name = "grader_comment", columnDefinition = "TEXT")
+    private String graderComment;
+
     @Builder
     public Answer(ExamAttempt attempt, Question question, QuestionChoice choice,
                   String answerText, LocalDateTime savedAt) {
@@ -95,10 +102,22 @@ public class Answer extends BaseEntity {
     }
 
     public void gradeManual(User grader, Integer score, Boolean correct, LocalDateTime at) {
+        gradeManual(grader, score, correct, null, at);
+    }
+
+    /**
+     * 수동 채점 (코멘트 포함).
+     *
+     * <p>{@code autoGraded=false} 로 되돌리는 것이 핵심이다 — 채점 현황 집계가
+     * "autoGraded=false 이고 score 가 있는 답안"을 사람이 채점한 문항으로 센다.</p>
+     */
+    public void gradeManual(User grader, Integer score, Boolean correct,
+                            String graderComment, LocalDateTime at) {
         this.gradedBy = grader;
         this.score = score;
         this.correct = correct;
         this.autoGraded = false;
+        this.graderComment = graderComment;
         this.gradedAt = at;
     }
 }

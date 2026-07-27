@@ -1,6 +1,6 @@
 
 <!-- ✅ 시험 채점 모달 (동적 렌더링) -->
-<div id="examGradingModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="examGradingTitle" hidden>
+<div id="examGradingModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="examGradingTitle">
 <div class="modal" role="document">
 <div id="gradingModalContent"></div>
 </div>
@@ -172,10 +172,21 @@ font-size: 13px;
 .file-link { text-decoration: none; margin-right: 10px; }
 </style>
 
-<!-- ✅ 최소 동작 JS (열기/닫기/ESC/배경클릭/문제선택 UI) -->
+<!-- ===== 서버 데이터 주입 =====
+     이 화면은 result-grading.js 가 window.open 으로 여는 독립 페이지다.
+     컨트롤러(/admin/evaluation/grading/attempts/{id} 또는 /instructor/grading/...)가 detail 을 내려준다.
+     값이 없으면 아래 더미가 그대로 쓰이므로 정적 파일로 열어도 화면 구조는 확인할 수 있다. -->
+<script th:inline="javascript">
+    window._serverGradingDetail = /*[[${detail}]]*/ null;
+    window._csrf = {
+        token: /*[[${_csrf != null} ? ${_csrf.token} : '']]*/ '',
+        header: /*[[${_csrf != null} ? ${_csrf.headerName} : '']]*/ ''
+    };
+</script>
+
+<!-- ✅ 최소 동작 JS (열기/닫기/ESC/배경클릭/문제선택 + 채점 저장) -->
 <script>
-// 예시: 외부에서 전달받을 수 있는 데이터 구조
-const gradingData = window.opener && window.opener.getGradingData ? window.opener.getGradingData() : {
+const gradingData = window._serverGradingDetail || {
     courseName: '풀스택 웹 개발 (React & Node.js)',
     examName: '중간 평가',
     student: { name: '냐냐냐', id: 'STU-001' },
@@ -186,25 +197,38 @@ const gradingData = window.opener && window.opener.getGradingData ? window.opene
     manualScore: 15,
     totalScore: 45,
     maxScore: 60,
+    passScore: 36,
+    confirmed: false,
+    canGrade: true,
+    manualPending: true,
     questions: [
-        { q: 3, type: '서술형', status: '미채점', statusClass: 'status-pending', score: null, max: 20, answer: 'useState는 컴포넌트의 상태를 관리하며, 상태가 변경되면 리렌더링이 발생합니다...', file: 'answer.docx', comment: '개념은 정확하나 예시가 부족함', given: 15 },
-        { q: 1, type: '객관식', status: '자동채점', statusClass: 'status-done', score: 5, max: 5, answer: '정답: B', file: null, comment: '', given: 5 },
-        { q: 2, type: '객관식', status: '자동채점', statusClass: 'status-done', score: 5, max: 5, answer: '정답: C', file: null, comment: '', given: 5 },
-        { q: 4, type: '서술형', status: '채점완료', statusClass: 'status-done', score: 15, max: 20, answer: 'Redux는...', file: null, comment: '', given: 15 },
+        { questionId: 'q3', q: 3, type: '서술형', status: '미채점', statusClass: 'status-pending', max: 20, given: null, questionText: 'useState 를 설명하시오.', modelAnswer: '상태 관리 훅', answer: 'useState는 컴포넌트의 상태를 관리하며...', comment: '', manual: true, allowPartial: true },
+        { questionId: 'q1', q: 1, type: '객관식', status: '자동채점', statusClass: 'status-done', max: 5, given: 5, questionText: '', modelAnswer: '2. B', answer: '2. B', comment: '', manual: false, allowPartial: false },
+        { questionId: 'q2', q: 2, type: '객관식', status: '자동채점', statusClass: 'status-done', max: 5, given: 5, questionText: '', modelAnswer: '3. C', answer: '3. C', comment: '', manual: false, allowPartial: false },
+        { questionId: 'q4', q: 4, type: '서술형', status: '채점완료', statusClass: 'status-done', max: 20, given: 15, questionText: 'Redux 를 설명하시오.', modelAnswer: '', answer: 'Redux는...', comment: '', manual: true, allowPartial: true }
     ],
-    currentQ: 0 // 현재 선택된 문제 인덱스
+    currentQ: 0,
+    saveUrl: null,
+    confirmUrl: null,
+    listUrl: null
 };
+if (gradingData.currentQ == null) gradingData.currentQ = 0;
+
+function escapeHtml(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
 
 function renderGradingModal(data) {
-    // Header
     const header = `
         <header class="modal-header">
             <div class="header-left">
                 <h2 id="examGradingTitle" class="modal-title">시험 채점</h2>
                 <p class="modal-subtitle">
-                    <span class="muted">과정명:</span> ${data.courseName}
+                    <span class="muted">과정명:</span> ${escapeHtml(data.courseName)}
                     <span class="divider">|</span>
-                    <span class="muted">시험명:</span> ${data.examName}
+                    <span class="muted">시험명:</span> ${escapeHtml(data.examName)}
                 </p>
             </div>
             <div class="header-right">
@@ -212,52 +236,59 @@ function renderGradingModal(data) {
             </div>
         </header>
     `;
-    // Meta
+    const passedText = data.passed == null ? '미정' : (data.passed ? '합격' : '불합격');
     const meta = `
         <section class="modal-meta">
             <div class="meta-row">
-                <div class="meta-item"><span class="label">학생</span><span class="value">${data.student.name} (${data.student.id})</span></div>
-                <div class="meta-item"><span class="label">응시일시</span><span class="value">${data.examTime}</span></div>
-                <div class="meta-item"><span class="label">상태</span><span class="value badge ${data.statusClass}">${data.status}</span></div>
+                <div class="meta-item"><span class="label">학생</span><span class="value">${escapeHtml(data.student.name)} (${escapeHtml(data.student.id)})</span></div>
+                <div class="meta-item"><span class="label">응시일시</span><span class="value">${escapeHtml(data.examTime)}</span></div>
+                <div class="meta-item"><span class="label">상태</span><span class="value badge ${data.statusClass}" id="gradingStatusBadge">${escapeHtml(data.status)}</span></div>
             </div>
             <div class="meta-row">
                 <div class="meta-item"><span class="label">자동채점</span><span class="value">${data.autoScore}점</span></div>
                 <div class="meta-item"><span class="label">수동채점</span><span class="value">${data.manualScore}점</span></div>
-                <div class="meta-item"><span class="label">총점</span><span class="value strong">${data.totalScore} / ${data.maxScore}</span></div>
+                <div class="meta-item"><span class="label">총점</span><span class="value strong">${data.totalScore} / ${data.maxScore} (합격 ${data.passScore}점 · ${passedText})</span></div>
             </div>
         </section>
     `;
-    // Left: 문제 목록
     const questionList = data.questions.map((q, i) => `
         <li class="question-item${i === data.currentQ ? ' active' : ''}" role="option" aria-selected="${i === data.currentQ}" data-q-idx="${i}">
             <div class="q-main">
                 <span class="q-num">${q.q}번</span>
-                <span class="q-type">${q.type}</span>
+                <span class="q-type">${escapeHtml(q.type)}</span>
             </div>
             <div class="q-sub">
-                <span class="status ${q.statusClass}">${q.status === '자동채점' ? '✔ 자동채점' : (q.status === '채점완료' ? '✔ 채점완료' : (q.status === '미채점' ? '⏳ 미채점' : q.status))}</span>
+                <span class="status ${q.statusClass}">${q.status === '자동채점' ? '✔ 자동채점' : (q.status === '채점완료' ? '✔ 채점완료' : '⏳ 미채점')}</span>
                 <span class="score">${q.given != null ? q.given : '-'} / ${q.max}</span>
             </div>
         </li>
     `).join('');
-    // 점수 요약
-    const autoSum = data.questions.filter(q => q.type === '객관식').reduce((a, b) => a + (b.given || 0), 0);
-    const manualSum = data.questions.filter(q => q.type === '서술형').reduce((a, b) => a + (b.given || 0), 0);
-    const totalSum = autoSum + manualSum;
+
+    // ⚠️ 자동/수동 합계는 문항 유형 문자열이 아니라 서버가 내려준 manual 플래그로 가른다.
+    //    유형 라벨(객관식/주관식/서술형)로 가르면 주관식이 자동 채점인 사실이 반영되지 않는다.
+    const autoSum = data.questions.filter(q => !q.manual).reduce((a, b) => a + (b.given || 0), 0);
+    const manualSum = data.questions.filter(q => q.manual).reduce((a, b) => a + (b.given || 0), 0);
     const maxSum = data.questions.reduce((a, b) => a + (b.max || 0), 0);
     const summary = `
         <div class="summary-box" aria-label="점수 요약">
             <div class="sum-row"><span>자동</span><b>${autoSum}점</b></div>
             <div class="sum-row"><span>수동</span><b>${manualSum}점</b></div>
-            <div class="sum-row total"><span>총점</span><b>${totalSum} / ${maxSum}</b></div>
+            <div class="sum-row total"><span>총점</span><b>${autoSum + manualSum} / ${maxSum}</b></div>
         </div>
     `;
-    // Right: 문제 상세/채점
-    const q = data.questions[data.currentQ];
+
+    const q = data.questions[data.currentQ] || data.questions[0];
+    const locked = !data.canGrade || !q.manual;
+    const scoreHint = !q.manual
+        ? '자동 채점된 문항입니다. 점수를 수정할 수 없습니다.'
+        : (q.allowPartial
+            ? '부분점수 허용 — 0 ~ ' + q.max + ' 사이의 값을 입력하세요.'
+            : '부분점수 불가 — 0 또는 ' + q.max + ' 만 입력할 수 있습니다.');
+
     const rightPanel = `
         <div class="question-header">
             <div class="qh-left">
-                <h3 class="question-title">문제 ${q.q} <span class="muted">(${q.type})</span></h3>
+                <h3 class="question-title">문제 ${q.q} <span class="muted">(${escapeHtml(q.type)})</span></h3>
                 <div class="muted">배점: <b>${q.max}점</b></div>
             </div>
             <div class="qh-right">
@@ -267,49 +298,68 @@ function renderGradingModal(data) {
         </div>
         <div class="content-block">
             <div class="block-title">문제 지문</div>
-            <div class="block-body">${q.questionText || '문제 지문이 없습니다.'}</div>
+            <div class="block-body">${escapeHtml(q.questionText) || '문제 지문이 없습니다.'}</div>
         </div>
         <div class="content-block">
             <div class="block-title">모범 답안</div>
-            <div class="block-body scroll-box" id="modelAnswerBox">${q.modelAnswer || ''}</div>
+            <div class="block-body scroll-box" id="modelAnswerBox">${escapeHtml(q.modelAnswer)}</div>
         </div>
         <div class="content-block">
             <div class="block-title">학생 답안</div>
-            <div class="block-body scroll-box" id="studentAnswerBox">${q.answer || ''}</div>
+            <div class="block-body scroll-box" id="studentAnswerBox">${escapeHtml(q.answer)}</div>
         </div>
         <div class="grading-grid">
             <div class="content-block">
                 <div class="block-title">부여 점수</div>
                 <div class="block-body inline">
-                    <input type="number" class="input" min="0" max="${q.max}" value="${q.given != null ? q.given : ''}" aria-label="부여 점수 입력" id="scoreInput">
-                    <span class="muted">/ ${q.max} 점</span>
+                    <input type="number" class="input" min="0" max="${q.max}" step="${q.allowPartial ? 1 : q.max}"
+                           value="${q.given != null ? q.given : ''}" aria-label="부여 점수 입력" id="scoreInput"
+                           ${locked ? 'disabled' : ''}>
+                    <span class="muted">/ ${q.max} 점 — ${scoreHint}</span>
                 </div>
             </div>
             <div class="content-block">
                 <div class="block-title">채점 코멘트</div>
                 <div class="block-body">
-                    <textarea class="textarea" rows="4" placeholder="채점 코멘트를 입력하세요." id="commentInput">${q.comment || ''}</textarea>
+                    <textarea class="textarea" rows="4" placeholder="채점 코멘트를 입력하세요." id="commentInput"
+                              ${locked ? 'disabled' : ''}>${escapeHtml(q.comment)}</textarea>
                 </div>
             </div>
         </div>
     `;
-    // Footer (status가 '확정'이면 footer를 렌더링하지 않음)
+
+    // 확정된 성적은 "사유 없이 수정 불가"가 규칙이므로, 확정 후에는 사유 입력이 붙은 정정 폼만 보인다.
     let footer = '';
-    if (data.status !== '확정') {
+    if (!data.canGrade) {
+        footer = `<footer class="modal-footer"><div class="muted">담당하지 않는 과정이라 채점할 수 없습니다.</div></footer>`;
+    } else if (data.confirmed) {
+        footer = `
+        <footer class="modal-footer">
+            <div class="footer-left" style="flex:1; display:flex; gap:8px; align-items:center;">
+                <span class="label" style="min-width:auto;">정정 사유</span>
+                <input type="text" class="input" style="max-width:none; flex:1;" id="reasonInput"
+                       placeholder="확정된 성적입니다. 변경 사유를 입력해야 저장됩니다.">
+            </div>
+            <div class="footer-right">
+                <button type="button" class="btn btn-danger" id="correctBtn">성적 정정 저장</button>
+            </div>
+        </footer>
+        `;
+    } else {
         footer = `
         <footer class="modal-footer">
             <div class="footer-left">
                 <button type="button" class="btn" id="tempSaveBtn">임시 저장</button>
+                <span class="muted" id="gradingMessage"></span>
             </div>
             <div class="footer-right">
                 <button type="button" class="btn btn-primary" id="markDoneBtn">채점 완료</button>
-                <button type="button" class="btn btn-danger" id="finalizeBtn">채점 확정</button>
-                <button type="button" class="btn btn-ghost" id="appealBtn">이의제기 처리</button>
+                <button type="button" class="btn btn-danger" id="finalizeBtn" ${data.manualPending ? 'disabled' : ''}>채점 확정</button>
             </div>
         </footer>
         `;
     }
-    // 전체 조립
+
     document.getElementById('gradingModalContent').innerHTML = `
         ${header}
         ${meta}
@@ -329,37 +379,51 @@ function renderGradingModal(data) {
     `;
 }
 
-// 모달 열기/닫기 및 동적 렌더링
-(function () {
-    const modal = document.getElementById('examGradingModal');
-    // 외부에서 열 수 있게 함수 제공
-    window.openExamGradingModal = function () {
-        modal.hidden = false;
-        document.body.style.overflow = 'hidden';
-        renderGradingModal(gradingData);
-        attachHandlers();
-    };
-    window.closeExamGradingModal = function () {
-        modal.hidden = true;
-        document.body.style.overflow = '';
-    };
-    // 닫기 버튼/배경 클릭
-    modal.addEventListener('click', (e) => {
-        if (e.target.matches('[data-close-modal]')) window.closeExamGradingModal();
-        if (e.target === modal) window.closeExamGradingModal();
-    });
-    // ESC 닫기
-    document.addEventListener('keydown', (e) => {
-        if (!modal.hidden && e.key === 'Escape') window.closeExamGradingModal();
-    });
-    // 최초 렌더링
+/* ===== 서버 저장 ===== */
+
+function collectScores() {
+    // 수동 채점 문항만 보낸다. 자동 채점 문항을 섞어 보내면 서버가 400 으로 거부한다.
+    return gradingData.questions
+        .filter(q => q.manual && q.given != null)
+        .map(q => ({ questionId: Number(q.questionId), score: q.given, comment: q.comment || null }));
+}
+
+function postGrading(body, okMessage) {
+    if (!gradingData.saveUrl) {
+        alert('서버에 연결되지 않은 화면입니다. (정적 미리보기)');
+        return;
+    }
+    const headers = { 'Content-Type': 'application/json; charset=UTF-8' };
+    if (window._csrf && window._csrf.header) {
+        headers[window._csrf.header] = window._csrf.token;
+    }
+    fetch(gradingData.saveUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) })
+        .then(res => res.json().then(json => ({ ok: res.ok, json: json })))
+        .then(result => {
+            if (!result.ok || !result.json.ok) {
+                alert(result.json.message || '저장에 실패했습니다.');
+                return;
+            }
+            applyDetail(result.json.detail);
+            const msg = document.getElementById('gradingMessage');
+            if (msg) msg.textContent = okMessage;
+            if (window.opener && !window.opener.closed) {
+                window.opener.location.reload();
+            }
+        })
+        .catch(() => alert('저장 중 오류가 발생했습니다.'));
+}
+
+/** 서버가 돌려준 최신 상태로 화면을 통째로 갈아끼운다 (총점·상태·확정 여부가 서버 계산 결과여야 한다). */
+function applyDetail(detail) {
+    const keepIdx = gradingData.currentQ;
+    Object.keys(detail).forEach(k => { gradingData[k] = detail[k]; });
+    gradingData.currentQ = Math.min(keepIdx, gradingData.questions.length - 1);
     renderGradingModal(gradingData);
     attachHandlers();
-})();
+}
 
-// 동적 이벤트 핸들러 연결
 function attachHandlers() {
-    // 문제 선택
     document.querySelectorAll('.question-item').forEach(item => {
         item.addEventListener('click', function () {
             gradingData.currentQ = parseInt(this.getAttribute('data-q-idx'));
@@ -367,7 +431,7 @@ function attachHandlers() {
             attachHandlers();
         });
     });
-    // 이전/다음 문제
+
     const prevBtn = document.getElementById('prevQuestionBtn');
     const nextBtn = document.getElementById('nextQuestionBtn');
     if (prevBtn) prevBtn.addEventListener('click', function () {
@@ -384,16 +448,70 @@ function attachHandlers() {
             attachHandlers();
         }
     });
-    // 점수/코멘트 입력
+
+    // 점수/코멘트는 입력할 때마다 다시 렌더하지 않는다 — 렌더하면 포커스가 날아가 한 글자씩만 입력된다.
     const scoreInput = document.getElementById('scoreInput');
     const commentInput = document.getElementById('commentInput');
     if (scoreInput) scoreInput.addEventListener('input', function () {
-        gradingData.questions[gradingData.currentQ].given = parseInt(this.value) || 0;
-        renderGradingModal(gradingData);
-        attachHandlers();
+        const q = gradingData.questions[gradingData.currentQ];
+        gradingData.questions[gradingData.currentQ].given =
+            this.value === '' ? null : Math.max(0, Math.min(q.max, parseInt(this.value, 10) || 0));
     });
     if (commentInput) commentInput.addEventListener('input', function () {
         gradingData.questions[gradingData.currentQ].comment = this.value;
     });
+
+    const tempSaveBtn = document.getElementById('tempSaveBtn');
+    const markDoneBtn = document.getElementById('markDoneBtn');
+    const finalizeBtn = document.getElementById('finalizeBtn');
+    const correctBtn = document.getElementById('correctBtn');
+
+    if (tempSaveBtn) tempSaveBtn.addEventListener('click', function () {
+        postGrading({ scores: collectScores(), confirm: false }, '임시 저장했습니다.');
+    });
+    if (markDoneBtn) markDoneBtn.addEventListener('click', function () {
+        postGrading({ scores: collectScores(), confirm: false }, '채점 결과를 저장했습니다.');
+    });
+    if (finalizeBtn) finalizeBtn.addEventListener('click', function () {
+        if (!confirm('성적을 확정합니다. 확정 후에는 변경 사유 없이 점수를 수정할 수 없습니다.')) return;
+        postGrading({ scores: collectScores(), confirm: true }, '성적을 확정했습니다.');
+    });
+    if (correctBtn) correctBtn.addEventListener('click', function () {
+        const reason = (document.getElementById('reasonInput') || {}).value || '';
+        if (!reason.trim()) {
+            alert('확정된 성적입니다. 변경 사유를 입력해야 저장할 수 있습니다.');
+            return;
+        }
+        postGrading({ scores: collectScores(), reason: reason, confirm: false }, '성적을 정정했습니다.');
+    });
 }
+
+(function () {
+    const modal = document.getElementById('examGradingModal');
+    window.openExamGradingModal = function () {
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        renderGradingModal(gradingData);
+        attachHandlers();
+    };
+    window.closeExamGradingModal = function () {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        // 팝업으로 열린 경우 창을 닫는다 (기존 grading-modal.html 과 동작을 맞춘다).
+        if (window.opener && !window.opener.closed) {
+            window.close();
+        }
+    };
+    modal.addEventListener('click', (e) => {
+        if (e.target.matches('[data-close-modal]')) window.closeExamGradingModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (!modal.hidden && e.key === 'Escape') window.closeExamGradingModal();
+    });
+
+    // 이 페이지는 window.open 으로 단독으로 뜨므로 처음부터 열린 상태로 보여준다.
+    modal.hidden = false;
+    renderGradingModal(gradingData);
+    attachHandlers();
+})();
 </script>

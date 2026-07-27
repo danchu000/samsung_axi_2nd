@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/css/chatbot.css">
-  <script src="/static/js/chatbot.js" defer></script>
-    <title>수업 콘텐츠 - AI 엔지니어링</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF (진도 저장 AJAX POST 용) -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${content.title} + ' - 학습 콘텐츠'">수업 콘텐츠</title>
     <link rel="stylesheet" href="/static/css/basic-form-trainee.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/font-style.css">
@@ -13,159 +14,62 @@
     <link rel="stylesheet" href="/static/css/play.css">
     <script src="/static/js/play-video.js" defer></script>
 </head>
-<!-- ********************************************************************************************************* -->
-    <header>
-        <div class="header-logo">
-            <a href="/templates/trainee/index.html"><img src="/static/img/logo-white.png" alt="logo" style="width: 130px; cursor: pointer;"></a>
-        </div>  
-        <nav class="gnb">
-            <ul>
-
-                <li>
-                    <span><a href="/templates/trainee/my-course.html">나의 과정</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/my-course.html">수강 과정 목록</a></li>
-                        <li><a href="/templates/trainee/continue-learning.html">이어서 학습</a></li>
-                        <!-- <li><a href="/templates/trainee/learning-report.html">학습 리포트</a></li> -->
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/contents.html">학습콘텐츠</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/contents.html">전체 콘텐츠</a></li>
-                        <li><a href="/templates/trainee/coding-setup.html">코딩 환경 설정</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/online-test.html">온라인 시험</a></li>
-                        <li><a href="/templates/trainee/assignments.html">과제</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/tutoring.html">학습지원</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/tutoring.html">튜터링</a></li>
-                        <li><a href="/templates/trainee/qna.html">Q&A</a></li>
-                    </ul>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/ai-assistant.html">AI 헬피 챗봇</a></li>
-                        <li><a href="/templates/trainee/tutoring-qna.html">튜터링/Q&A</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/notices.html">공지사항</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/notices.html">공지</a></li>
-                        <li><a href="/templates/trainee/chat.html">채팅</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/attendance.html">출결/이수관리</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/attendance.html">출결현황</a></li>
-                        <li><a href="/templates/trainee/completion-management.html">이수관리</a></li>
-                        <li><a href="/templates/trainee/surveys.html">설문조사</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <div class="icon-container">
-                <div class="icon-box">
-                    <a href="/templates/trainee/alram.html"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.9342 14.98C18.6358 14.5033 18.4775 13.9524 18.4772 13.39V9.22602C18.4772 7.50822 17.7948 5.86077 16.5801 4.64609C15.3654 3.43142 13.718 2.74902 12.0002 2.74902C10.2824 2.74902 8.63492 3.43142 7.42024 4.64609C6.20557 5.86077 5.52317 7.50822 5.52317 9.22602V13.388C5.52325 13.9511 5.36488 14.5028 5.06617 14.98L3.97817 16.72C3.88357 16.8714 3.8312 17.0453 3.82652 17.2238C3.82183 17.4022 3.865 17.5787 3.95153 17.7348C4.03806 17.8909 4.16481 18.021 4.31861 18.1116C4.47242 18.2022 4.64767 18.25 4.82617 18.25H19.1742C19.3527 18.25 19.5279 18.2022 19.6817 18.1116C19.8355 18.021 19.9623 17.8909 20.0488 17.7348C20.1354 17.5787 20.1785 17.4022 20.1738 17.2238C20.1691 17.0453 20.1168 16.8714 20.0222 16.72L18.9342 14.98Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 21.25H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg></a>
-                </div>
-                <div class="icon-box">
-                    <a href="./my-info.html">
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19.6524 19.405C20.2044 19.29 20.5344 18.712 20.2594 18.218C19.6534 17.131 18.6994 16.175 17.4794 15.447C15.9074 14.509 13.9804 14 12.0004 14C10.0204 14 8.09339 14.508 6.52139 15.447C5.30139 16.175 4.34739 17.131 3.74139 18.218C3.46639 18.712 3.79639 19.29 4.34839 19.405C9.39517 20.4569 14.6046 20.4569 19.6514 19.405" fill="currentColor"/>
-                            <path d="M12 13C14.7614 13 17 10.7614 17 8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8C7 10.7614 9.23858 13 12 13Z" fill="currentColor"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="icon-box">
-                    <a href="/login">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="CurrentColor">
-                            <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <!-- 메인 컨텐츠 ********************************************************************************************************* -->
 <body data-user-role="trainee">
+    <header th:replace="~{fragments/trainee :: header('contents')}"></header>
+
     <main>
         <section class="main-content-top">
             <div class="main-wrap flex-between">
-                <h2>학습 콘텐츠 > 이론 학습(VOD)</h2>
+                <h2>학습 콘텐츠 &gt; 이론 학습(VOD)</h2>
             </div>
         </section>
-        <!-- 메인 콘텐츠 영역 -->
         <section class="main-content">
-             <section class="main-content-inner main-wrap">
-                <!-- 상단 경로 표시 -->
+            <section class="main-content-inner main-wrap">
                 <div class="content-header">
                     <div class="content-breadcrumb">
-                        <div class="breadcrumb-item" onclick="location.href='admin-courses-edu.html'">
+                        <div class="breadcrumb-item">
                             <span class="breadcrumb-label">과정명</span>
-                            <span class="breadcrumb-value breadcrumb-course">풀스택 웹 개발 (React & Node.js)</span>
+                            <span class="breadcrumb-value" th:text="${content.courseName}">과정명</span>
+                        </div>
+                        <span class="breadcrumb-separator" th:if="${content.sessionName != null}">›</span>
+                        <div class="breadcrumb-item" th:if="${content.sessionName != null}">
+                            <span class="breadcrumb-label">차시</span>
+                            <span class="breadcrumb-value" th:text="${content.sessionName}">차시명</span>
                         </div>
                         <span class="breadcrumb-separator">›</span>
-                        <div class="breadcrumb-item" onclick="location.href='courses-detail.html'">
-                            <span class="breadcrumb-label">과목명</span>
-                            <span class="breadcrumb-value breadcrumb-subject">1. JavaScript 기초</span>
-                        </div>
-                        <span class="breadcrumb-separator">›</span>
-                        <div class="breadcrumb-item" onclick="location.href='courses-detail.html'">
+                        <div class="breadcrumb-item">
                             <span class="breadcrumb-label">콘텐츠명</span>
-                            <span class="breadcrumb-value breadcrumb-content">1-1. 변수와 데이터 타입</span>
+                            <span class="breadcrumb-value" th:text="${content.title}">콘텐츠명</span>
                         </div>
                     </div>
-                    <span>동영상 / 45분</span>
+                    <span>동영상<span th:if="${content.durationLabel != '-'}" th:text="' / ' + ${content.durationLabel}"></span></span>
                 </div>
-    
-                
-                <!-- 하단 메인 콘텐츠 영역 -->
-                <div class="content-container">
+
+                <div class="content-container"
+                     th:attr="data-content-id=${content.id},
+                              data-duration=${content.durationSeconds != null ? content.durationSeconds : 0},
+                              data-resume=${progress.lastPositionSeconds != null ? progress.lastPositionSeconds : 0}">
                     <div class="video-container">
-                        <!-- 동영상 플레이어 -->
                         <div class="video-player">
-                            <video id="videoPlayer">
-                                <source src="/static/img/sample-vod.mp4" type="video/mp4">
+                            <video id="videoPlayer" controls>
+                                <source th:src="${content.fileUrl}" type="video/mp4">
                                 브라우저가 비디오를 지원하지 않습니다.
                             </video>
                         </div>
-    
-                        <!-- 컨트롤 바 -->
                         <div class="video-controls">
-                            <!-- 진행 바 -->
                             <div class="progress-container" id="progressContainer">
                                 <div class="progress-bar" id="progressBar"></div>
                                 <div class="progress-handle" id="progressHandle"></div>
                             </div>
-    
-                            <!-- 컨트롤 버튼들 -->
                             <div class="controls-row">
                                 <div class="controls-left">
-                                    <!-- 재생/일시정지 -->
                                     <button class="control-btn" id="playPauseBtn">
-                                        <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                        <svg id="pauseIcon" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                                        </svg>
+                                        <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <svg id="pauseIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
                                     </button>
-    
-                                    <!-- 시간 표시 -->
                                     <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
                                 </div>
-    
                                 <div class="controls-right">
-                                    <!-- 재생 속도 -->
                                     <select class="speed-select" id="speedSelect">
                                         <option value="0.5">0.5x</option>
                                         <option value="1" selected>1x</option>
@@ -173,36 +77,82 @@
                                         <option value="1.5">1.5x</option>
                                         <option value="2">2x</option>
                                     </select>
-    
-                                    <!-- 볼륨 -->
                                     <div class="volume-container">
                                         <button class="control-btn" id="volumeBtn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
                                         </button>
-                                        <div class="volume-slider" id="volumeSlider">
-                                            <div class="volume-level" id="volumeLevel"></div>
-                                        </div>
+                                        <div class="volume-slider" id="volumeSlider"><div class="volume-level" id="volumeLevel"></div></div>
                                     </div>
-    
-                                    <!-- 전체화면 -->
                                     <button class="control-btn" id="fullscreenBtn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="button-container" style="margin-top:20px; text-align:center;">
-                    <button class="big-btn btn-secondary" data-user-role="trainee">학습진도 저장하고 나가기</button>
+
+                <div class="button-container" style="margin-top:20px; display:flex; gap:12px; justify-content:center; align-items:center;">
+                    <span id="progressStatus" style="color:#007bff;">진도율 <span th:text="${progress.progressRate}">0</span>%</span>
+                    <button id="saveExitBtn" class="big-btn btn-secondary" data-user-role="trainee">학습진도 저장하고 나가기</button>
                 </div>
             </section>
-        </section>   
+        </section>
     </main>
+
+    <script th:inline="none">
+    (function () {
+        var container = document.querySelector('.content-container');
+        var video = document.getElementById('videoPlayer');
+        if (!container || !video) return;
+
+        var contentId = container.getAttribute('data-content-id');
+        var resume = parseInt(container.getAttribute('data-resume') || '0', 10);
+        var metaDuration = parseInt(container.getAttribute('data-duration') || '0', 10);
+        var csrfToken = (document.querySelector('meta[name="_csrf"]') || {}).content;
+        var csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+        var statusEl = document.getElementById('progressStatus');
+
+        // 이어보기: 저장된 위치로 이동
+        video.addEventListener('loadedmetadata', function () {
+            if (resume > 0 && resume < video.duration) {
+                video.currentTime = resume;
+            }
+        });
+
+        function sendProgress() {
+            if (!contentId || isNaN(video.currentTime)) return;
+            var duration = (video.duration && isFinite(video.duration)) ? Math.round(video.duration) : metaDuration;
+            var headers = { 'Content-Type': 'application/json' };
+            if (csrfHeader) headers[csrfHeader] = csrfToken;
+            return fetch('/trainee/contents/' + contentId + '/progress', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    positionSeconds: Math.round(video.currentTime),
+                    durationSeconds: duration
+                })
+            }).then(function (r) { return r.ok ? r.json() : null; })
+              .then(function (data) {
+                  if (data && statusEl) {
+                      statusEl.innerHTML = '진도율 ' + data.progressRate + '%' + (data.completed ? ' (완료)' : '');
+                  }
+              }).catch(function () { /* 네트워크 오류 무시 */ });
+        }
+
+        // 10초마다 + 일시정지/종료 시 저장
+        var timer = setInterval(function () { if (!video.paused) sendProgress(); }, 10000);
+        video.addEventListener('pause', sendProgress);
+        video.addEventListener('ended', sendProgress);
+        window.addEventListener('beforeunload', sendProgress);
+
+        document.getElementById('saveExitBtn').addEventListener('click', function () {
+            clearInterval(timer);
+            Promise.resolve(sendProgress()).then(function () {
+                window.location.href = '/trainee/learning';
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
-            

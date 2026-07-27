@@ -25,11 +25,11 @@
                 <span><a href="/trainee/my-course">나의 과정</a></span>
                 <ul>
                     <li><a href="/trainee/my-course">수강 과정 목록</a></li>
-                    <li><a href="/templates/trainee/continue-learning.html">이어서 학습</a></li>
+                    <li><a href="/trainee/learning">이어서 학습</a></li>
                 </ul>
             </li>
             <li th:classappend="${active == 'contents'} ? 'active_menu'">
-                <span><a href="/templates/trainee/contents.html">학습콘텐츠</a></span>
+                <span><a href="/trainee/contents">학습콘텐츠</a></span>
             </li>
             <li th:classappend="${active == 'test'} ? 'active_menu'">
                 <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>

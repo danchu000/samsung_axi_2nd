@@ -7,6 +7,7 @@ import com.ssa.lms.content.entity.Progress;
 import com.ssa.lms.content.repository.ContentRepository;
 import com.ssa.lms.content.repository.ProgressRepository;
 import com.ssa.lms.content.web.LearningContentView;
+import com.ssa.lms.content.web.LearningSessionGroup;
 import com.ssa.lms.content.web.ProgressRequest;
 import com.ssa.lms.content.web.ProgressResponse;
 import com.ssa.lms.course.entity.Course;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -151,6 +153,30 @@ public class ProgressService {
                 .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED
                         || e.getStatus() == EnrollmentStatus.COMPLETED)
                 .ifPresent(enrollment -> enrollment.updateProgressRate(courseProgressRatio(userId, courseId)));
+    }
+
+    /** 과정 학습 콘텐츠를 차시별로 묶어 반환 (차시 평균 진도율 포함). 훈련생 학습 아코디언용. */
+    public List<LearningSessionGroup> learningGroups(Long userId, Long courseId) {
+        List<LearningContentView> flat = learningContents(userId, courseId);
+        Map<Long, List<LearningContentView>> bySession = flat.stream()
+                .collect(Collectors.groupingBy(
+                        v -> v.sessionId() != null ? v.sessionId() : -1L,
+                        LinkedHashMap::new, Collectors.toList()));
+        List<LearningSessionGroup> groups = new ArrayList<>();
+        for (var entry : bySession.entrySet()) {
+            List<LearningContentView> items = entry.getValue();
+            int avg = items.isEmpty() ? 0
+                    : (int) Math.round(items.stream().mapToInt(LearningContentView::progressRate).average().orElse(0));
+            LearningContentView first = items.get(0);
+            boolean noSession = entry.getKey() == -1L;
+            groups.add(new LearningSessionGroup(
+                    noSession ? null : entry.getKey(),
+                    noSession ? "과정 공용 콘텐츠" : first.sessionName(),
+                    noSession ? Integer.MAX_VALUE : first.sessionSeq(),
+                    avg, items));
+        }
+        groups.sort((a, b) -> Integer.compare(a.seq(), b.seq()));
+        return groups;
     }
 
     private Progress getOrCreate(Long userId, Content content) {

@@ -45,8 +45,8 @@ public class TraineeLearningController {
                 : (courses.isEmpty() ? null : courses.get(0).getId());
         model.addAttribute("courses", courses);
         model.addAttribute("selectedCourseId", targetCourseId);
-        model.addAttribute("contents", targetCourseId != null
-                ? progressService.learningContents(user.getId(), targetCourseId)
+        model.addAttribute("groups", targetCourseId != null
+                ? progressService.learningGroups(user.getId(), targetCourseId)
                 : java.util.List.of());
         model.addAttribute("courseProgress", targetCourseId != null
                 ? progressService.courseProgressRatio(user.getId(), targetCourseId) : 0);

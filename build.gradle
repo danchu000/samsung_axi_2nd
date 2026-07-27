@@ -39,6 +39,9 @@ dependencies {
     // local 프로필 전용 인메모리 DB (PostgreSQL 미설치 환경에서도 실행 가능)
     runtimeOnly 'com.h2database:h2'
 
+    // 이수증 PDF 발급 (HTML → PDF, 한글 폰트 임베드) — P2-B(출결/이수) 전용. B 알림: a-requests.md
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

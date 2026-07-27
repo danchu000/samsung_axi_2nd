@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -275,5 +275,18 @@
 
 </style>
 	
+    <!-- ===== 서버 연동 (개발자 B) ===== -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 화면 JS 가 기대하는 필드명으로 매핑 (DTO 필드명과 다름)
+        window._serverTraineeSurveys = (/*[[${rows}]]*/ []).map(function (r) {
+            return {
+                id: r.id, title: r.title, course: r.course, cohort: r.cohort,
+                startAt: r.startAt, endAt: r.endAt,
+                questionCount: r.questionCount, status: r.status
+            };
+        });
+        /*]]>*/
+    </script>
 </body>
 </html>

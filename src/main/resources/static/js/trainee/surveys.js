@@ -1,6 +1,7 @@
 // ====== 더미 데이터 ======
   // status: ONGOING / SUBMITTED / CLOSED_UNANSWERED / SCHEDULED
-  const SURVEYS = [
+  // 서버(Thymeleaf)가 내려준 행이 있으면 그것을 쓰고, 없으면 아래 더미로 동작
+  const SURVEYS = window._serverTraineeSurveys || [
     {
       id: "SV-001",
       title: "과정 만족도 조사",

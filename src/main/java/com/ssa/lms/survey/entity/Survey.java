@@ -4,6 +4,8 @@ import com.ssa.lms.common.entity.BaseEntity;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.Session;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +28,8 @@ import java.util.List;
  * (survey.status, 그리고 해당 사용자의 SurveyResponse 존재 여부)의 조합으로 만드는 파생 상태다.
  */
 @Entity
+@SQLDelete(sql = "UPDATE survey SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Table(
         name = "survey",
         indexes = {
@@ -105,6 +109,36 @@ public class Survey extends BaseEntity {
     public void addQuestion(SurveyQuestion question) {
         this.questions.add(question);
         question.assignSurvey(this);
+    }
+
+    /**
+     * 문항을 통째로 비운다.
+     *
+     * 호출 직후 바로 addQuestion() 하면 안 된다. Hibernate 가 orphan DELETE 보다
+     * INSERT 를 먼저 내보내 uk_survey_question_seq(survey_id, seq) 유니크 제약에 걸린다.
+     * 서비스에서 clearQuestions() → flush() → addQuestion() 순서로 호출할 것.
+     */
+    public void clearQuestions() {
+        this.questions.clear();
+    }
+
+    public void update(String title, SurveyType surveyType, Course course, Session session,
+                       boolean required, boolean reflectCompletion, boolean anonymous,
+                       LocalDateTime startAt, LocalDateTime endAt, SurveyStatus status) {
+        this.title = title;
+        this.surveyType = surveyType;
+        this.course = course;
+        this.session = session;
+        this.required = required;
+        this.reflectCompletion = reflectCompletion;
+        this.anonymous = anonymous;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.status = status;
+    }
+
+    public void changeStatus(SurveyStatus status) {
+        this.status = status;
     }
 
     public boolean isOpenAt(LocalDateTime at) {

@@ -3,6 +3,8 @@ package com.ssa.lms.survey.entity;
 import com.ssa.lms.common.entity.BaseEntity;
 import com.ssa.lms.user.entity.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +23,8 @@ import java.util.List;
  * 서비스 계층에서 이 조합을 막는다.
  */
 @Entity
+@SQLDelete(sql = "UPDATE survey_response SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Table(
         name = "survey_response",
         uniqueConstraints = @UniqueConstraint(

@@ -92,13 +92,27 @@ public class Qna extends BaseEntity {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
+    /**
+     * 조회수. 화면(admin-support-tutoring.html Q&A 탭, trainee/qna.html)에 "조회수" 컬럼이
+     * 있고 "조회수 TOP Q&A" 카드도 이 값으로 만든다.
+     */
+    @Column(name = "view_count", nullable = false)
+    private int viewCount;
+
+    /**
+     * 공개 범위. trainee/qna.html 질문하기 모달의 aVisibility(과정공유/나만보기)와
+     * 목록의 자물쇠 아이콘에 대응한다. true 면 작성자·담당자·관리자만 열람 가능.
+     */
+    @Column(name = "secret", nullable = false)
+    private boolean secret;
+
     @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt ASC")
     private List<QnaAnswer> answers = new ArrayList<>();
 
     @Builder
     public Qna(User user, Course course, Session session, QnaCategory category,
-               String title, String content, QnaStatus status) {
+               String title, String content, QnaStatus status, boolean secret) {
         this.user = user;
         this.course = course;
         this.session = session;
@@ -106,6 +120,34 @@ public class Qna extends BaseEntity {
         this.title = title;
         this.content = content;
         this.status = status;
+        this.secret = secret;
+    }
+
+    /** 상세 열람 시 1 증가. */
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    /** 작성자 본인 수정 — 제목/본문/공개범위만. 상태·담당자는 관리자 흐름에서 바꾼다. */
+    public void update(String title, String content, QnaCategory category, boolean secret) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
+        this.secret = secret;
+    }
+
+    /**
+     * 비밀글 열람 권한. 작성자 본인, 배정 담당자, 관리자만 볼 수 있다.
+     * 공개글이면 항상 true.
+     */
+    public boolean isReadableBy(Long userId, boolean adminOrInstructor) {
+        if (!secret) {
+            return true;
+        }
+        if (adminOrInstructor) {
+            return true;
+        }
+        return user != null && user.getId().equals(userId);
     }
 
     public void addAnswer(QnaAnswer answer, LocalDateTime at) {

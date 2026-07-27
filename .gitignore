@@ -1,1 +1,22 @@
+src/main/resources/static/img/*.mp4
 static/img/*.mp4
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+out/
+bin/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# 로컬 설정 (DB 비밀번호 등은 커밋 금지)
+application-secret.yml
+.env

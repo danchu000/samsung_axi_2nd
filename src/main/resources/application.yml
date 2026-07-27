@@ -1,0 +1,28 @@
+# 공통 설정 — 프로필별 설정은 application-local.yml(H2) / application-dev.yml(MySQL) 참고
+spring:
+  profiles:
+    default: local
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  thymeleaf:
+    cache: false
+
+  servlet:
+    multipart:
+      max-file-size: 500MB   # VOD 업로드 대비
+      max-request-size: 500MB
+
+# 개인정보 컬럼 AES-256 암호화 키 (내역서 증빙 요건 — PLAN.md §2-1)
+# 운영 환경에서는 반드시 환경변수 LMS_CRYPTO_SECRET 로 주입할 것. 키 변경 시 기존 데이터 복호화 불가.
+lms:
+  crypto:
+    secret: ${LMS_CRYPTO_SECRET:samsung-lxp-local-dev-only-secret}
+
+logging:
+  level:
+    org.hibernate.SQL: debug

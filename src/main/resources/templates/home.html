@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samsung Academy LXP</title>
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .home-box { text-align: center; line-height: 2; }
+    </style>
+</head>
+<body>
+<!-- 임시 랜딩 페이지 — 각 모듈 index 컨트롤러가 연결되면 역할별 redirect 로 대체 예정 -->
+<div class="home-box">
+    <h1>Samsung Academy LXP</h1>
+    <p sec:authorize="isAuthenticated()">
+        <span sec:authentication="principal.name">사용자</span>님 (<span sec:authentication="principal.role">역할</span>) 로그인됨
+    </p>
+    <p>
+        <a sec:authorize="hasRole('ADMIN')" href="/admin">관리자 모듈</a>
+        <a sec:authorize="hasAnyRole('INSTRUCTOR','ADMIN')" href="/instructor">강사 모듈</a>
+        <a sec:authorize="hasAnyRole('TRAINEE','ADMIN')" href="/trainee">훈련생 모듈</a>
+    </p>
+    <form th:action="@{/logout}" method="post"><button type="submit">로그아웃</button></form>
+</div>
+</body>
+</html>

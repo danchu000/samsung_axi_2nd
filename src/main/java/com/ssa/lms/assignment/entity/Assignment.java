@@ -68,6 +68,23 @@ public class Assignment extends BaseEntity {
         this.status = status;
     }
 
+    /** 정의 수정. 배정(CourseAssignment)에 이미 반영된 값은 바뀌지 않는다. */
+    public void update(String title, String description,
+                       CourseAssignment.SubmissionType defaultSubmissionType, Integer maxScore,
+                       String category, Difficulty difficulty, AssignmentStatus status) {
+        this.title = title;
+        this.description = description;
+        this.defaultSubmissionType = defaultSubmissionType;
+        this.maxScore = maxScore;
+        this.category = category;
+        this.difficulty = difficulty;
+        this.status = status;
+    }
+
+    public void changeStatus(AssignmentStatus status) {
+        this.status = status;
+    }
+
     /** 화면 값: 활성화(Active) / 비활성화(Archived) */
     public enum AssignmentStatus {
         ACTIVE,

@@ -93,7 +93,9 @@ const gradingData = [
 document.addEventListener("DOMContentLoaded", () => {
   initEvaluationList({
     containerId: "gradingListItems",
-    data: gradingData,
+    // 서버 연동 페이지는 인라인 스크립트로 window._serverGradingRows 를 먼저 채워둔다.
+    // 아직 전환되지 않은 정적 페이지는 그대로 더미를 쓴다 (하위호환).
+    data: window._serverGradingRows || gradingData,
     routes: {
       completed: "result-grading.html",
       pending: "result-grading.html",
@@ -171,9 +173,12 @@ const assignmentData = [
 
 // 과제 페이지 로드 시 초기화
 document.addEventListener("DOMContentLoaded", () => {
-  initEvaluationList({
+  // 반환값을 전역에 남긴다 — "검색하기" 버튼이 window._assignmentList.filter() 를 호출한다.
+  // (기존 onclick="filterAssignments()" 는 전역 함수가 아니라 항상 ReferenceError 였다)
+  window._assignmentList = initEvaluationList({
     containerId: "assignmentListItems",
-    data: assignmentData,
+    // 과제 목록이 컨트롤러로 전환된 페이지는 서버 행을 쓴다 (CourseAssignmentRow).
+    data: window._serverAssignmentRows || assignmentData,
     routes: {
       completed: "assignment-grading.html",
       pending: "assignment-grading.html",
@@ -252,8 +257,9 @@ function initEvaluationList(opt) {
       const btn = BUTTON_CONFIG[status] || { text: "보기", className: "btn-gray", disabled: false };
 
       // 주소 매핑
-      // routes 예: { completed: '...', pending: '...', waiting: '...' }
-      const address = routes[status] || item.address || "#";
+      // 서버 행은 행마다 실제 채점 URL(item.address)을 갖고 있으므로 그것을 우선한다.
+      // 정적 더미에는 address 가 없어 기존처럼 routes 로 떨어진다 (하위호환).
+      const address = item.address || routes[status] || "#";
 
       const el = document.createElement("div");
       el.className = itemClass;
@@ -268,7 +274,7 @@ function initEvaluationList(opt) {
       const title = item.title || item.testName || item.assignmentName || "-";
 
       el.innerHTML = `
-        <div><input type="checkbox" class="${checkboxClass}"></div>
+        <div><input type="checkbox" class="${checkboxClass}" value="${item.id ?? ""}"></div>
         <div class="${itemClass.includes('grading') ? 'grading-number' : 'assignment-number'}">${item.number ?? ""}</div>
 
         <div class="${itemClass.includes('grading') ? 'grading-course' : 'assignment-course'}">
@@ -426,3 +432,53 @@ function initEvaluationList(opt) {
 }
 
 
+
+/* ===== 서버 연동: 일괄 액션 (개발자 B) =====
+   컨트롤러로 전환된 페이지가 인라인 스크립트로 window._assignmentBulkUrls 를 채워두면,
+   "선택 삭제" / "선택한 과제 비활성화" 버튼이 숨겨진 POST 폼(#bulkForm)으로 제출한다.
+   폼은 th:action 으로 만들어서 CSRF 히든필드가 자동으로 들어간다.
+   이 값이 없는 정적 페이지에서는 아무 일도 하지 않는다 (하위호환). */
+document.addEventListener("DOMContentLoaded", function () {
+  const urls = window._assignmentBulkUrls;
+  const form = document.getElementById("bulkForm");
+  if (!urls || !form) return;
+
+  function selectedIds() {
+    return Array.from(document.querySelectorAll(".assignment-checkbox:checked"))
+      .map((cb) => cb.value)
+      .filter(Boolean);
+  }
+
+  function submitBulk(url, confirmText) {
+    const ids = selectedIds();
+    if (!ids.length) {
+      alert("먼저 과제를 선택하세요.");
+      return;
+    }
+    if (!confirm(confirmText.replace("{n}", ids.length))) return;
+
+    form.action = url;
+    form.querySelectorAll("input[name='ids']").forEach((el) => el.remove());
+    ids.forEach((id) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "ids";
+      input.value = id;
+      form.appendChild(input);
+    });
+    form.submit();
+  }
+
+  const deleteBtn = document.getElementById("bulkDeleteBtn");
+  if (deleteBtn && urls.remove) {
+    deleteBtn.addEventListener("click", function () {
+      submitBulk(urls.remove, "선택한 {n}건을 삭제할까요? (제출물은 보존됩니다)");
+    });
+  }
+  const disableBtn = document.getElementById("bulkDisableBtn");
+  if (disableBtn && urls.close) {
+    disableBtn.addEventListener("click", function () {
+      submitBulk(urls.close, "선택한 {n}건을 마감 처리할까요?");
+    });
+  }
+});

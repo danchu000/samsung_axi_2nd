@@ -27,12 +27,23 @@ import java.util.List;
  * 훈련생이 실제로 보는/제출하는 단위는 항상 이 엔티티다. Assignment 는 원본 정의일 뿐이다.
  */
 @Entity
+/*
+ * uk_course_assignment(course_id, assignment_id) 유니크 제약을 뺐다.
+ *
+ * soft delete(@SQLDelete) 와 정면으로 충돌하기 때문이다 — 배정을 삭제하면 행이 물리적으로
+ * 남아 있어(3년 보존 요건), 같은 과정에 같은 과제를 다시 배정할 때 DB 제약에 걸려
+ * 500 이 났다. 실제로 재현됨.
+ *
+ * 부분 유니크 인덱스(where is_deleted = false)는 MySQL 이 지원하지 않아 쓸 수 없다.
+ * 대신 중복 검사는 CourseAssignmentService.create() 가
+ * existsByCourseIdAndAssignmentId 로 한다 (@SQLRestriction 때문에 삭제된 행은 제외된다).
+ */
 @Table(
         name = "course_assignment",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_course_assignment", columnNames = {"course_id", "assignment_id"}),
         indexes = {
                 @Index(name = "idx_course_assignment_course", columnList = "course_id"),
+                // 유니크 제약을 뺀 자리 — 중복 배정 검사(existsByCourseIdAndAssignmentId)가 탄다.
+                @Index(name = "idx_course_assignment_pair", columnList = "course_id, assignment_id"),
                 @Index(name = "idx_course_assignment_period", columnList = "start_at, end_at")
         }
 )
@@ -89,6 +100,14 @@ public class CourseAssignment extends BaseEntity {
     @Column(name = "score", nullable = false)
     private Integer score;
 
+    /**
+     * 합격 기준 점수. assignment-grading.html 상단 "합격 기준: 70점 이상" 과
+     * {@code Grade.applyScore(..., passScore, ...)} 의 합격 판정 입력이다.
+     * null 이면 배점의 60% 를 기준으로 본다.
+     */
+    @Column(name = "pass_score")
+    private Integer passScore;
+
     /** 지정 채점자. 화면 grader 셀렉트. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grader_id")
@@ -106,7 +125,7 @@ public class CourseAssignment extends BaseEntity {
     public CourseAssignment(Course course, Assignment assignment, String overrideDescription,
                             SubmissionType submissionType, LocalDateTime startAt, LocalDateTime endAt,
                             boolean allowLate, boolean allowResubmit, Integer maxResubmit,
-                            boolean autoGrading, Integer score, User grader,
+                            boolean autoGrading, Integer score, Integer passScore, User grader,
                             CourseAssignmentStatus status) {
         this.course = course;
         this.assignment = assignment;
@@ -119,6 +138,7 @@ public class CourseAssignment extends BaseEntity {
         this.maxResubmit = maxResubmit;
         this.autoGrading = autoGrading;
         this.score = score;
+        this.passScore = passScore;
         this.grader = grader;
         this.status = status;
     }
@@ -126,6 +146,56 @@ public class CourseAssignment extends BaseEntity {
     public void addCriteria(AssignmentCriteria item) {
         this.criteria.add(item);
         item.assignCourseAssignment(this);
+    }
+
+    /**
+     * 채점 기준을 통째로 교체하기 위한 비우기.
+     * 호출 후 반드시 flush() 한 뒤에 addCriteria() 를 해야 한다 —
+     * 그러지 않으면 Hibernate 가 orphan DELETE 보다 INSERT 를 먼저 내보내
+     * uk_criteria_seq(course_assignment_id, seq) 유니크 제약에 걸린다.
+     * (QuestionService.update() 에서 이미 밟은 지뢰)
+     */
+    public void clearCriteria() {
+        this.criteria.clear();
+    }
+
+    /** 운영 설정 수정. 과정·정의(assignment)는 바꾸지 않는다 (제출물이 매달려 있다). */
+    public void update(String overrideDescription, SubmissionType submissionType,
+                       LocalDateTime startAt, LocalDateTime endAt,
+                       boolean allowLate, boolean allowResubmit, Integer maxResubmit,
+                       boolean autoGrading, Integer score, Integer passScore, User grader,
+                       CourseAssignmentStatus status) {
+        this.overrideDescription = overrideDescription;
+        this.submissionType = submissionType;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.allowLate = allowLate;
+        this.allowResubmit = allowResubmit;
+        this.maxResubmit = maxResubmit;
+        this.autoGrading = autoGrading;
+        this.score = score;
+        this.passScore = passScore;
+        this.grader = grader;
+        this.status = status;
+    }
+
+    public void changeStatus(CourseAssignmentStatus status) {
+        this.status = status;
+    }
+
+    /** 합격 기준 점수. 별도 설정이 없으면 배점의 60%. */
+    public int effectivePassScore() {
+        if (passScore != null) {
+            return passScore;
+        }
+        return (int) Math.ceil(score * 0.6);
+    }
+
+    /** 훈련생에게 보여줄 설명 — 과정별 덮어쓰기가 있으면 그것을 우선한다. */
+    public String displayDescription() {
+        return (overrideDescription != null && !overrideDescription.isBlank())
+                ? overrideDescription
+                : assignment.getDescription();
     }
 
     /** 지금 제출 가능한지. 지각 허용이면 마감 이후에도 true. */

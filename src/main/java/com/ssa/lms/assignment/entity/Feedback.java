@@ -37,10 +37,20 @@ public class Feedback extends BaseEntity {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    /**
+     * 훈련생 공개 여부.
+     * 화면(assignment-grading.html / grading-modal.html)이 "학생 피드백(학생에게 공개)" 과
+     * "내부 메모(관리자·강사용)" 두 칸을 갖고 있어서 한 테이블에 플래그로 구분한다.
+     * false 인 행은 훈련생 화면 쿼리에서 제외된다.
+     */
+    @Column(name = "visible_to_trainee", nullable = false)
+    private boolean visibleToTrainee = true;
+
     @Builder
-    public Feedback(User instructor, String content) {
+    public Feedback(User instructor, String content, boolean visibleToTrainee) {
         this.instructor = instructor;
         this.content = content;
+        this.visibleToTrainee = visibleToTrainee;
     }
 
     void assignSubmission(Submission submission) {

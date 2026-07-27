@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,109 +16,31 @@
 </head>
 <body>
     <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>평가 관리 > 과제 채점 > 과제 배정</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/admin :: header('평가 관리 > 과제 채점 > 과제 배정')}"></header>
 
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')">
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
+    <!-- 왼쪽 사이드바 (+ 토글 버튼) -->
+    <th:block th:replace="~{fragments/admin :: sidebar('eval-assignment')}"></th:block>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
-        <!-- 훈련생 관리 -->
         <section class="main-content-inner" style="max-width:900px;">
+
+            <!--
+              배정 폼. 신규는 POST /admin/evaluation/assignments,
+              수정은 POST /admin/evaluation/assignments/{id} 로 같은 화면을 재사용한다.
+              th:action 이므로 CSRF 히든필드는 Thymeleaf 가 자동으로 넣는다.
+            -->
+            <form th:object="${form}" method="post"
+                  th:action="${form.id == null}
+                             ? @{/admin/evaluation/assignments}
+                             : @{/admin/evaluation/assignments/{id}(id=${form.id})}">
+
+            <!-- 서비스가 던진 검증 오류(기준 배점 합계 불일치, 중복 배정 등)는 전역 오류로 붙는다. -->
+            <div th:if="${#fields.hasGlobalErrors()}"
+                 style="margin-bottom:16px;padding:12px 14px;border-radius:8px;background:#fdecea;color:#b42318;">
+                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</div>
+            </div>
+
             <!-- Step 1: 과정 선택 -->
             <div class="step-box">
                 <div class="step-indicator">Step 1</div>
@@ -126,15 +48,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label required" for="courseSelect">과정</label>
-                        <select class="form-select" id="courseSelect" name="courseSelect" required>
+                        <select class="form-select" id="courseSelect" th:field="*{courseId}" required>
                             <option value="">과정 선택</option>
-                            <option value="KDT-1">KDT 1기</option>
-                            <option value="KDT-2">KDT 2기</option>
-                            <option value="고교위탁-1">고교위탁 1기</option>
+                            <option th:each="c : ${courseOptions}"
+                                    th:value="${c.id}" th:text="${c.label()}">과정</option>
                         </select>
+                        <div class="form-help" style="color:#b42318;"
+                             th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}"></div>
                     </div>
                 </div>
             </div>
+
             <!-- Step 2: 콘텐츠 은행에서 과제 선택 -->
             <div class="step-box">
                 <div class="step-indicator">Step 2</div>
@@ -169,7 +93,7 @@
                             <option value="Archived">비활성화</option>
                         </select>
                     </div>
-                    <button class="btn btn-secondary" id="searchBtn">검색</button>
+                    <button type="button" class="btn btn-secondary" id="searchBtn">검색</button>
                 </div>
                 <table class="assignment-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
                     <thead>
@@ -181,11 +105,38 @@
                             <th>선택</th>
                         </tr>
                     </thead>
+                    <!-- 예전에는 JS 더미로 그렸다. 지금은 서버(Assignment 정의)에서 내려온다. -->
                     <tbody id="assignmentTableBody">
-                        <!-- JS로 렌더링 -->
+                        <tr th:each="a : ${assignmentOptions}"
+                            th:attr="data-title=${a.title},data-difficulty=${a.difficulty},data-category=${a.category},data-status=${a.status}"
+                            th:classappend="${form.assignmentId != null and #strings.toString(form.assignmentId) == a.id} ? 'selected-row'">
+                            <td th:text="${a.title}">제목</td>
+                            <td th:text="${a.difficulty}">난이도</td>
+                            <td th:text="${a.category}">카테고리</td>
+                            <td>
+                                <span th:class="${a.status == 'Active'}
+                                                 ? 'status-badge status-in-progress'
+                                                 : 'status-badge status-disabled'"
+                                      th:text="${a.status == 'Active'} ? '활성화' : '비활성화'">상태</span>
+                            </td>
+                            <td>
+                                <label style="cursor:pointer;">
+                                    <input type="radio" th:field="*{assignmentId}" th:value="${a.id}"
+                                           th:attr="data-score=${a.maxScore},data-type=${a.defaultSubmissionType}"
+                                           class="assignment-pick">
+                                    선택
+                                </label>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(assignmentOptions)}">
+                            <td colspan="5" style="color:#777;">등록된 과제가 없습니다. 아래에서 먼저 과제를 등록하세요.</td>
+                        </tr>
                     </tbody>
                 </table>
+                <div class="form-help" style="color:#b42318;"
+                     th:if="${#fields.hasErrors('assignmentId')}" th:errors="*{assignmentId}"></div>
             </div>
+
             <!-- Step 3: 운영 설정 -->
             <div class="step-box">
                 <div class="step-indicator">Step 3</div>
@@ -193,34 +144,58 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label required" for="startDate">시작일</label>
-                        <input type="date" class="form-input" id="startDate" name="startDate" required>
+                        <input type="date" class="form-input" id="startDate" th:field="*{startDate}" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label required" for="endDate">종료일</label>
-                        <input type="date" class="form-input" id="endDate" name="endDate" required>
+                        <input type="date" class="form-input" id="endDate" th:field="*{endDate}" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="allowResubmit">재제출 허용</label>
-                        <select class="form-select" id="allowResubmit" name="allowResubmit">
+                        <select class="form-select" id="allowResubmit" th:field="*{allowResubmit}">
                             <option value="false">허용 안함</option>
                             <option value="true">허용</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="maxResubmit">최대 재제출 횟수</label>
+                        <input type="number" class="form-input" id="maxResubmit" min="0"
+                               th:field="*{maxResubmit}" placeholder="1">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="allowLate">늦은 제출 허용</label>
-                        <select class="form-select" id="allowLate" name="allowLate">
+                        <select class="form-select" id="allowLate" th:field="*{allowLate}">
                             <option value="false">허용 안함</option>
                             <option value="true">허용</option>
                         </select>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label required" for="score">배점</label>
-                        <input type="number" class="form-input" id="score" name="score" min="0" required>
+                        <input type="number" class="form-input" id="score" min="1" th:field="*{score}" required>
+                        <div class="form-help" style="color:#b42318;"
+                             th:if="${#fields.hasErrors('score')}" th:errors="*{score}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="passScore">합격 기준(점)</label>
+                        <input type="number" class="form-input" id="passScore" min="0" th:field="*{passScore}">
+                        <div class="form-help">비우면 배점의 60%를 합격 기준으로 본다.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="statusSelect">공개 상태</label>
+                        <select class="form-select" id="statusSelect" th:field="*{status}">
+                            <option value="DRAFT">비공개(작성중)</option>
+                            <option value="SCHEDULED">공개 예정</option>
+                            <option value="OPEN">진행중</option>
+                            <option value="CLOSED">마감</option>
+                        </select>
                     </div>
                 </div>
             </div>
+
             <!-- Step 4: 평가방식 -->
             <div class="step-box">
                 <div class="step-indicator">Step 4</div>
@@ -228,36 +203,105 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="autoGrading">자동 채점 여부</label>
-                        <select class="form-select" id="autoGrading" name="autoGrading">
+                        <select class="form-select" id="autoGrading" th:field="*{autoGrading}">
                             <option value="false">아니오</option>
                             <option value="true">예</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label required" for="grader">채점자</label>
-                        <select class="form-select" id="grader" name="grader" required>
+                        <select class="form-select" id="grader" th:field="*{graderId}" required>
                             <option value="">채점자 선택</option>
-                            <option value="instructor1">홍길동 (instructor1)</option>
-                            <option value="instructor2">김민아 (instructor2)</option>
-                            <option value="instructor3">이수정 (instructor3)</option>
+                            <option th:each="i : ${instructorOptions}"
+                                    th:value="${i.id}"
+                                    th:text="${i.name} + ' (' + ${i.loginId} + ')'">강사</option>
                         </select>
+                        <div class="form-help" style="color:#b42318;"
+                             th:if="${#fields.hasErrors('graderId')}" th:errors="*{graderId}"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group" style="flex:2;">
-                        <label class="form-label required" for="criteriaList">평가 기준</label>
+                        <label class="form-label" for="criteriaList">평가 기준</label>
                         <div id="criteriaList">
-                            <!-- 평가 기준 행은 JS로 동적 생성 -->
+                            <!-- 저장된 기준이 있으면 서버에서 그려주고, 없으면 JS 가 빈 행 1개를 만든다. -->
+                            <div class="criteria-item" style="display:flex; gap:8px; margin-bottom:6px;"
+                                 th:each="content, st : *{criteriaContents}">
+                                <input type="text" class="form-input" name="criteriaContents"
+                                       th:value="${content}" placeholder="예: 코드의 정확성" style="flex:1;">
+                                <input type="number" class="form-input" name="criteriaScores" min="0"
+                                       th:value="${form.criteriaScores.size() > st.index} ? ${form.criteriaScores[st.index]} : 0"
+                                       placeholder="배점" style="width:110px;">
+                                <button type="button" class="btn btn-gray btn-sm remove-criteria">삭제</button>
+                            </div>
                         </div>
                         <button type="button" class="btn btn-secondary btn-sm" id="addCriteriaBtn" style="margin-top:6px;">+ 평가 기준 추가</button>
-                        <div class="form-help">각 평가 기준과 배점(%)을 입력하세요. (예: 코드의 정확성 40%, 효율성 30%, 문서화 30%)</div>
+                        <div class="form-help">각 평가 기준과 배점을 입력하세요. <b>배점 합계는 위 "배점"과 같아야 합니다.</b> 기준을 비워두면 총점 채점입니다.</div>
                     </div>
                 </div>
             </div>
-             
+
             <div class="button-group">
-                <button class="btn btn-back" onclick="window.history.back()">취소</button>
-                <button class="btn btn-save" id="submitBtn">저장하기</button>
+                <button type="button" class="btn btn-back" onclick="window.history.back()">취소</button>
+                <button type="submit" class="btn btn-save" id="submitBtn">저장하기</button>
+            </div>
+            </form>
+
+            <!--
+              콘텐츠 은행에 정의가 하나도 없으면 배정 자체를 못 하므로 같은 화면에서 만들 수 있게 했다.
+              (새 화면을 만들지 않는다는 규칙에 따라 배정 화면 안에 넣었다. 폼 중첩은 불가라 형제로 둔다.)
+            -->
+            <div class="step-box" style="margin-top:32px;">
+                <div class="step-indicator">콘텐츠 은행</div>
+                <div class="step-title">새 과제 등록</div>
+                <form th:object="${assignmentForm}" method="post"
+                      th:action="@{/admin/evaluation/assignments/definitions}">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2;">
+                            <label class="form-label required" for="newAssignmentTitle">과제명</label>
+                            <input type="text" class="form-input" id="newAssignmentTitle" th:field="*{title}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" for="newAssignmentType">제출 유형</label>
+                            <select class="form-select" id="newAssignmentType" th:field="*{defaultSubmissionType}">
+                                <option value="DOCUMENT">문서 제출</option>
+                                <option value="LINK">링크 제출</option>
+                                <option value="TEXT">텍스트 입력</option>
+                                <option value="DOCUMENT_TEXT">문서+텍스트</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="newAssignmentScore">기본 배점</label>
+                            <input type="number" class="form-input" id="newAssignmentScore" min="1" th:field="*{maxScore}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="newAssignmentCategory">카테고리</label>
+                            <select class="form-select" id="newAssignmentCategory" th:field="*{category}">
+                                <option value="KDT">KDT</option>
+                                <option value="고교위탁">고교위탁</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="newAssignmentDifficulty">난이도</label>
+                            <select class="form-select" id="newAssignmentDifficulty" th:field="*{difficulty}">
+                                <option value="easy">easy</option>
+                                <option value="medium">medium</option>
+                                <option value="hard">hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2;">
+                            <label class="form-label" for="newAssignmentDesc">과제 설명</label>
+                            <textarea class="form-input" id="newAssignmentDesc" rows="3" th:field="*{description}"></textarea>
+                        </div>
+                    </div>
+                    <div class="button-group" style="justify-content:flex-end;">
+                        <button type="submit" class="btn btn-secondary" id="createDefinitionBtn">콘텐츠 은행에 등록</button>
+                    </div>
+                </form>
             </div>
         </section>
     </main>
@@ -285,108 +329,87 @@
         .selected-row { background: #e6f0ff !important; }
     </style>
     <script>
-    // 평가 기준 동적 생성 및 추가/삭제
+    /* ===== 서버 연동 (개발자 B) =====
+       - Step 2 후보 테이블은 서버(th:each)가 그린다. 여기 JS 는 필터(행 숨김)만 담당한다.
+       - 평가 기준 행은 name="criteriaContents" / "criteriaScores" 로 제출된다
+         (같은 순서로 짝지어 서버 CourseAssignmentForm 이 받는다).
+    */
     document.addEventListener('DOMContentLoaded', function() {
+        // ===== 평가 기준 동적 추가/삭제 =====
         const criteriaList = document.getElementById('criteriaList');
         const addBtn = document.getElementById('addCriteriaBtn');
+
         function createCriteriaRow() {
             const div = document.createElement('div');
             div.className = 'criteria-item';
             div.style.display = 'flex';
             div.style.gap = '8px';
             div.style.marginBottom = '6px';
-            div.innerHTML = `
-                <input type="text" class="form-input" name="criteria[]" placeholder="예: 코드의 정확성" required style="flex: 1;">
-                <button type="button" class="btn btn-gray btn-sm remove-criteria">삭제</button>
-            `;
+            div.innerHTML =
+                '<input type="text" class="form-input" name="criteriaContents" placeholder="예: 코드의 정확성" style="flex:1;">' +
+                '<input type="number" class="form-input" name="criteriaScores" min="0" placeholder="배점" style="width:110px;">' +
+                '<button type="button" class="btn btn-gray btn-sm remove-criteria">삭제</button>';
             return div;
         }
-        // 최초 1개 행 생성
-        criteriaList.appendChild(createCriteriaRow());
-        addBtn.addEventListener('click', function() {
+        if (criteriaList && !criteriaList.querySelector('.criteria-item')) {
             criteriaList.appendChild(createCriteriaRow());
-        });
-        criteriaList.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-criteria')) {
-                const item = e.target.closest('.criteria-item');
-                if (criteriaList.children.length > 1) {
-                    item.remove();
+        }
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                criteriaList.appendChild(createCriteriaRow());
+            });
+        }
+        if (criteriaList) {
+            criteriaList.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-criteria')) {
+                    if (criteriaList.children.length > 1) {
+                        e.target.closest('.criteria-item').remove();
+                    }
                 }
-            }
-        });
-    });
-    // 더미 과제 데이터 (실제 환경에서는 API로 대체)
-    const assignments = [
-        { id: 'P-001', title: '파이썬 기초 실습', difficulty: 'easy', category: 'KDT', status: 'Active' },
-        { id: 'P-002', title: '웹 개발 과제', difficulty: 'medium', category: 'KDT', status: 'Active' },
-        { id: 'P-003', title: '알고리즘 문제', difficulty: 'hard', category: '고교위탁', status: 'Active' },
-        { id: 'P-004', title: '데이터 분석 실습', difficulty: 'medium', category: 'KDT', status: 'Archived' }
-    ];
-    let selectedAssignmentId = null;
-    function renderAssignmentTable(data) {
+            });
+        }
+
+        // ===== Step 2 후보 목록 필터 (서버가 그린 행을 숨김/표시) =====
         const tbody = document.getElementById('assignmentTableBody');
-        tbody.innerHTML = '';
-        data.forEach(a => {
-            const tr = document.createElement('tr');
-            tr.className = (a.id === selectedAssignmentId) ? 'selected-row' : '';
-            // 상태별 배지 텍스트/클래스 분기
-            let statusText = '';
-            let statusClass = '';
-            if (a.status === 'Active') {
-                statusText = '활성화';
-                statusClass = 'status-badge status-in-progress';
-            } else if (a.status === 'Archived') {
-                statusText = '비활성화';
-                statusClass = 'status-badge status-disabled';
-            } else {
-                statusText = a.status;
-                statusClass = 'status-badge';
-            }
-            tr.innerHTML = `
-                <td>${a.title}</td>
-                <td>${a.difficulty}</td>
-                <td>${a.category}</td>
-                <td><span class="${statusClass}">${statusText}</span></td>
-                <td><button type="button" class="btn btn-secondary btn-sm select-btn" data-id="${a.id}">선택</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-    function applyFilters() {
-        const title = document.getElementById('filterTitle').value.trim().toLowerCase();
-        const difficulty = document.getElementById('filterDifficulty').value;
-        const category = document.getElementById('filterCategory').value;
-        const status = document.getElementById('filterStatus').value;
-        let filtered = assignments.filter(a => {
-            if (title && !a.title.toLowerCase().includes(title)) return false;
-            if (difficulty && a.difficulty !== difficulty) return false;
-            if (category && a.category !== category) return false;
-            if (status && a.status !== status) return false;
-            return true;
-        });
-        renderAssignmentTable(filtered);
-    }
-    document.getElementById('searchBtn').addEventListener('click', applyFilters);
-    document.getElementById('filterTitle').addEventListener('keydown', function(e) { if (e.key === 'Enter') applyFilters(); });
-    document.getElementById('assignmentTableBody').addEventListener('click', function(e) {
-        if (e.target.classList.contains('select-btn')) {
-            selectedAssignmentId = e.target.getAttribute('data-id');
-            renderAssignmentTable(assignments.filter(a => {
-                // 필터 적용된 상태 유지
-                const title = document.getElementById('filterTitle').value.trim().toLowerCase();
-                const difficulty = document.getElementById('filterDifficulty').value;
-                const category = document.getElementById('filterCategory').value;
-                const status = document.getElementById('filterStatus').value;
-                if (title && !a.title.toLowerCase().includes(title)) return false;
-                if (difficulty && a.difficulty !== difficulty) return false;
-                if (category && a.category !== category) return false;
-                if (status && a.status !== status) return false;
-                return true;
-            }));
+        function applyFilters() {
+            if (!tbody) return;
+            const title = (document.getElementById('filterTitle').value || '').trim().toLowerCase();
+            const difficulty = document.getElementById('filterDifficulty').value;
+            const category = document.getElementById('filterCategory').value;
+            const status = document.getElementById('filterStatus').value;
+
+            tbody.querySelectorAll('tr[data-title]').forEach(function(tr) {
+                let show = true;
+                if (title && !(tr.dataset.title || '').toLowerCase().includes(title)) show = false;
+                if (difficulty && tr.dataset.difficulty !== difficulty) show = false;
+                if (category && tr.dataset.category !== category) show = false;
+                if (status && tr.dataset.status !== status) show = false;
+                tr.style.display = show ? '' : 'none';
+            });
+        }
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) searchBtn.addEventListener('click', applyFilters);
+        const filterTitle = document.getElementById('filterTitle');
+        if (filterTitle) {
+            filterTitle.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+            });
+        }
+
+        // ===== 과제 선택 시: 선택 행 강조 + 배점을 정의의 기본값으로 채워준다 =====
+        if (tbody) {
+            tbody.addEventListener('change', function(e) {
+                if (!e.target.classList.contains('assignment-pick')) return;
+                tbody.querySelectorAll('tr').forEach(function(tr) { tr.classList.remove('selected-row'); });
+                e.target.closest('tr').classList.add('selected-row');
+
+                const scoreInput = document.getElementById('score');
+                if (scoreInput && !scoreInput.value) {
+                    scoreInput.value = e.target.dataset.score || '';
+                }
+            });
         }
     });
-    // 최초 렌더링
-    renderAssignmentTable(assignments);
     </script>
 </body>
 </html>

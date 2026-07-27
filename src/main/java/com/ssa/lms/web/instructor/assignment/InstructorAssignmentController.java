@@ -1,0 +1,100 @@
+package com.ssa.lms.web.instructor.assignment;
+
+import com.ssa.lms.assignment.dto.AssignmentSearchCond;
+import com.ssa.lms.assignment.dto.GradingForm;
+import com.ssa.lms.assignment.repository.AssignmentLookupRepository;
+import com.ssa.lms.assignment.service.AssignmentGradingService;
+import com.ssa.lms.assignment.service.CourseAssignmentService;
+import com.ssa.lms.auth.LoginUser;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 강사 과제 채점 화면.
+ *
+ * 관리자 화면과 데이터·서비스는 같고, 목록만 <b>본인이 채점자로 지정된 과제</b>로 좁힌다
+ * (권한정의서의 △ = 담당 과정 한정). 관리자가 이 URL 로 들어오면 필터 없이 전체를 본다.
+ */
+@Controller
+@RequestMapping("/instructor/assignments")
+@RequiredArgsConstructor
+public class InstructorAssignmentController {
+
+    private static final String LIST_VIEW = "instructor/assignment";
+    private static final String GRADING_VIEW = "instructor/assignment-grading";
+    private static final String MODAL_VIEW = "admin/admin-04-evaluation/grading-modal";
+    private static final String GRADING_URL_PREFIX = "/instructor/assignments/";
+
+    private final CourseAssignmentService courseAssignmentService;
+    private final AssignmentGradingService gradingService;
+    private final AssignmentLookupRepository lookupRepository;
+
+    @GetMapping
+    public String list(@RequestParam(required = false) Long courseId,
+                       @RequestParam(required = false) String status,
+                       @RequestParam(required = false) String keyword,
+                       @AuthenticationPrincipal LoginUser loginUser,
+                       Model model) {
+        AssignmentSearchCond cond = new AssignmentSearchCond(courseId, status, null, keyword);
+        if (loginUser != null && loginUser.getRole() == com.ssa.lms.user.entity.Role.INSTRUCTOR) {
+            cond = cond.withGrader(loginUser.getId());
+        }
+        model.addAttribute("rows", courseAssignmentService.search(cond, GRADING_URL_PREFIX));
+        model.addAttribute("cond", cond);
+        model.addAttribute("courseOptions", lookupRepository.findCourseOptions());
+        model.addAttribute("instructorOptions", lookupRepository.findInstructorOptions());
+        return LIST_VIEW;
+    }
+
+    @GetMapping("/{id}/grading")
+    public String grading(@PathVariable Long id, Model model) {
+        model.addAttribute("summary", gradingService.loadSummary(id));
+        model.addAttribute("students", gradingService.loadStudents(id, GRADING_URL_PREFIX));
+        model.addAttribute("notSubmitted", courseAssignmentService.findNotSubmittedUsers(id));
+        return GRADING_VIEW;
+    }
+
+    @GetMapping("/{courseAssignmentId}/submissions/{submissionId}/grading")
+    public String gradingModal(@PathVariable Long courseAssignmentId,
+                               @PathVariable Long submissionId,
+                               Model model) {
+        var detail = gradingService.loadSubmissionDetail(submissionId);
+        // 폼을 기존 값으로 채워둔다. th:field 가 value/텍스트를 직접 쓰기 때문에
+        // 템플릿에서 th:value/th:text 로 덧씌우면 무시되거나 충돌한다.
+        GradingForm form = new GradingForm();
+        form.setScore(detail.currentScore());
+        form.setFeedback(detail.currentFeedback());
+        form.setMemo(detail.currentMemo());
+        model.addAttribute("detail", detail);
+        model.addAttribute("form", form);
+        model.addAttribute("courseAssignmentId", courseAssignmentId);
+        model.addAttribute("actionPrefix", GRADING_URL_PREFIX);
+        return MODAL_VIEW;
+    }
+
+    @PostMapping("/{courseAssignmentId}/submissions/{submissionId}/grading")
+    public String saveGrading(@PathVariable Long courseAssignmentId,
+                              @PathVariable Long submissionId,
+                              @Valid @ModelAttribute("form") GradingForm form,
+                              BindingResult bindingResult,
+                              @AuthenticationPrincipal LoginUser loginUser,
+                              Model model) {
+        if (!bindingResult.hasErrors()) {
+            try {
+                gradingService.grade(submissionId, form, loginUser.getId());
+                model.addAttribute("saved", true);
+            } catch (IllegalArgumentException e) {
+                bindingResult.reject("grade.failed", e.getMessage());
+            }
+        }
+        model.addAttribute("detail", gradingService.loadSubmissionDetail(submissionId));
+        model.addAttribute("courseAssignmentId", courseAssignmentId);
+        model.addAttribute("actionPrefix", GRADING_URL_PREFIX);
+        return MODAL_VIEW;
+    }
+}

@@ -27,7 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
  *         아래 STATUS_CLASS를 CSS에 맞춰 바꾸거나 CSS를 스크립트에 맞춰야 함.
  */
 // RESULT 데이터는 evalType을 꼭 넣어줘야 evalTypeFilter가 정상 동작함
-const gradingData = [
+//
+// ⚠️ 이 파일은 시험 채점 목록(B)과 과제 목록(B)이 함께 쓴다.
+//    시험 채점 화면이 Thymeleaf 로 전환되면서 서버가 window._serverGradingRows 로 행을 내려준다.
+//    값이 없으면 아래 더미가 그대로 쓰이므로, 아직 전환되지 않은 화면은 손대지 않아도 동작한다.
+const gradingData = window._serverGradingRows || [
   {
     number: 1,
     courseName: "풀스택 웹 개발 (React & Node.js)",
@@ -252,8 +256,8 @@ function initEvaluationList(opt) {
       const btn = BUTTON_CONFIG[status] || { text: "보기", className: "btn-gray", disabled: false };
 
       // 주소 매핑
-      // routes 예: { completed: '...', pending: '...', waiting: '...' }
-      const address = routes[status] || item.address || "#";
+      // 서버가 내려준 item.address(행별 실제 URL)를 먼저 쓴다. 없으면 기존 정적 라우트로 떨어진다.
+      const address = item.address || routes[status] || "#";
 
       const el = document.createElement("div");
       el.className = itemClass;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,104 +17,10 @@
 </head>
 <body data-user-role="admin">
     <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>콘텐츠 관리</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/admin :: header('콘텐츠 관리 > 문제은행')}"></header>
 
     <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')">
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-                                                
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
+    <th:block th:replace="~{fragments/admin :: sidebar('contents')}"></th:block>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
@@ -133,57 +39,55 @@
             </div>
             <!-- 상단: 검색/필터 영역 -->
             <div class="filter-section" style="margin-bottom:24px;">
+              <form th:action="@{/admin/evaluation/questions}" method="get">
                 <div class="filter-row">
                     <!-- 유형 -->
                     <div>
                         <label>유형</label>
                         <select class="input" name="type">
-                            <option>전체</option>
-                            <option>영상</option>
-                            <option>문서</option>
-                            <option>강의</option>
-                            <option>과제</option>
-                            <option>문제</option>
-                            <option>시험</option>
+                            <option th:each="t : ${ {'전체','영상','문서','강의','과제','문제','시험'} }"
+                                    th:value="${t}" th:text="${t}"
+                                    th:selected="${cond.type == t}">전체</option>
                         </select>
                     </div>
                     <!-- 제목(검색) -->
                     <div style="flex:1;">
                         <label>제목</label>
-                        <input type="text" class="input" placeholder="콘텐츠명 검색">
+                        <input type="text" class="input" name="keyword" th:value="${cond.keyword}" placeholder="콘텐츠명 검색">
                     </div>
                     <!-- 난이도 -->
                     <div>
                         <label>난이도</label>
                         <select class="input" name="difficulty">
-                            <option value="전체">전체</option>
-                            <option value="easy">easy</option>
-                            <option value="medium">medium</option>
-                            <option value="hard">hard</option>
+                            <option value="전체" th:selected="${cond.difficulty == '전체'}">전체</option>
+                            <option value="easy" th:selected="${cond.difficulty == 'easy'}">easy</option>
+                            <option value="medium" th:selected="${cond.difficulty == 'medium'}">medium</option>
+                            <option value="hard" th:selected="${cond.difficulty == 'hard'}">hard</option>
                         </select>
                     </div>
                     <!-- 카테고리 -->
                     <div>
                         <label>카테고리</label>
                         <select class="input" name="category">
-                            <option value="전체">전체</option>
-                            <option value="KDT">KDT</option>
-                            <option value="고교위탁">고교위탁</option>
+                            <option value="전체" th:selected="${cond.category == '전체'}">전체</option>
+                            <option value="KDT" th:selected="${cond.category == 'KDT'}">KDT</option>
+                            <option value="고교위탁" th:selected="${cond.category == '고교위탁'}">고교위탁</option>
                         </select>
                     </div>
                     <!-- 상태 -->
                     <div>
                         <label>상태</label>
                         <select class="input" name="status">
-                            <option value="전체">전체</option>
-                            <option value="Active">활성화</option>
-                            <option value="Archived">비활성화</option>
+                            <option value="전체" th:selected="${cond.status == '전체'}">전체</option>
+                            <option value="Active" th:selected="${cond.status == 'Active'}">활성화</option>
+                            <option value="Archived" th:selected="${cond.status == 'Archived'}">비활성화</option>
                         </select>
                     </div>
-                    <button class="btn btn-secondary" id="searchBtn">검색하기</button>
-                    <button class="btn btn-primary" id="addBtn" style="width: 130px; height: 38px;">+ 등록하기</button>
+                    <button type="submit" class="btn btn-secondary" id="searchBtn">검색하기</button>
+                    <button type="button" class="btn btn-primary" id="addBtn" style="width: 130px; height: 38px;">+ 등록하기</button>
                     <!-- 유형 선택 모달: JS로 동적 생성 -->
                 </div>
+              </form>
             </div>
 
             <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-bottom:10px;">
@@ -218,8 +122,8 @@
                     </tbody>
                 </table>
                 <div class="bulk-action-area">
-                    <button data-user-role="admin" class="btn btn-gray btn-sm">선택 삭제</button>
-                    <button class="btn btn-gray btn-sm">선택한 문제 비활성화</button>
+                    <button type="button" id="bulkDeleteBtn" data-user-role="admin" class="btn btn-gray btn-sm">선택 삭제</button>
+                    <button type="button" id="bulkDeactivateBtn" class="btn btn-gray btn-sm">선택한 문제 비활성화</button>
                 </div>
             </div>
 
@@ -254,5 +158,34 @@
         </div>
     </div>
 
+
+    <!-- ===== 서버 연동 (개발자 B) ===== -->
+    <!-- 일괄 액션용 POST 폼. th:action 이면 Thymeleaf 가 CSRF 히든필드를 자동으로 넣는다. -->
+    <form id="bulkForm" method="post" th:action="@{/admin/evaluation/questions/deactivate}" style="display:none;">
+        <input type="hidden" name="ids" id="bulkIds">
+    </form>
+
+    <!--
+      contents.js 는 defer 라서 파싱 이후에 실행된다. 이 인라인 스크립트는 파싱 중에 먼저
+      실행되므로, contents.js 가 window._serverContentRows 를 읽는 시점에는 이미 채워져 있다.
+    -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window._serverContentRows = /*[[${rows}]]*/ [];
+        window._questionUrls = {
+            add:  /*[[@{/admin/evaluation/questions/new}]]*/ '/admin/evaluation/questions/new',
+            // {id} 자리표시자는 contents.js 가 치환한다 (@{} 로는 표현할 수 없어 리터럴로 둔다)
+            edit: '/admin/evaluation/questions/{id}/edit'
+        };
+        window._questionBulkUrls = {
+            deactivate: /*[[@{/admin/evaluation/questions/deactivate}]]*/ '',
+            remove:     /*[[@{/admin/evaluation/questions/delete}]]*/ ''
+        };
+        /*]]>*/
+    </script>
+    <script src="/static/js/question-bank-bulk.js" defer></script>
+
+    <div th:if="${message}" class="toast-message" th:text="${message}"
+         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
 </body>
 </html>

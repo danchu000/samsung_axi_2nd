@@ -2,14 +2,9 @@
   // -----------------------
   // Mock Data
   // -----------------------
-  const mockCourses = [
-    { id: 'c01', name: '풀스택 웹 개발 (React & Node.js)' },
-    { id: 'c02', name: '데이터 분석 입문 (Python)' },
-    { id: 'c03', name: 'AI 기초 (Prompt & RAG)' }
-  ];
-
-  // 상태: scheduled / available / in_progress / completed / ended
-  const mockExams = [
+  // 서버(Thymeleaf)가 window._serverExamRows 를 내려주면 그것을 쓰고,
+  // 없으면(정적 미리보기) 아래 더미를 그대로 쓴다. — contents.js 와 같은 방식
+  const mockExams = window._serverExamRows || [
     {
       id: 'e101',
       name: 'JavaScript 중간평가 (1)',
@@ -97,6 +92,23 @@
     }
   ];
 
+  // 과정 필터 목록. 서버 데이터가 있으면 행에서 뽑아 쓴다(별도 API 를 부르지 않는다).
+  const mockCourses = window._serverExamRows
+    ? (function () {
+        const seen = new Map();
+        mockExams.forEach(ex => {
+          if (ex.courseId && !seen.has(String(ex.courseId))) {
+            seen.set(String(ex.courseId), { id: String(ex.courseId), name: ex.courseName });
+          }
+        });
+        return [...seen.values()];
+      })()
+    : [
+        { id: 'c01', name: '풀스택 웹 개발 (React & Node.js)' },
+        { id: 'c02', name: '데이터 분석 입문 (Python)' },
+        { id: 'c03', name: 'AI 기초 (Prompt & RAG)' }
+      ];
+
   // -----------------------
   // Elements
   // -----------------------
@@ -124,6 +136,17 @@
   const dAttempts = document.getElementById('dAttempts');
   const dNote = document.getElementById('dNote');
   const btnPrimaryAction = document.getElementById('btnPrimaryAction');
+
+  // 서버 연동 전용 엘리먼트 (정적 미리보기에는 없다 → 전부 null 안전하게 다룬다)
+  const identityModal = document.getElementById('identityModal');
+  const identityExamName = document.getElementById('identityExamName');
+  const identityCredential = document.getElementById('identityCredential');
+  const btnIdentityConfirm = document.getElementById('btnIdentityConfirm');
+  const startForm = document.getElementById('startForm');
+  const startVerifyMethod = document.getElementById('startVerifyMethod');
+  const startCredential = document.getElementById('startCredential');
+  const examUrls = window._examUrls || null;
+  let identityExamId = null;
 
   // -----------------------
   // State
@@ -158,6 +181,21 @@
 
   function statusClass(status) {
     return status || '';
+  }
+
+  /**
+   * 시험 한 건의 주 액션. 서버 행에는 startable/blockReason 이 있어 그것을 우선한다
+   * (문항 미확정 시험처럼 상태만 봐서는 알 수 없는 차단 사유가 있다).
+   */
+  function actionForExam(ex) {
+    const action = primaryActionFor(ex && ex.status);
+    if (ex && ex.startable === false && (action.type === 'start' || action.type === 'resume')) {
+      action.enabled = false;
+    }
+    if (action.type === 'result' && ex && !ex.lastAttemptId && window._examUrls) {
+      action.enabled = false;
+    }
+    return action;
   }
 
   function primaryActionFor(status) {
@@ -256,7 +294,7 @@
     cardList.innerHTML = pageItems.map(ex => {
       const badgeCls = statusClass(ex.status);
       const badgeText = statusLabel(ex.status);
-      const action = primaryActionFor(ex.status);
+      const action = actionForExam(ex);
 
       const attemptsLeft = Math.max(0, ex.attemptsTotal - ex.attemptsUsed);
       const attemptsText = `${attemptsLeft}/${ex.attemptsTotal}`;
@@ -353,7 +391,7 @@
     dAttempts.textContent = `${attemptsLeft}/${ex.attemptsTotal}`;
     dNote.textContent = ex.note || '-';
 
-    const action = primaryActionFor(ex.status);
+    const action = actionForExam(ex);
     btnPrimaryAction.textContent = action.label;
     btnPrimaryAction.disabled = !action.enabled;
     btnPrimaryAction.dataset.actionType = action.type;
@@ -361,11 +399,52 @@
     openModal(examDetailModal);
   }
 
+  /** 응시 시작 POST. 서버가 본인인증·기간·재응시 횟수를 다시 검사하고 실패하면 목록으로 되돌린다. */
+  function submitStart(examId, credential) {
+    startForm.action = examUrls.start.replace('{id}', examId);
+    startVerifyMethod.value = 'PASSWORD';
+    startCredential.value = credential || '';
+    startForm.submit();
+  }
+
+  function openIdentity(ex) {
+    identityExamId = ex.id;
+    identityExamName.textContent = ex.name;
+    identityCredential.value = '';
+    openModal(identityModal);
+    identityCredential.focus();
+  }
+
   function handlePrimaryAction(examId, actionType) {
-    const ex = mockExams.find(x => x.id === examId);
+    const ex = mockExams.find(x => String(x.id) === String(examId));
     if (!ex) return;
 
-    // 실제 구현: location.href로 이동하거나 API 호출 후 이동
+    // 서버 연동 모드 — 템플릿이 window._examUrls 를 내려준 경우
+    if (examUrls && startForm) {
+      if (actionType === 'start' || actionType === 'resume') {
+        if (ex.startable === false && actionType === 'start') {
+          alert(ex.blockReason || '지금은 응시할 수 없습니다.');
+          return;
+        }
+        if (ex.requireIdentityVerification) {
+          openIdentity(ex);
+        } else {
+          submitStart(ex.id, '');
+        }
+        return;
+      }
+      if (actionType === 'result') {
+        const attemptId = ex.lastAttemptId || ex.inProgressAttemptId;
+        if (!attemptId) {
+          alert('조회할 응시 회차가 없습니다.');
+          return;
+        }
+        location.href = examUrls.attempt.replace('{id}', attemptId);
+      }
+      return;
+    }
+
+    // 정적 미리보기 모드 (기존 동작 유지)
     if (actionType === 'start' || actionType === 'resume') {
       window.open('do-test.html', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
       return;
@@ -419,7 +498,7 @@
         openDetail(examId);
       } else if (action === 'primary') {
         const ex = mockExams.find(x => x.id === examId);
-        const pa = primaryActionFor(ex?.status);
+        const pa = actionForExam(ex);
         if (pa.enabled) handlePrimaryAction(examId, pa.type);
       }
     });
@@ -455,6 +534,29 @@
       if (actionType === 'none') return;
       handlePrimaryAction(selectedExamId, actionType);
     });
+
+    // 본인인증 모달 (서버 연동 모드에서만 존재)
+    if (identityModal) {
+      identityModal.addEventListener('click', (e) => {
+        if (e.target === identityModal) closeModal(identityModal);
+      });
+      identityModal.querySelectorAll('[data-close="identityModal"]').forEach(btn => {
+        btn.addEventListener('click', () => closeModal(identityModal));
+      });
+      identityCredential.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') btnIdentityConfirm.click();
+      });
+      btnIdentityConfirm.addEventListener('click', () => {
+        const credential = identityCredential.value.trim();
+        if (!credential) {
+          alert('본인인증을 위해 비밀번호를 입력하세요.');
+          identityCredential.focus();
+          return;
+        }
+        if (!identityExamId) return;
+        submitStart(identityExamId, credential);
+      });
+    }
   }
 
   // -----------------------

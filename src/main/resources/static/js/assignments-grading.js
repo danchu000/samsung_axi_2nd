@@ -1,5 +1,11 @@
-// [변경 이력] 더미 데이터 (타임리프 연동시 서버 데이터로 대체)
-const gradingHistoryData = [
+/* ===== 서버 연동 (개발자 B) =====
+   컨트롤러로 전환된 페이지는 인라인 스크립트로 아래를 먼저 채운다:
+     window._serverGradingStudents : GradingStudentRow[] (미제출자 포함, 각 행에 history[] 포함)
+   값이 없으면 아래 더미로 떨어진다 (아직 전환 안 된 정적 페이지 하위호환).
+   변경 이력은 학생마다 다르므로 전역 배열이 아니라 선택된 행의 history 를 쓴다. */
+
+// [변경 이력] 더미 데이터 (서버 미연동 시 폴백)
+const gradingHistoryDummy = [
     {
         date: '2026-01-10',
         instructor: '홍길동(강사)',
@@ -9,8 +15,8 @@ const gradingHistoryData = [
     }
     // 추후 서버 데이터로 대체
 ];
-// [학생 목록] 더미 데이터 (타임리프 연동시 서버 데이터로 대체)
-const gradingStudentData = [
+// [학생 목록] 더미 데이터 (서버 미연동 시 폴백)
+const gradingStudentDummy = [
     {
         no: 1,
         name: '홍길동',
@@ -52,7 +58,9 @@ const gradingStudentData = [
     }
 ];
 
-// 학생 신상 더미 데이터 (타임리프 연동시 서버 데이터로 대체)
+const gradingStudentData = window._serverGradingStudents || gradingStudentDummy;
+
+// 학생 신상 더미 데이터 (서버 미연동 시 폴백)
 const studentInfoData = {
     name: '김민수',
     birth: '1999.03.12',
@@ -71,6 +79,8 @@ function renderStudentInfoTable(data) {
             <tr>
                 <th style="width:90px;">학생</th>
                 <td>
+                    <!-- birth 자리에는 생년월일이 아니라 loginId 가 온다.
+                         User.birthDate 는 AES 암호문이고 채점 화면에 나갈 이유도 없다. -->
                     ${data.name} (${data.birth})
                 </td>
                 <th style="width:90px;">과정</th>
@@ -97,7 +107,9 @@ function renderStudentInfoTable(data) {
 document.getElementById('gradingStudentTbody').addEventListener('click', function(e) {
     // 채점/수정 버튼 클릭 시 모달 오픈
     if (e.target.classList.contains('grading-open-modal-btn')) {
-        window.open('grading-modal.html', 'gradingModal', 'width=950,height=700,scrollbars=yes');
+        // 서버 연동 시 행마다 실제 채점 URL 이 붙어 있다 (data-url).
+        const url = e.target.getAttribute('data-url') || 'grading-modal.html';
+        window.open(url, 'gradingModal', 'width=950,height=700,scrollbars=yes');
         e.stopPropagation();
         return;
     }
@@ -115,7 +127,8 @@ document.getElementById('gradingStudentTbody').addEventListener('click', functio
             resubmit: student.resubmit,
             score: student.score
         });
-        // 피드백/메모/이력 등도 필요시 갱신
+        // 변경 이력은 학생별이라 행을 바꿀 때마다 다시 그린다.
+        renderGradingHistoryTable(student.history || []);
     }
 });
 
@@ -124,18 +137,19 @@ function renderGradingStudentTable(data) {
     if (!tbody) return;
     tbody.innerHTML = data.map((item, idx) => {
         let btnHtml = '';
+        const url = item.gradingUrl || '';
         if (item.btnType === 'grading') {
-            btnHtml = '<button class="btn btn-primary btn-sm grading-open-modal-btn">채점</button>';
+            btnHtml = '<button class="btn btn-primary btn-sm grading-open-modal-btn" data-url="' + url + '">채점</button>';
         } else if (item.btnType === 'disabled') {
             btnHtml = '<button class="btn btn-secondary btn-sm" disabled>채점</button>';
         } else if (item.btnType === 'edit') {
-            btnHtml = '<button class="btn btn-gray btn-sm grading-open-modal-btn">수정</button>';
+            btnHtml = '<button class="btn btn-gray btn-sm grading-open-modal-btn" data-url="' + url + '">수정</button>';
         }
         return `
             <tr data-idx="${idx}">
                 <td>${item.no}</td>
                 <td>${item.name}</td>
-                <td>${item.submitStatus}</td>
+                <td>${item.submitStatus}${item.late ? ' <span style="color:#b42318;">(지각)</span>' : ''}</td>
                 <td>${item.gradingStatus}</td>
                 <td>${item.score}</td>
                 <td>${item.resubmit}</td>
@@ -171,7 +185,12 @@ function renderGradingHistoryTable(data) {
 
 // 페이지 로드 시 렌더링
 document.addEventListener('DOMContentLoaded', function() {
+    if (!gradingStudentData.length) {
+        renderGradingStudentTable([]);
+        renderGradingHistoryTable([]);
+        return;
+    }
     renderStudentInfoTable(gradingStudentData[0]);
     renderGradingStudentTable(gradingStudentData);
-    renderGradingHistoryTable(gradingHistoryData);
+    renderGradingHistoryTable(gradingStudentData[0].history || gradingHistoryDummy);
 });

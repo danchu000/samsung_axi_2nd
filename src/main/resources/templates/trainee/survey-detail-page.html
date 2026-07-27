@@ -19,6 +19,8 @@
     <div class="progress-track"><span id="sdProgressFill" style="width:0%"></span></div>
   </div>
 
+  <form id="sdForm" method="post"
+        th:action="@{/trainee/survey/{id}/submit(id=${survey.id})}">
   <div class="form-wrap" id="sdFormWrap">
     <!-- 질문 렌더 -->
   </div>
@@ -29,9 +31,10 @@
     </div>
     <div class="right">
       <button type="button" class="btn ghost" id="sdDraft">임시저장</button>
-      <button type="button" class="btn primary" id="sdSubmit">제출하기</button>
+      <button type="submit" class="btn primary" id="sdSubmit">제출하기</button>
     </div>
   </div>
+  </form>
 
   <div class="alert" id="sdAlert" style="display:none;"></div>
 </div>
@@ -110,41 +113,11 @@
 
 <script>
   // ====== 더미 설문(실제로는 API로 가져오면 됨) ======
-  const SURVEY_DETAIL = {
-    "SV-001": {
-      id: "SV-001",
-      title: "과정 만족도 조사",
-      course: "풀스택 웹 개발 (React & Node.js) / 1기",
-      deadline: "2026-01-30 23:59",
-      submitted: false, // 제출완료면 true
-      questions: [
-        {
-          id: "Q1",
-          type: "CHOICE",
-          required: true,
-          title: "전반적인 만족도는 어떤가요?",
-          desc: "",
-          options: ["매우 만족", "만족", "보통", "불만", "매우 불만"]
-        },
-        {
-          id: "Q2",
-          type: "TEXT",
-          required: false,
-          title: "개선되었으면 하는 점이 있다면 자유롭게 작성해주세요.",
-          desc: "예: 강의 속도, 과제 난이도, 자료 제공 등",
-          max: 2000
-        },
-        {
-          id: "Q3",
-          type: "STAR",
-          required: true,
-          title: "강사 전달력(5점 만점)",
-          desc: "",
-          maxStars: 5
-        }
-      ]
-    }
-  };
+  // 서버(Thymeleaf)가 내려준 설문 1건. 기존 더미 맵을 대체한다.
+  const SURVEY_DETAIL = {};
+  if (window._serverSurveyDetail) {
+    SURVEY_DETAIL[window._serverSurveyDetail.id] = window._serverSurveyDetail;
+  }
 
   // ====== DOM ======
   const sdTitle = document.getElementById("sdTitle");
@@ -210,7 +183,9 @@
     sdProgressFill.style.width = `${pct}%`;
   }
 
-  function renderQuestion(q){
+  function renderQuestion(q, qi){
+    // 서버 바인딩용 히든 인풋 (SurveySubmitForm.answers[i].questionId)
+    const idField = `<input type="hidden" name="answers[${qi}].questionId" value="${q.id}">`;
     const requiredTag = q.required ? `<span class="q-required">필수</span>` : "";
     const desc = q.desc ? `<div class="q-desc">${escapeHtml(q.desc)}</div>` : "";
 
@@ -221,8 +196,8 @@
         <div class="radio-group">
           ${q.options.map(opt => `
             <label class="radio-item">
-              <input type="radio" name="${q.id}" value="${escapeHtml(opt)}" />
-              <span>${escapeHtml(opt)}</span>
+              <input type="${q.multi ? 'checkbox' : 'radio'}" name="answers[${qi}].choiceIds" value="${opt.id}" />
+              <span>${escapeHtml(opt.content)}</span>
             </label>
           `).join("")}
         </div>
@@ -230,12 +205,13 @@
     }
 
     if (q.type === "TEXT"){
-      body = `<textarea class="textarea" data-qid="${q.id}" placeholder="답변을 입력하세요."></textarea>`;
+      body = `<textarea class="textarea" name="answers[${qi}].answerText" data-qid="${q.id}" placeholder="답변을 입력하세요."></textarea>`;
     }
 
     if (q.type === "STAR"){
       const max = q.maxStars || 5;
       body = `
+        <input type="hidden" name="answers[${qi}].scaleValue" id="scale-${q.id}" value="">
         <div class="stars" data-qid="${q.id}">
           ${Array.from({length:max}).map((_,i)=>`
             <button type="button" class="star-btn" data-star="${i+1}">★</button>
@@ -249,7 +225,7 @@
       <div class="q-card" data-qcard="${q.id}">
         <div class="q-title">${escapeHtml(q.title)} ${requiredTag}</div>
         ${desc}
-        <div class="q-body">${body}</div>
+        <div class="q-body">${idField}${body}</div>
       </div>
     `;
   }
@@ -354,21 +330,23 @@
     alert("임시저장 완료(예시)");
   });
 
-  sdSubmit.addEventListener("click", () => {
+  // 별점 클릭 시 서버 전송용 히든 인풋에 값을 반영
+  sdFormWrap.addEventListener("click", function (e) {
+    const btn = e.target.closest && e.target.closest(".star-btn");
+    if (!btn) return;
+    const wrap = btn.closest(".stars");
+    const hidden = document.getElementById("scale-" + wrap.getAttribute("data-qid"));
+    if (hidden) hidden.value = btn.getAttribute("data-star");
+  });
+
+  document.getElementById("sdForm").addEventListener("submit", (e) => {
     hideAlert();
-    if (!validateBeforeSubmit()) return;
-
-    // TODO: API 연결
-    console.log("[제출]", { surveyId: current.id, answers });
-    alert("제출 완료(예시)");
-
-    // 제출 완료 처리(예시)
-    current.submitted = true;
-    renderAll();
+    if (!validateBeforeSubmit()) { e.preventDefault(); return; }
+    // 검증 통과 -> 서버(POST /trainee/survey/{id}/submit)로 그대로 제출한다
   });
 
   // ====== init ======
-  const surveyId = getSurveyIdFromQuery() || "SV-001";
+  const surveyId = (window._serverSurveyDetail && window._serverSurveyDetail.id) || getSurveyIdFromQuery();
   current = SURVEY_DETAIL[surveyId];
 
   if (!current){
@@ -384,4 +362,29 @@
     sdDeadline.textContent = `마감: ${current.deadline}`;
     renderAll();
   }
+</script>
+
+<!-- ===== 서버 연동 (개발자 B) — 이 파일은 <html>/<body> 없는 조각이라 문서 끝에 붙인다 ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        var v = /*[[${survey}]]*/ null;
+        if (!v) return;
+        // 화면 JS 가 쓰는 타입명(CHOICE/TEXT/STAR)으로 매핑한다
+        var TYPE = { single: 'CHOICE', multi: 'CHOICE', text: 'TEXT', scale: 'STAR' };
+        window._serverSurveyDetail = {
+            id: v.id, title: v.title, course: v.course, deadline: v.deadline,
+            submitted: v.submitted, answerable: v.answerable,
+            questions: (v.questions || []).map(function (q) {
+                return {
+                    id: q.id, title: q.title, required: q.required,
+                    type: TYPE[q.type] || 'TEXT',
+                    multi: q.type === 'multi',
+                    maxStars: q.maxStars || 5,
+                    options: q.options || []
+                };
+            })
+        };
+    })();
+    /*]]>*/
 </script>

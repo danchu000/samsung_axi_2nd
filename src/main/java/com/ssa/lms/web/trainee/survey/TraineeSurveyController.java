@@ -33,8 +33,13 @@ public class TraineeSurveyController {
     @PostMapping("/{id}/submit")
     public String submit(@PathVariable Long id, @AuthenticationPrincipal LoginUser user,
                          @ModelAttribute("form") SurveySubmitForm form, RedirectAttributes redirect) {
-        surveyService.submit(id, user.getId(), form);
-        redirect.addFlashAttribute("message", "설문 응답을 제출했습니다.");
+        try {
+            surveyService.submit(id, user.getId(), form);
+            redirect.addFlashAttribute("message", "설문 응답을 제출했습니다.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            // 이미 제출했거나 기간이 지난 경우. 훈련생에게 500 을 보여주면 안 된다.
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/trainee/survey";
     }
 }

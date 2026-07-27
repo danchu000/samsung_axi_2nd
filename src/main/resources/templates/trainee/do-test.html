@@ -112,12 +112,10 @@
                         </div>
             
                         <div class="nav-grid" id="navGrid">
-                            <!-- JS 렌더 -->
-                            <!-- 타임리프 변환 시:
-                            <button th:each="q,stat : ${questions}"
-                                    th:text="${q.no}"
-                                    th:classappend="${...}"
-                                    ...>1</button>
+                            <!--
+                              JS 렌더. th:each 로 서버에서 그리지 않는 이유 —
+                              응답/검토 표시가 임시저장(AJAX)에 따라 새로고침 없이 바뀌어야 해서
+                              같은 마크업을 클라이언트가 다시 그려야 한다. 데이터는 window._serverAttempt.
                             -->
                         </div>
                         </aside>
@@ -131,14 +129,11 @@
             
                         <!-- 답안 영역(유형별) -->
                         <div class="q-answer" id="answerArea">
-                            <!-- JS 렌더 (객관식/다중/단답/서술) -->
-                            <!-- 타임리프 변환 시:
-                            <div th:switch="${q.type}">
-                                <div th:case="'single_choice'">...</div>
-                                <div th:case="'multi_choice'">...</div>
-                                <div th:case="'short'">...</div>
-                                <div th:case="'essay'">...</div>
-                            </div>
+                            <!--
+                              JS 렌더 (MULTIPLE_CHOICE / SHORT_ANSWER / CODING).
+                              한 번에 한 문항만 보여주고 좌측 네비로 이동하는 화면이라 서버가 전부 그려두지 않는다.
+                              ※ AttemptQuestionRow 에는 정답(correctAnswer)과 보기의 correct 플래그가 없다 —
+                                 응시자가 개발자도구로 정답을 볼 수 없어야 하기 때문.
                             -->
                         </div>
             

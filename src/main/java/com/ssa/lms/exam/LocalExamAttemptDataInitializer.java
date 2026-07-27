@@ -94,7 +94,7 @@ public class LocalExamAttemptDataInitializer {
         // 1) 지금 응시 가능한 시험 — 본인인증 필수 + 부정행위 차단 플래그 on
         exams.add(withQuestions(exam(MARKER, Exam.ExamType.UNIT, course, instructor,
                         60, 25, 0, 25, 15,
-                        false, false, 1,
+                        true, false, 1,   // requireIdentity=true — 주석과 달리 false 로 박혀 있던 것을 고침
                         now().minusHours(1), now().plusDays(7),
                         true, true, true,
                         "본인인증 후 60분간 응시합니다. 탭 전환과 복사/붙여넣기는 기록됩니다.",

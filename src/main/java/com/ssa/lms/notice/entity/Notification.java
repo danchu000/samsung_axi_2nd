@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +31,8 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_notification_status", columnList = "status")
         }
 )
+@SQLDelete(sql = "UPDATE notification SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
@@ -89,6 +93,22 @@ public class Notification extends BaseEntity {
 
     public void markSent() {
         this.status = NotificationStatus.SENT;
+    }
+
+    public void update(String title, String content, Priority priority,
+                       TargetType targetType, Long targetRefId,
+                       LocalDateTime sendAt, LocalDateTime dueDate) {
+        this.title = title;
+        this.content = content;
+        this.priority = priority;
+        this.targetType = targetType;
+        this.targetRefId = targetRefId;
+        this.sendAt = sendAt;
+        this.dueDate = dueDate;
+    }
+
+    public void changeStatus(NotificationStatus status) {
+        this.status = status;
     }
 
     public enum Priority {

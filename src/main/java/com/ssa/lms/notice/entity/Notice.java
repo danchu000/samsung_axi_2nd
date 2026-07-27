@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import java.util.List;
                 @Index(name = "idx_notice_published", columnList = "published_at")
         }
 )
+@SQLDelete(sql = "UPDATE notice SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notice extends BaseEntity {
@@ -99,5 +103,26 @@ public class Notice extends BaseEntity {
         this.title = title;
         this.content = content;
         this.pinned = pinned;
+    }
+
+    /** 노출 범위 변경. null 이면 전체 공지. */
+    public void changeCourse(Course course) {
+        this.course = course;
+    }
+
+    /** 게시. 이미 게시된 글은 최초 게시 시각을 유지한다(수정 때마다 밀리면 안 된다). */
+    public void publish(LocalDateTime at) {
+        if (this.publishedAt == null) {
+            this.publishedAt = at;
+        }
+    }
+
+    /** 게시 취소(임시저장으로 되돌림). */
+    public void unpublish() {
+        this.publishedAt = null;
+    }
+
+    public void clearAttachments() {
+        this.attachments.clear();
     }
 }

@@ -51,8 +51,7 @@ public class Notice extends BaseEntity {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

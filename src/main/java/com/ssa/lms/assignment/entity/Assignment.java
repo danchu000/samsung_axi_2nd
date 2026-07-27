@@ -29,8 +29,7 @@ public class Assignment extends BaseEntity {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     /** 배정 시 기본으로 채워질 제출 유형. CourseAssignment 에서 덮어쓸 수 있다. */

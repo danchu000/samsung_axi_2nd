@@ -48,8 +48,7 @@ public class ExamEventLog extends BaseEntity {
     private Severity severity;
 
     /** 이벤트 부가 정보(JSON 문자열). 예: 탭 전환 지속시간, 감지된 얼굴 수. */
-    @Lob
-    @Column(name = "detail")
+    @Column(name = "detail", columnDefinition = "TEXT")
     private String detail;
 
     @Column(name = "occurred_at", nullable = false)

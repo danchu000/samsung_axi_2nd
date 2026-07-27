@@ -46,8 +46,7 @@ public class Answer extends BaseEntity {
     private QuestionChoice choice;
 
     /** 주관식/코딩 답안 본문. */
-    @Lob
-    @Column(name = "answer_text")
+    @Column(name = "answer_text", columnDefinition = "TEXT")
     private String answerText;
 
     @Column(name = "is_correct")

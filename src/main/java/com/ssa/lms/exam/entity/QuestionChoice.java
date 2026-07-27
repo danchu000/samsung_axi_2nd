@@ -36,8 +36,7 @@ public class QuestionChoice extends BaseEntity {
     @Column(name = "seq", nullable = false)
     private Integer seq;
 
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "is_correct", nullable = false)

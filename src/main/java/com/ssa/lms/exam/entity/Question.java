@@ -46,17 +46,14 @@ public class Question extends BaseEntity {
     @Column(name = "question_type", length = 20, nullable = false)
     private QuestionType questionType;
 
-    @Lob
-    @Column(name = "question_text", nullable = false)
+    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
     /** 객관식이면 정답 보기의 seq, 주관식/코딩이면 정답 문자열. */
-    @Lob
-    @Column(name = "correct_answer")
+    @Column(name = "correct_answer", columnDefinition = "TEXT")
     private String correctAnswer;
 
-    @Lob
-    @Column(name = "explanation")
+    @Column(name = "explanation", columnDefinition = "TEXT")
     private String explanation;
 
     @Enumerated(EnumType.STRING)

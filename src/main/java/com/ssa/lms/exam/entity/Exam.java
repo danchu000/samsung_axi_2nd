@@ -132,8 +132,7 @@ public class Exam extends BaseEntity {
     private boolean blockCopyPaste;
 
     /** 응시 안내 문구. online-test.js 의 note. */
-    @Lob
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @Enumerated(EnumType.STRING)

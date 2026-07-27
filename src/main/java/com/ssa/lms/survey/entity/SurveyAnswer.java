@@ -47,8 +47,7 @@ public class SurveyAnswer extends BaseEntity {
     private Integer scaleValue;
 
     /** TEXT 형의 서술 답변. */
-    @Lob
-    @Column(name = "answer_text")
+    @Column(name = "answer_text", columnDefinition = "TEXT")
     private String answerText;
 
     @Builder

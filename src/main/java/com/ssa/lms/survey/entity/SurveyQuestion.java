@@ -39,8 +39,7 @@ public class SurveyQuestion extends BaseEntity {
     @Column(name = "question_type", length = 20, nullable = false)
     private SurveyQuestionType questionType;
 
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "is_required", nullable = false)

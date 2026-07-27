@@ -1,5 +1,6 @@
 package com.ssa.lms.support.entity;
 
+import com.ssa.lms.common.converter.CryptoConverter;
 import com.ssa.lms.common.entity.BaseEntity;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.Session;
@@ -25,7 +26,8 @@ import java.util.List;
  * 내역서 "고객 의견 수렴·불만 처리" 증빙의 근거 데이터다.
  *
  * 개인정보 주의: 질문 본문에 연락처·상황 설명이 섞여 들어오는 경우가 많아
- * content 에 AES-256 컨버터를 건다. (A 가 제공할 CryptoConverter)
+ * content 에 AES-256 컨버터(A 의 CryptoConverter)를 건다. 암호문이 저장되므로
+ * 이 컬럼으로는 LIKE 검색이 불가능하다 — 검색은 title 로만 한다.
  */
 @Entity
 @Table(
@@ -67,9 +69,8 @@ public class Qna extends BaseEntity {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    // TODO: A 가 CryptoConverter 를 제공하면 @Convert(converter = CryptoConverter.class) 추가
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Convert(converter = CryptoConverter.class)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)

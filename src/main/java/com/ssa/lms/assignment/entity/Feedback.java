@@ -34,8 +34,7 @@ public class Feedback extends BaseEntity {
     @JoinColumn(name = "instructor_id", nullable = false)
     private User instructor;
 
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Builder

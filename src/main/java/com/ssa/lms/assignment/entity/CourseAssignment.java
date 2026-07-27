@@ -52,8 +52,7 @@ public class CourseAssignment extends BaseEntity {
     private Assignment assignment;
 
     /** 이 과정에서만 다르게 안내할 과제 설명. null 이면 Assignment.description 사용. */
-    @Lob
-    @Column(name = "override_description")
+    @Column(name = "override_description", columnDefinition = "TEXT")
     private String overrideDescription;
 
     @Enumerated(EnumType.STRING)

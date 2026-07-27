@@ -58,8 +58,7 @@ public class Submission extends BaseEntity {
     private CourseAssignment.SubmissionType submitType;
 
     /** 텍스트 입력형 본문. */
-    @Lob
-    @Column(name = "content_text")
+    @Column(name = "content_text", columnDefinition = "TEXT")
     private String contentText;
 
     /** 링크 제출형 URL. */

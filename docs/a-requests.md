@@ -3,6 +3,25 @@
 > 작성: 개발자 B · 브랜치 `feat/b-schema`
 > B가 만든 엔티티 34개가 아래 것들을 `import` 하고 있다. 이게 들어와야 컴파일된다.
 
+## 처리 현황 (2026-07-27, A의 `feat/a-phase0-skeleton` 확인 결과)
+
+| # | 항목 | 상태 |
+|---|---|---|
+| 1 | build.gradle 의존성 (Lombok 포함) | ✅ 반영 |
+| 2 | `common.entity.BaseEntity` | ✅ 요청한 필드명 그대로 |
+| 3 | `User` / `Course` / `Subject` / `Session` | ✅ FQCN·필드명 일치 (`Session` 테이블명만 `course_session`) |
+| 4 | `CourseQueryService.findUserIdsByCourseId` / `isInstructorOf` | ✅ 반영 |
+| 5 | `common.converter.CryptoConverter` (AES-256/GCM) | ✅ 반영 → B가 `Qna`/`QnaAnswer`/`TutoringMessage` 본문에 적용 완료 |
+| 6 | SecurityConfig 경로 인가 | ✅ B 요청 경로 전부 반영 |
+| 7 | `IdentityVerificationService` | ✅ 인터페이스 + `PasswordIdentityVerificationService` 구현체 |
+| 8 | 이수 판정 ↔ 성적 경계 (`GradeQueryService`) | ⬜ **B가 아직 미구현** — Phase 1에서 제공 |
+| 9 | `Content` ↔ `Exam` 연결 | ⬜ 미정 (P2) |
+| — | `templates/`·`static/` → `src/main/resources/` 이동 | ✅ A가 처리 |
+
+**남은 이슈: 저장소가 둘로 갈렸다.**
+A는 `woongscoding/axi_project`, B의 origin은 `mina-2026-ai/samsung-lxp`.
+어느 쪽을 정본으로 할지 정해야 PR을 올릴 수 있다.
+
 ---
 
 ## P0 — 스켈레톤과 함께 반드시 필요

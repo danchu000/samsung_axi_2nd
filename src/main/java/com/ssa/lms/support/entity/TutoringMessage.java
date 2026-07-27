@@ -1,5 +1,6 @@
 package com.ssa.lms.support.entity;
 
+import com.ssa.lms.common.converter.CryptoConverter;
 import com.ssa.lms.common.entity.BaseEntity;
 import com.ssa.lms.user.entity.User;
 import jakarta.persistence.*;
@@ -40,9 +41,8 @@ public class TutoringMessage extends BaseEntity {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    // TODO: A 가 CryptoConverter 를 제공하면 @Convert 추가
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Convert(converter = CryptoConverter.class)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "sent_at", nullable = false)

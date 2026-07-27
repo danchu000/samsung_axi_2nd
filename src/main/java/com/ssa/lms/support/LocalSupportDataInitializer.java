@@ -12,35 +12,46 @@ import com.ssa.lms.support.repository.TutoringRoomRepository;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-/** local 프로필에서만 Q&A·튜터링 흐름을 확인하기 위한 B 도메인 시드. */
+/**
+ * local 프로필에서만 Q&A·튜터링 흐름을 확인하기 위한 B 도메인 시드.
+ *
+ * <p><b>CommandLineRunner 를 쓰면 안 된다.</b> A 의 {@code config.LocalDataInitializer}
+ * (사용자·과정 시드)에는 {@code @Order} 가 없어 {@code LOWEST_PRECEDENCE} 로 잡히는데,
+ * 여기에 {@code @Order} 를 달면 오히려 <b>A 보다 먼저</b> 돌아 trainee1/과정이 없는 상태에서
+ * 시드가 조용히 건너뛰어진다 (시험·과제 슬라이스가 실제로 밟은 함정).
+ * {@code ApplicationReadyEvent} 는 모든 CommandLineRunner 가 끝난 뒤 발행되므로
+ * A 의 시드 완료를 보장받는다.</p>
+ */
 @Slf4j
 @Component
 @Profile("local")
-@Order(110)
 @RequiredArgsConstructor
-public class LocalSupportDataInitializer implements CommandLineRunner {
+public class LocalSupportDataInitializer {
     private final QnaRepository qnaRepository;
     private final TutoringRoomRepository roomRepository;
     private final TutoringMessageRepository messageRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    @Override
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
-    public void run(String... args) {
+    public void seed() {
         if (qnaRepository.count() > 0 || roomRepository.count() > 0) return;
         var trainee = userRepository.findByLoginId("trainee1").orElse(null);
         var instructor = userRepository.findByLoginId("instructor1").orElse(null);
         Course course = courseRepository.findAll().stream().findFirst().orElse(null);
-        if (trainee == null) return;
+        if (trainee == null) {
+            log.warn("[local] Q&A·튜터링 시드 건너뜀 — trainee1 계정이 없다 (A 시드 확인 필요)");
+            return;
+        }
 
         Qna qna = Qna.builder().user(trainee).course(course)
                 .category(Qna.QnaCategory.LECTURE).title("Spring Bean 주입 방식이 궁금합니다")

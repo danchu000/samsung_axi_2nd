@@ -1,6 +1,7 @@
 
-    // 동적 데이터 예시 (타임리프 연동시 서버에서 내려줄 예정)
-    const responseData = [
+    // 서버(AdminSupportController#response)가 window._serverResponseRows 로 내려준다.
+    // 정적 HTML 로 단독 오픈했을 때를 위해 기존 더미 배열을 fallback 으로 남긴다.
+    const responseData = window._serverResponseRows || [
         {
             type: 'QnA',
             category: '수업',
@@ -35,7 +36,7 @@
                 <td>${row.requester}</td>
                 <td class="${row.manager === '미배정' ? 'text-muted' : ''}">${row.manager}</td>
                 <td>${row.elapsed}</td>
-                <td><button class="btn-secondary btn-sx tutoring-detail-btn">상세 페이지로 이동</button></td>
+                <td><button class="btn-secondary btn-sx tutoring-detail-btn" data-detail-url="${row.detailUrl || ''}">상세 페이지로 이동</button></td>
             </tr>
         `).join('');
     }
@@ -45,7 +46,12 @@
     // 상세 페이지로 이동 버튼 클릭 시 모달 창 열기
     document.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('tutoring-detail-btn')) {
-            window.open('modal-tutoring.html', 'modalTutoring', 'width=800,height=600,resizable=yes,scrollbars=yes');
+            const url = e.target.getAttribute('data-detail-url');
+            if (url) {
+                window.location.href = url;   // 서버 연동 시 Q&A/튜터링 상세로 이동
+            } else {
+                window.open('modal-tutoring.html', 'modalTutoring', 'width=800,height=600,resizable=yes,scrollbars=yes');
+            }
         }
     });
     sortSelect.addEventListener('change', sortTable);

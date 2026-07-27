@@ -2,6 +2,9 @@ package com.ssa.lms.support.service;
 
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.repository.CourseRepository;
+import com.ssa.lms.support.dto.CourseOption;
+import com.ssa.lms.support.dto.ResponseListRow;
+import com.ssa.lms.support.dto.StaffOption;
 import com.ssa.lms.support.dto.SupportFormat;
 import com.ssa.lms.support.dto.SupportStats;
 import com.ssa.lms.support.dto.TutoringRoomDetail;
@@ -80,6 +83,30 @@ public class TutoringService {
         Map<Long, Long> counts = messageCounts(rooms);
         return rooms.stream()
                 .map(r -> TutoringRoomListRow.of(r, counts.getOrDefault(r.getId(), 0L)))
+                .toList();
+    }
+
+    /**
+     * 튜터 배정 셀렉트용 목록 (훈련생 제외).
+     * {@code UserRepository} 가 A 소유라 findAll() 후 자바에서 거른다 — QnaService 와 같은 이유.
+     */
+    public List<StaffOption> instructorOptions() {
+        return userRepository.findAll().stream()
+                .filter(StaffOption::isStaff)
+                .map(StaffOption::of)
+                .toList();
+    }
+
+    /** 과정 셀렉트 옵션 — trainee/tutoring.html 의 학습 범위 선택. */
+    public List<CourseOption> courseOptions() {
+        return courseRepository.findAll().stream().map(CourseOption::of).toList();
+    }
+
+    /** 응답현황(admin-support-response.html) 의 튜터링 행. */
+    public List<ResponseListRow> responseRows() {
+        LocalDateTime now = LocalDateTime.now();
+        return roomRepository.findAll().stream()
+                .map(r -> ResponseListRow.ofTutoring(r, firstInstructorReplyAt(r.getId()), now))
                 .toList();
     }
 

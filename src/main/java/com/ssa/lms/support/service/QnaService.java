@@ -8,6 +8,8 @@ import com.ssa.lms.support.dto.QnaDetail;
 import com.ssa.lms.support.dto.QnaForm;
 import com.ssa.lms.support.dto.QnaListRow;
 import com.ssa.lms.support.dto.QnaSearchCond;
+import com.ssa.lms.support.dto.ResponseListRow;
+import com.ssa.lms.support.dto.StaffOption;
 import com.ssa.lms.support.dto.SupportFormat;
 import com.ssa.lms.support.dto.SupportStats;
 import com.ssa.lms.support.entity.Qna;
@@ -80,6 +82,29 @@ public class QnaService {
         String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
         return qnaRepository.findByUserId(userId, kw).stream()
                 .map(q -> QnaListRow.of(q, now))
+                .toList();
+    }
+
+    /**
+     * 담당자 배정 셀렉트용 목록 (훈련생 제외).
+     *
+     * <p>{@code UserRepository} 는 A 소유라 조회 메서드를 추가할 수 없어
+     * findAll() 후 자바에서 거른다. 사용자 수가 늘면 A에게 {@code findByRoleIn} 을
+     * 요청할 것 (a-requests.md 대상).</p>
+     */
+    public List<StaffOption> staffOptions() {
+        return userRepository.findAll().stream()
+                .filter(StaffOption::isStaff)
+                .map(StaffOption::of)
+                .toList();
+    }
+
+    /** 응답현황(admin-support-response.html) 의 Q&A 행. */
+    public List<ResponseListRow> responseRows() {
+        LocalDateTime now = LocalDateTime.now();
+        return qnaRepository.search(null, null, null, null, null, false, Pageable.unpaged())
+                .getContent().stream()
+                .map(q -> ResponseListRow.ofQna(q, now))
                 .toList();
     }
 

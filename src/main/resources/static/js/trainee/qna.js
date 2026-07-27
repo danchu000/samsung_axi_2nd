@@ -51,25 +51,31 @@
       }
     });
 
-    // ===== 2️⃣ 제목/내용 유효성 검사 =====
-    btnSubmitAsk?.addEventListener("click", () => {
+    // ===== 2️⃣ 제목/내용 유효성 검사 (서버 @Valid 전 클라이언트 1차 검사) =====
+    // 모달 자체가 <form id="askForm" method="post" action="/trainee/qna"> 라
+    // 검사를 통과하면 그대로 submit 된다 (서버 연동 완료).
+    const askForm = $("askForm");
+
+    askForm?.addEventListener("submit", (e) => {
       const title = aTitle?.value.trim() || "";
       const body = aBody?.value.trim() || "";
 
       if (!title) {
+        e.preventDefault();
         showError("제목을 입력해주세요.");
         return;
       }
 
       if (!body) {
+        e.preventDefault();
         showError("내용을 입력해주세요.");
-        return;
       }
-
-      // 통과 시 (지금은 데모)
-      closeModal(askModal);
-      alert("등록(데모): 서버 연동 필요");
     });
+
+    // 검증 실패로 서버가 폼을 다시 그린 경우 모달을 열어둔다.
+    if (askError && !askError.hidden && askError.textContent.trim()) {
+      openModal(askModal);
+    }
 
     function showError(message) {
       if (!askError) return;
@@ -77,18 +83,17 @@
       askError.textContent = message;
     }
 
-    // ===== 3️⃣ tr 클릭 → 상세 페이지 이동 =====
-    const rows = document.querySelectorAll("#qnaTbody tr");
+    // ===== 3️⃣ tr 클릭 → 상세 페이지 이동 (서버 id 기반) =====
+    const rows = document.querySelectorAll("#qnaTbody tr[data-item-id]");
 
     rows.forEach((row) => {
       row.style.cursor = "pointer";
 
-      row.addEventListener("click", () => {
-        window.location.href = "./qna-detail.html";
-
-        // ID 기반으로 바꾸려면:
-        // const id = row.getAttribute("data-item-id");
-        // window.location.href = "/trainee/qna/" + id;
+      row.addEventListener("click", (e) => {
+        // 제목 링크는 자체 href 로 이동한다 (중복 이동 방지)
+        if (e.target.closest("a")) return;
+        const id = row.getAttribute("data-item-id");
+        if (id) window.location.href = "/trainee/qna/" + id;
       });
     });
 

@@ -11,3 +11,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+    # 아래 SQL 스크립트가 Hibernate 의 테이블 생성 이후에 실행되도록 미룬다
+    defer-datasource-initialization: true
+
+  # soft delete 와 공존하는 부분 유니크 인덱스 (PostgreSQL 전용).
+  # local 프로필의 H2 는 부분 인덱스를 지원하지 않아 여기서만 건다 — 스크립트 상단 주석 참고.
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/postgresql/partial-unique-indexes.sql

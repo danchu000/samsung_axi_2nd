@@ -151,7 +151,8 @@ public class QuestionService {
     private String resolveCode(String input) {
         if (input != null && !input.isBlank()) {
             String code = input.strip();
-            if (questionRepository.existsByQuestionCode(code)) {
+            // 삭제된 문제의 코드도 DB 에 남아 있어 유니크 제약이 걸린다
+            if (questionRepository.existsByQuestionCodeIncludingDeleted(code)) {
                 throw new IllegalArgumentException("이미 사용 중인 문제 코드입니다: " + code);
             }
             return code;

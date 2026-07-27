@@ -20,3 +20,6 @@ Thumbs.db
 # 로컬 설정 (DB 비밀번호 등은 커밋 금지)
 application-secret.yml
 .env
+
+# Claude Code 에이전트 워크트리 (커밋 대상 아님)
+.claude/worktrees/

@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * 과제 정의 (재사용 가능한 원본).
@@ -17,6 +19,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "assignment", indexes = @Index(name = "idx_assignment_status", columnList = "status"))
+@SQLDelete(sql = "UPDATE assignment SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Assignment extends BaseEntity {

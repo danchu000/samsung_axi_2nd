@@ -192,3 +192,32 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 | 3 | ✅ 이동 완료 (aed241d) — `/static/**` 절대경로 링크는 WebConfig 매핑으로 그대로 동작 |
 | 4 | ✅ local=H2 create-drop, dev=PostgreSQL update. 스키마 확정 후 validate+schema.sql 동의 |
 | 5 | ~~MySQL 8 확정 제안~~ → **PostgreSQL로 확정** (2026-07-27, 추후 AI 기능 호환성/pgvector 대비. build.gradle 드라이버·dev 프로필·H2 모드 전부 전환 완료. B 쪽은 PostgreSQL 예약어만 확인해줘 — `user`, `session`, `order` 등. A 테이블은 users/course_session으로 이미 회피) |
+
+---
+
+# 공통 파일 변경 알림 (A, feat/a-auth-login — 로그인/가입 슬라이스)
+
+> B에게: 아래는 **공동 소유 파일 SecurityConfig** 변경 및 신규 진입 경로다. zip 받을 때 참고.
+> 엔티티/스키마 변경은 **없음** (User 필드 그대로, B 계약 유지). DB PostgreSQL 전환도 그대로 유지 — 이 슬라이스는 DB 비의존.
+
+### SecurityConfig (공동 파일) 변경
+- `formLogin` 을 커스텀 로그인 화면에 연동: `.loginPage("/login")` + `.loginProcessingUrl("/login")`
+  (username/password 파라미터), 기존 `defaultSuccessUrl("/")` 제거.
+- **로그인 성공 시 역할별 리다이렉트** — `RoleBasedAuthenticationSuccessHandler`:
+  ADMIN→`/admin`, INSTRUCTOR→`/instructor`, TRAINEE→`/trainee`.
+- **로그인 실패 분기** — `LoginFailureHandler`: 자격증명 오류→`/login?error`,
+  비활성(승인대기 등, `DisabledException`)→`/login?pending`.
+- **경로 인가 규칙(P1-6)·CSRF·H2 콘솔 설정은 그대로 유지** — B 도메인 경로 규칙 변경 없음.
+
+### 신규 컨트롤러 / 경로 (A 소유)
+- `auth.web.AuthController` : `GET /login`, `GET /signup`(유형 선택),
+  `GET|POST /signup/trainee`, `GET|POST /signup/instructor`, `GET /signup/complete`.
+- `auth.web.SignupForm` (@Valid DTO), `user.service.UserService#signup` :
+  가입 시 상태 **PENDING**, loginId 중복 검사, 개인정보/제3자 제공 동의 시각 저장
+  (`privacyConsentAt`/`thirdPartyConsentAt`). 관리자(ADMIN)는 self-signup 불가.
+- `web.ModuleHomeController` : `GET /admin|/instructor|/trainee` → 기존 index.html **임시 연결**.
+  각 모듈의 실제 대시보드/컨트롤러가 생기면 이 매핑은 이관/제거 예정 (B 대시보드와 충돌 시 알려줘).
+
+### 참고 (B 영향 없음)
+- 가입 계정은 PENDING 이라 **관리자 승인 UI(사용자 관리, 후속 슬라이스)** 전까지는 로그인 불가.
+  현재 로그인/역할 리다이렉트 확인은 시드 계정(admin/instructor1/trainee1, pw 1234)으로 가능.

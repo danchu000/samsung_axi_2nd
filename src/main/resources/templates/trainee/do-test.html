@@ -407,5 +407,58 @@
     })();
     </script>
 
+    <!--
+      감독관 경고 배너 (시험 모니터링 슬라이스).
+      기존 스크립트와 겹치지 않게 맨 뒤에 독립 블록으로 붙였다 — 위 스크립트의 변수/함수를 쓰지 않는다.
+      경고는 감독관이 ProctorWarning 으로 발송한 것이고, 확인하면 acknowledgedAt 이 기록된다.
+    -->
+    <script>
+    (function () {
+      const attempt = window._serverAttempt;
+      if (!attempt || attempt.status !== 'IN_PROGRESS') return;
+
+      const csrfToken  = (document.querySelector('meta[name="_csrf"]') || {}).content;
+      const csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+      const base = '/trainee/exam/proctor';
+
+      const banner = document.createElement('div');
+      banner.id = 'proctorWarningBanner';
+      banner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:99999;'
+        + 'background:#D32F2F;color:#fff;padding:14px 20px;font-size:15px;font-weight:600;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,.3);';
+      document.body.appendChild(banner);
+
+      function ack(id) {
+        const headers = {};
+        if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+        return fetch(`${base}/warnings/${id}/ack`,
+          { method: 'POST', headers, credentials: 'same-origin' });
+      }
+
+      function poll() {
+        fetch(`${base}/attempt/${attempt.attemptId}/warnings`, { credentials: 'same-origin' })
+          .then(res => res.ok ? res.json() : [])
+          .then(rows => {
+            if (!rows.length) { banner.style.display = 'none'; return; }
+            const w = rows[0];
+            banner.innerHTML = '';
+            const text = document.createElement('span');
+            text.textContent = `[감독관 경고] ${w.message} (${w.sentByName} · ${w.sentAt})`;
+            const btn = document.createElement('button');
+            btn.textContent = '확인';
+            btn.style.cssText = 'margin-left:16px;padding:4px 14px;border:0;border-radius:4px;cursor:pointer;';
+            btn.onclick = () => ack(w.id).then(poll);
+            banner.appendChild(text);
+            banner.appendChild(btn);
+            banner.style.display = 'block';
+          })
+          .catch(() => { /* 폴링 실패는 응시를 막지 않는다 */ });
+      }
+
+      poll();
+      setInterval(poll, 10000);
+    })();
+    </script>
+
     </body>
     </html>

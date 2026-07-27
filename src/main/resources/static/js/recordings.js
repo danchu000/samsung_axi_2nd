@@ -6,33 +6,63 @@ let isDragging = false;
 let duration = 0;
 let currentTime = 0;
 
-// 비디오 그리드 생성 (5x4 = 20개)
+// 서버가 내려준 녹화 목록. 없으면(정적 미리보기) 기존 20분할 샘플 더미로 폴백한다.
+const recordingRows = window._serverRecordingRows || null;
+let selectedRecording = null;
+
+// 녹화 그리드 생성 — 서버 데이터가 있으면 녹화 1건당 타일 1개
 function createVideoGrid() {
     const videoGrid = document.getElementById('videoGrid');
+    if (!videoGrid) return;
     const sampleVideo = '../sample-videos/sample-video.mp4';
 
-    for (let i = 1; i <= 20; i++) {
-        const videoItem = document.createElement('div');
-        videoItem.className = 'video-item';
-        videoItem.innerHTML = `
-            <video data-video-id="${i}" muted>
-                <source src="${sampleVideo}" type="video/mp4">
-            </video>
-            <div class="video-label">카메라 ${i}</div>
-        `;
+    if (recordingRows) {
+        if (!recordingRows.length) {
+            videoGrid.innerHTML = '<p style="color:#888; padding:20px;">조회된 녹화가 없습니다.</p>';
+            return;
+        }
+        videoGrid.innerHTML = recordingRows.map((r, i) => `
+            <div class="video-item" data-recording-id="${r.recordingId}" data-index="${i}">
+                ${r.playable
+                    ? `<video data-video-id="${r.recordingId}" muted preload="metadata"><source src="${r.streamUrl}" type="video/mp4"></video>`
+                    : `<div style="width:100%;height:100%;min-height:140px;display:flex;align-items:center;justify-content:center;color:#888;background:#111;">${r.statusLabel}</div>`}
+                <div class="video-label">${r.traineeName} · ${r.statusLabel}</div>
+            </div>
+        `).join('');
 
-        // 더블클릭 이벤트 추가
-        const video = videoItem.querySelector('video');
-        video.addEventListener('dblclick', function() {
-            openFullscreen(this.querySelector('source').src, i);
+        videoGrid.querySelectorAll('.video-item').forEach(item => {
+            const row = recordingRows[parseInt(item.dataset.index, 10)];
+            item.addEventListener('click', () => showDetail(row));
+            const video = item.querySelector('video');
+            if (video) {
+                video.addEventListener('dblclick', function () {
+                    showDetail(row);
+                    openFullscreen(row.streamUrl, row.traineeName);
+                });
+            }
         });
-
-        videoGrid.appendChild(videoItem);
+        showDetail(recordingRows[0]);
+    } else {
+        for (let i = 1; i <= 20; i++) {
+            const videoItem = document.createElement('div');
+            videoItem.className = 'video-item';
+            videoItem.innerHTML = `
+                <video data-video-id="${i}" muted>
+                    <source src="${sampleVideo}" type="video/mp4">
+                </video>
+                <div class="video-label">카메라 ${i}</div>
+            `;
+            const video = videoItem.querySelector('video');
+            video.addEventListener('dblclick', function() {
+                openFullscreen(this.querySelector('source').src, i);
+            });
+            videoGrid.appendChild(videoItem);
+        }
     }
 
     // 모든 비디오 참조 저장
     allVideos = Array.from(document.querySelectorAll('.video-grid video'));
-    
+
     // 첫 번째 비디오로 duration 설정
     if (allVideos.length > 0) {
         allVideos[0].addEventListener('loadedmetadata', function() {
@@ -44,13 +74,11 @@ function createVideoGrid() {
 
     // 모든 비디오 자동 재생 (음소거 상태)
     allVideos.forEach(video => {
-        // 초기 설정 적용
         video.muted = isMuted;
         video.playbackRate = 1.0;
-        
+
         video.play().catch(err => console.log('자동 재생 실패:', err));
-        
-        // timeupdate 이벤트로 타임라인 업데이트
+
         video.addEventListener('timeupdate', function() {
             if (!isDragging && this === allVideos[0]) {
                 currentTime = this.currentTime;
@@ -58,6 +86,26 @@ function createVideoGrid() {
             }
         });
     });
+}
+
+// 우측 "녹화 상세" 패널 채우기
+function showDetail(row) {
+    if (!row) return;
+    selectedRecording = row;
+    const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+    set('detailCourse', `${row.courseName} (${row.courseId})`);
+    set('detailExam', row.examName);
+    set('detailTrainee', row.traineeName);
+    set('detailRecordedAt', row.recordedAt);
+    set('detailDuration', row.durationLabel);
+    set('detailStatus', `${row.sizeLabel} / ${row.statusLabel}`);
+    set('detailEvents', `${row.warnCount} / ${row.criticalCount}`);
+
+    const select = document.getElementById('studentSelect');
+    if (select) select.value = String(row.attemptId);
 }
 
 // 타임라인 마커 생성
@@ -222,30 +270,58 @@ document.getElementById('muteBtn').addEventListener('click', function() {
     });
 });
 
-// 제재 처리 저장
+// 제재 처리 저장 — 서버로 실제 전송한다.
+//  경고    → ProctorWarning INSERT (관리자·강사 모두 가능)
+//  무효처리 → ExamAttempt.voidAttempt (관리자만. 강사가 누르면 서버가 403 을 준다)
+//  재시험  → 재응시 정책은 시험(Exam.retakeAllowed) 소관이라 이 슬라이스 범위 밖이다
 function saveSanction() {
-    const student = document.getElementById('studentSelect').value;
+    const attemptId = document.getElementById('studentSelect').value;
     const memo = document.getElementById('adminMemo').value;
     const sanction = document.querySelector('input[name="sanction"]:checked').value;
-    
-    if (!student) {
+
+    if (!attemptId) {
         alert('학생을 선택해주세요.');
         return;
     }
-    
-    const sanctionText = {
-        'none': '없음',
-        'warning': '경고',
-        'retest': '재시험',
-        'invalid': '무효처리'
-    };
+    if (sanction === 'none') {
+        alert('제재 항목을 선택해주세요.');
+        return;
+    }
+    if (sanction === 'retest') {
+        alert('재시험 처리는 시험 설정(재응시 허용)에서 진행합니다. 이 화면에서는 지원하지 않습니다.');
+        return;
+    }
 
-    console.log('저장된 내용:');
-    console.log('학생:', student);
-    console.log('관리자 메모:', memo);
-    console.log('제재 처리:', sanctionText[sanction]);
-    
-    alert(`저장되었습니다.\n학생: ${student}\n제재: ${sanctionText[sanction]}`);
+    const prefix = window._proctorAttemptPrefix;
+    if (!prefix) {
+        alert('서버 연동 정보가 없습니다.');
+        return;
+    }
+    const action = sanction === 'warning' ? 'warning' : 'void';
+    if (action === 'void' && !confirm('이 응시를 무효 처리합니다. 계속할까요?')) {
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = `${prefix}${attemptId}/${action}`;
+    form.style.display = 'none';
+
+    const add = (name, value) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    };
+    add(action === 'warning' ? 'message' : 'reason', memo);
+    add('redirect', window._proctorRedirect || '');
+
+    const csrfToken = (document.querySelector('meta[name="_csrf"]') || {}).content;
+    if (csrfToken) add('_csrf', csrfToken);
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
 // 전체화면 버튼

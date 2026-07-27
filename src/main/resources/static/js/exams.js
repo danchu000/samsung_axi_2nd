@@ -172,8 +172,10 @@ function filterTests() {
         item.style.display = showItem ? 'grid' : 'none';
     });
 }
-   // 시험 데이터 예시 (타임리프 연동시 서버에서 내려줄 예정)
-    const testList = [
+   // 시험 데이터.
+    // 서버(Thymeleaf)가 window._serverTestRows 로 내려주면 그걸 쓰고, 없으면 기존 더미로 동작한다.
+    // (정적 미리보기 호환 — contents.js 에서 쓴 방식과 같다)
+    const testList = window._serverTestRows || [
         {
             number: 1,
             courseName: '풀스택 웹 개발 (React & Node.js)',
@@ -257,7 +259,11 @@ function filterTests() {
     ];
 
     function getTestLink(test) {
-        // body의 data-user-role에 따라 링크 반환
+        // 서버가 내려준 상세 URL 이 있으면 그걸 쓴다 (관리자=실시간 감독, 강사=감독 상세)
+        if (test && test.detailUrl) {
+            return test.detailUrl;
+        }
+        // 정적 미리보기 폴백 — body의 data-user-role에 따라 링크 반환
         const role = document.body.getAttribute('data-user-role');
         if (role === 'instructor') {
             return 'proctor/recordings.html';
@@ -266,9 +272,24 @@ function filterTests() {
         return 'recordings.html';
     }
 
+    // 필터 옵션을 서버 데이터로 다시 채운다 (정적 화면의 하드코딩 옵션은 실제 과정·강사와 다르다)
+    function fillFilterOptions() {
+        if (!window._serverTestRows) return;
+        const fill = (id, values) => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const uniq = [...new Set(values.filter(Boolean))].sort();
+            select.innerHTML = '<option value="">전체</option>'
+                + uniq.map(v => `<option value="${v}">${v}</option>`).join('');
+        };
+        fill('courseFilter', testList.map(t => t.courseName));
+        fill('instructorFilter', testList.map(t => t.instructor));
+    }
+
     function renderTestList() {
         const container = document.getElementById('testListContainer');
         if (!container) return;
+        fillFilterOptions();
             container.innerHTML = testList.map(test => `
                 <div class="test-item" data-start="${test.start}" data-end="${test.end}" data-test-number="${test.number}" style="cursor:pointer;">
                     <div class="test-number">${test.number}</div>
@@ -287,7 +308,7 @@ function filterTests() {
                         <span class="time-elapsed">${test.timeElapsed}</span>
                     </div>
                     <div class="test-status">
-                        <span class="status-count">응시중 <span class="in-progress">${test.inProgress}명</span> / 완료 <span class="completed">${test.completed}명</span> / 미응시 <span class="not-started">${test.notStarted}명</span></span>
+                        <span class="status-count">응시중 <span class="in-progress">${test.inProgress}명</span> / 완료 <span class="completed">${test.completed}명</span> / 미응시 <span class="not-started">${test.notStarted}명</span>${test.voided ? ` / <span class="voided" style="color:#D32F2F;">무효 ${test.voided}명</span>` : ''}</span>
                     </div>
                 </div>
             `).join('');

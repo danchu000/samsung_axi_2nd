@@ -221,7 +221,7 @@ public class TutoringService {
         long totalMinutes = 0;
         long noResponse = 0;
         for (TutoringRoom room : all) {
-            LocalDateTime first = firstInstructorReplyAt(room);
+            LocalDateTime first = firstInstructorReplyAt(room.getId());
             if (first != null) {
                 responded++;
                 totalMinutes += Math.max(0, Duration.between(room.getCreatedAt(), first).toMinutes());

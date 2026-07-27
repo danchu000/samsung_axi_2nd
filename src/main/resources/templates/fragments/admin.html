@@ -41,12 +41,13 @@
                 <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'dashboard'} ? 'active_menu'">대시보드</span>
             </li>
-            <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')">
+            <li data-page="/admin/users/trainees" onclick="handleMenuClick(this, '/admin/users/trainees')">
                 <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'user-')} ? 'active_menu'">사용자 관리</span>
                 <ul>
-                    <li class="submenu" th:classappend="${active == 'user-trainee'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                    <li class="submenu" th:classappend="${active == 'user-instructor'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
+                    <li class="submenu" th:classappend="${active == 'user-approval'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/pending'">가입 승인</li>
+                    <li class="submenu" th:classappend="${active == 'user-trainee'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/trainees'">훈련생 관리</li>
+                    <li class="submenu" th:classappend="${active == 'user-instructor'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/instructors'">강사 관리</li>
                     <li class="submenu" th:classappend="${active == 'user-admin'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
                 </ul>
             </li>

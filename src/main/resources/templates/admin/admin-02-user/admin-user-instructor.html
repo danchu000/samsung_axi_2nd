@@ -1,681 +1,91 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Samsung Academy LXP - 관리자</title>
     <link rel="stylesheet" href="/static/css/common-style.css">
     <link rel="stylesheet" href="/static/css/sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
-    
+    <link rel="stylesheet" href="/static/css/trainees.css">
+
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
-    <link rel="stylesheet" href="admin-user-common.css">
+    <title>Samsung Academy LXP - 강사 관리</title>
     <style>
-        /* 강사 관리 섹션 */
-        .trainee-list-section {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            border-right: 1px solid #ddd;
-        }
-
-
-
-        /* 검색 영역 */
-        .trainee-list-section-search {
-            margin-bottom: 20px;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        #instructorSearch {
-            width: 100%;
-            padding: 10px 45px 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        #instructorSearch:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
-        }
-
-
-
-        /* 상태 필터 체크박스 */
-        .status-filter {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .status-checkboxes {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .status-filter label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            color: var(--color-font-gray);
-            cursor: pointer;
-        }
-
-        .status-filter input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: var(--color-primary);
-        }
-
-        .sort-select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-            color: var(--color-font-gray);
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .sort-select:hover {
-            border-color: var(--color-primary);
-        }
-
-        .sort-select:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
-        }
-
-        /* 강사 목록 테이블 */
-        .trainee-list-section-table {
-            overflow-y: auto;
-            max-height: calc(100vh - 400px);
-        }
-
-        .trainee-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-        }
-
-        .trainee-table thead {
-            position: sticky;
-            top: 0;
-            background-color: var(--color-light-gray);
-            z-index: 10;
-        }
-
-        .trainee-table th {
-            padding: 12px 15px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
-        }
-
-        .trainee-table td {
-            padding: 12px 15px;
-            font-size: 14px;
-            color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
-            text-align: center;
-        }
-
-        .trainee-table td:nth-child(2) {
-            text-align: left;
-        }
-
-        .trainee-table tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .trainee-table tbody tr:hover {
-            background-color: var(--color-light-primary);
-        }
-
-        .trainee-table tbody tr.selected {
-            background-color: var(--color-light-primary);
-        }
-
-        .trainee-table tbody tr.row-inactive:hover {
-            background-color: #eeeeee;
-        }
-
-        .trainee-table tbody tr.row-inactive td {
-            color: #999;
-        }
-
-        .history-table tbody tr {
-            cursor: default;
-        }
-
-        .history-table tbody tr:hover {
-            background-color: white !important;
-        }
-
-        .history-table tfoot td {
-            font-weight: 600;
-            background-color: var(--color-light-gray);
-            border-top: 2px solid #ddd;
-        }
-
-        .attendance-rate {
-            color: var(--color-primary);
-            font-weight: 600;
-        }
-
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .status-pending {
-            background-color: #fff3e0;
-            color: #f57c00;
-        }
-
-        .status-in-progress {
-            background-color: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .status-completed {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .status-early-employment {
-            background-color: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .status-dropout {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-
-        .risk-score {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .risk-low {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .risk-medium {
-            background-color: #fff3e0;
-            color: #f57c00;
-        }
-
-        .risk-high {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-
-        /* 강사 상세정보 섹션 */
-        .trainee-detail-section {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .trainee-detail-section h2 {
-            font-size: 18px;
-            font-weight: normal;
-            color: var(--color-font-gray);
-        }
-
-        /* 기본정보 영역 */
-        .trainee-detail-basicinfo {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .trainee-photo {
-            flex-shrink: 0;
-        }
-
-        .trainee-photo img {
-            max-height: 280px;
-            height: 100%;
-            aspect-ratio: 3/4;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-        }
-
-        .trainee-basic-info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-        }
-
-        .info-row .label {
-            width: 120px;
-            font-weight: 600;
-            color: var(--color-font-gray);
-            font-size: 14px;
-        }
-
-        .info-row .value {
-            color: var(--color-font-gray);
-            font-size: 14px;
-        }
-
-        .info-row-badges {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-left: auto;
-        }
-
-        .badge-label {
-            font-size: 13px;
-            color: var(--color-font-gray-light);
-            font-weight: 500;
-        }
-
-        /* 상세정보 영역 */
-        .trainee-detail-info {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .detail-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .detail-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--color-font-gray);
-            margin-bottom: 5px;
-        }
-
-        .detail-section .detail-content {
-            font-size: 14px;
-            color: var(--color-font-gray);
-            line-height: 1.6;
-        }
-
-
-
-        .detail-row {
-            display: flex;
-            margin-bottom: 8px;
-        }
-
-        .detail-row .detail-label {
-            min-width: 120px;
-            font-weight: 600;
-            color: var(--color-font-gray);
-            font-size: 14px;
-        }
-
-        .detail-row .detail-value {
-            color: var(--color-font-gray);
-            font-size: 14px;
-        }
-
-        .message-box {
-            background-color: var(--color-light-gray);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            color: var(--color-font-gray);
-            line-height: 1.6;
-        }
+        .status-select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .flash { padding: 12px 16px; border-radius: 6px; margin: 0 20px 12px; font-size: 14px; }
+        .flash-success { background: #e8f5e9; color: #2e7d32; }
+        .row-actions { display: inline-flex; gap: 6px; align-items: center; }
+        .row-actions form { display: inline; margin: 0; }
+        #userSearch { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
     </style>
 </head>
 <body>
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>사용자 관리 > 강사 관리</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/admin :: header('사용자 관리 > 강사 관리')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('user-instructor')}"/>
 
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-                        <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')" >
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-                                                
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-                <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
-
-    <!-- 메인 콘텐츠 -->
     <main class="main-content">
-        <!-- 강사 관리 -->
+        <div class="flash flash-success" th:if="${message}" th:text="${message}"></div>
+
+        <!-- 강사 목록 -->
         <section class="trainee-list-section">
             <div class="section-header">
-                <h2>강사 관리</h2>
-                <div class="header-buttons">
-                    <button class="btn btn-secondary" onclick="registerInstructor()">강사 등록</button>
-                    <button class="btn-excel" onclick="uploadExcel()">
-                        <img src="/static/icons/excel.svg" alt="Excel icon">
-                        <span>엑셀로 등록</span>
-                    </button>
-                </div>
+                <h2>강사 관리 <small th:text="'(' + ${#lists.size(users)} + '명)'">(0명)</small></h2>
             </div>
-            <!-- 강사 목록 내용 -->
-            <div class="trainee-list-section-search">
-                <div class="search-container">
-                    <select name="className" id="className">
-                        <option value="">수업명 전체</option>
-                        <option value="class1">Python 기초</option>
-                        <option value="class2">Java 심화</option>
-                        <option value="class3">웹 개발</option>
-                    </select>
-                    
-                    <select name="attendance" id="attendance">
-                        <option value="">훈련직종 분류</option>
-                        <option value="desc">출석률 높은순</option>
-                        <option value="asc">출석률 낮은순</option>
-                    </select>
-                    
-                    <select name="registrationDate" id="registrationDate">
-                        <option value="">등록일(기간)</option>
-                        <option value="today">오늘</option>
-                        <option value="week">최근 1주일</option>
-                        <option value="month">최근 1개월</option>
-                        <option value="3months">최근 3개월</option>
-                        <option value="6months">최근 6개월</option>
-                    </select>
 
-                    <select name="accountStatus" id="accountStatus" style="margin-left:10px;">
-                        <option value="">계정상태 전체</option>
-                        <option value="active">활성화</option>
-                        <option value="inactive">비활성화</option>
-                    </select>
-                </div>
-                <div class="search-input-wrapper">
-                    <input type="search" name="instructorSearch" id="instructorSearch" placeholder="이름 또는 전화번호, 수업명으로 검색">
-                    <img src="/static/icons/search.svg" alt="search icon" class="search-icon" onclick="performSearch()">
-                </div>
-                
-                <!-- 상태 필터 체크박스 -->
-                <div class="status-filter">
-                    <div class="status-checkboxes">
-                        <label>
-                            <input type="checkbox" name="status" value="attended">
-                            <span>출석</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="absent">
-                            <span>미출석</span>
-                        </label>
-                    </div>
-                    
-                    <select name="sortBy" id="sortBy" class="sort-select">
-                        <option value="name">가나다 순</option>
-                        <option value="attendance">출석률 순</option>
-                        <option value="lastAccess">최근접속일 순</option>
-                        <option value="registration">등록일 순</option>
-                        
-                    </select>
-                </div>
+            <div class="trainee-list-section-search" style="margin-bottom:16px;">
+                <input type="search" id="userSearch" placeholder="이름 또는 아이디로 검색" onkeyup="filterUsers()">
             </div>
+
             <div class="trainee-list-section-table">
                 <table class="trainee-table">
                     <thead>
                         <tr>
                             <th>이름</th>
-                            <th>담당과목</th>
-                            <th>담당인원</th>
-                            <th>출석률</th>
-                            <th>진행상태</th>
-                            <th>미처리(과제/질문)</th>
+                            <th>아이디</th>
+                            <th>이메일</th>
+                            <th>연락처</th>
                             <th>최근접속</th>
+                            <th>가입일</th>
                             <th>계정상태</th>
+                            <th>처리</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr onclick="selectTrainee(this)">
-                            <td>김민수</td>
-                            <td>Python 기초</td>
-                            <td>28명</td>
-                            <td class="attendance-rate">95%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>5건</td>
-                            <td>2026-01-05</td>
+                    <tbody id="userTableBody">
+                        <tr th:each="u : ${users}"
+                            th:classappend="${selected != null and selected.id == u.id} ? 'selected'"
+                            th:onclick="|location.href='/admin/users/instructors?selected=${u.id}'|"
+                            style="cursor:pointer;">
+                            <td class="cell-name" th:text="${u.name}">김강사</td>
+                            <td th:text="${u.loginId}">instructor</td>
+                            <td th:text="${u.email}">-</td>
+                            <td th:text="${u.phone}">-</td>
+                            <td th:text="${u.lastLoginAt != null ? #temporals.format(u.lastLoginAt, 'yyyy-MM-dd') : '-'}">-</td>
+                            <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd') : '-'}">-</td>
                             <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
+                                <span class="status-badge"
+                                      th:classappend="${u.status.name() == 'ACTIVE'} ? 'status-in-progress' : (${u.status.name() == 'PENDING'} ? 'status-pending' : 'status-disabled')"
+                                      th:text="${u.status.label}">활성</span>
+                            </td>
+                            <td onclick="event.stopPropagation()">
+                                <div class="row-actions">
+                                    <form th:action="@{/admin/users/{id}/status(id=${u.id})}" method="post">
+                                        <input type="hidden" name="from" value="/admin/users/instructors"/>
+                                        <select name="status" class="status-select" onchange="this.form.submit()">
+                                            <option value="ACTIVE" th:selected="${u.status.name()=='ACTIVE'}">활성화</option>
+                                            <option value="SUSPENDED" th:selected="${u.status.name()=='SUSPENDED'}">정지</option>
+                                        </select>
+                                    </form>
+                                    <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="post"
+                                          onsubmit="return confirm('이 계정을 삭제하시겠습니까?');">
+                                        <input type="hidden" name="from" value="/admin/users/instructors"/>
+                                        <button type="submit" class="btn-small btn-danger">삭제</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>이영희</td>
-                            <td>Java 심화</td>
-                            <td>32명</td>
-                            <td class="attendance-rate">88%</td>
-                            <td><span class="status-badge status-completed">완료</span></td>
-                            <td>2건</td>
-                            <td>2026-01-04</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>박준호</td>
-                            <td>웹 개발</td>
-                            <td>25명</td>
-                            <td class="attendance-rate">92%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>8건</td>
-                            <td>2026-01-05</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>최수진</td>
-                            <td>Python 데이터분석</td>
-                            <td>30명</td>
-                            <td class="attendance-rate">91%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>3건</td>
-                            <td>2026-01-05</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>정다은</td>
-                            <td>웹 개발 심화</td>
-                            <td>20명</td>
-                            <td class="attendance-rate">85%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>12건</td>
-                            <td>2026-01-04</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>강민지</td>
-                            <td>Java 기초</td>
-                            <td>35명</td>
-                            <td class="attendance-rate">78%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>7건</td>
-                            <td>2026-01-03</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>윤성호</td>
-                            <td>Python 기초</td>
-                            <td>27명</td>
-                            <td class="attendance-rate">93%</td>
-                            <td><span class="status-badge status-pending">예정</span></td>
-                            <td>0건</td>
-                            <td>2026-01-04</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr onclick="selectTrainee(this)">
-                            <td>한지우</td>
-                            <td>데이터베이스</td>
-                            <td>22명</td>
-                            <td class="attendance-rate">89%</td>
-                            <td><span class="status-badge status-in-progress">진행중</span></td>
-                            <td>4건</td>
-                            <td>2026-01-05</td>
-                            <td>
-                                <select class="status-select " onclick="event.stopPropagation()" onchange="changeInstructorStatus(this)">
-                                    <option value="active" selected>활성화</option>
-                                    <option value="inactive">비활성화</option>
-                                    <option value="delete">삭제</option>
-                                </select>
-                            </td>
+                        <tr th:if="${#lists.isEmpty(users)}">
+                            <td colspan="8" style="padding:40px; text-align:center; color:#999;">등록된 강사가 없습니다.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -686,283 +96,52 @@
         <section class="trainee-detail-section">
             <div class="section-header">
                 <h2>강사 상세정보</h2>
-            </div> 
-            <!-- 강사 상세정보 내용 -->
-            <div class="trainee-detail-basicinfo">
+            </div>
+
+            <div th:if="${selected == null}" style="padding:40px; color:#999;">
+                왼쪽 목록에서 강사를 선택하면 상세 정보가 표시됩니다.
+            </div>
+
+            <div th:if="${selected != null}" class="trainee-detail-basicinfo">
                 <div class="trainee-photo">
-                    <img src="/static/img/sample-pic-college-student.png" alt="수강생 사진">
+                    <img th:src="${selected.profileImageUrl != null} ? ${selected.profileImageUrl} : '/static/img/sample-pic-college-student.png'"
+                         alt="프로필 사진">
                 </div>
                 <div class="trainee-basic-info">
                     <div class="info-row">
                         <span class="label">이름</span>
-                        <span class="value">김민아 (여) <span class="status-badge status-in-progress">진행중</span></span>
-                        <div class="info-row-badges">                            
+                        <span class="value" th:text="${selected.name}">이름</span>
+                        <div class="info-row-badges">
                             <span class="badge-label">계정상태</span>
-                            <span class="status-badge status-in-progress">활성화</span>
+                            <span class="status-badge status-in-progress" th:text="${selected.status.label}">활성</span>
                         </div>
                     </div>
-                    <div class="info-row">
-                        <span class="label">생년월일</span>
-                        <span class="value">1995-03-15</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">이메일</span>
-                        <span class="value">mina.kim@example.com</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">연락처</span>
-                        <span class="value">010-1234-5678 / (언니) 02-123-4567</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">주소</span>
-                        <span class="value">서울특별시 강남구 테헤란로 123</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">등록일</span>
-                        <span class="value">2025-11-01</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">최근접속일</span>
-                        <span class="value">2026-01-05</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">출석률</span>
-                        <span class="value"><span class="attendance-rate">95%</span></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">전문 분야</span>
-                        <span class="value">Python, Java, HTML/CSS, JavaScript</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">미처리 (과제/질문)</span>
-                        <span class="value">5건</span>
-                    </div>
+                    <div class="info-row"><span class="label">아이디</span><span class="value" th:text="${selected.loginId}">-</span></div>
+                    <div class="info-row"><span class="label">생년월일</span><span class="value" th:text="${selected.birthDate ?: '-'}">-</span></div>
+                    <div class="info-row"><span class="label">성별</span><span class="value" th:text="${selected.gender ?: '-'}">-</span></div>
+                    <div class="info-row"><span class="label">이메일</span><span class="value" th:text="${selected.email ?: '-'}">-</span></div>
+                    <div class="info-row"><span class="label">연락처</span><span class="value" th:text="${selected.phone ?: '-'}">-</span></div>
+                    <div class="info-row"><span class="label">최종학력</span><span class="value" th:text="${selected.education ?: '-'}">-</span></div>
+                    <div class="info-row"><span class="label">가입일</span><span class="value" th:text="${selected.createdAt != null ? #temporals.format(selected.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">-</span></div>
+                    <div class="info-row"><span class="label">최근접속일</span><span class="value" th:text="${selected.lastLoginAt != null ? #temporals.format(selected.lastLoginAt, 'yyyy-MM-dd HH:mm') : '-'}">-</span></div>
                 </div>
             </div>
-            <div class="trainee-detail-info">
-                <!-- 강의이력 -->
-                <div class="detail-section">
-                    <h3>강의이력</h3>
-                    <table class="trainee-table history-table">
-                        <thead>
-                            <tr>
-                                <th>번호</th>
-                                <th>강의명</th>
-                                <th>강의기간</th>
-                                <th>교육인원</th>
-                                <th>평균평가점수</th>
-                                <th>만족도</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Python 기초 프로그래밍</td>
-                                <td>2025-11-01 ~ 2026-02-28</td>
-                                <td>28명</td>
-                                <td><span class="attendance-rate">4.8 / 5.0</span></td>
-                                <td><span class="attendance-rate">96%</span></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Python 심화 프로그래밍</td>
-                                <td>2025-06-01 ~ 2025-10-31</td>
-                                <td>32명</td>
-                                <td><span class="attendance-rate">4.7 / 5.0</span></td>
-                                <td><span class="attendance-rate">94%</span></td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>데이터 분석 입문</td>
-                                <td>2025-01-15 ~ 2025-05-30</td>
-                                <td>25명</td>
-                                <td><span class="attendance-rate">4.9 / 5.0</span></td>
-                                <td><span class="attendance-rate">98%</span></td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>Python 기초</td>
-                                <td>2024-09-01 ~ 2024-12-31</td>
-                                <td>30명</td>
-                                <td><span class="attendance-rate">4.6 / 5.0</span></td>
-                                <td><span class="attendance-rate">92%</span></td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>웹 크롤링 실습</td>
-                                <td>2024-05-01 ~ 2024-08-31</td>
-                                <td>20명</td>
-                                <td><span class="attendance-rate">4.8 / 5.0</span></td>
-                                <td><span class="attendance-rate">95%</span></td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="text-align: right;">합계/평균</td>
-                                <td>총 135명</td>
-                                <td><span class="attendance-rate">4.76 / 5.0</span></td>
-                                <td><span class="attendance-rate">95%</span></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- 출석기록 -->
-                <div class="detail-section">
-                    <h3>출석기록</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">출석률</span>
-                        <span class="detail-value"><span class="attendance-rate">95%</span></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">지각 횟수</span>
-                        <span class="detail-value">2회</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">결석 횟수</span>
-                        <span class="detail-value">1회</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- 계약 정보 -->
-                <div class="detail-section">
-                    <h3>계약 정보</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">계약상태</span>
-                        <span class="detail-value"><span class="status-badge status-in-progress">계약중</span></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">계약 시작일</span>
-                        <span class="detail-value">2024-01-01</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">계약 종료일</span>
-                        <span class="detail-value">2026-12-31</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- 최종학력/졸업여부 -->
-                <div class="detail-section">
-                    <h3>최종학력/졸업여부</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">최종학력</span>
-                        <span class="detail-value">석사 졸업</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">학교명</span>
-                        <span class="detail-value">서울대학교 대학원</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">전공</span>
-                        <span class="detail-value">컴퓨터공학과</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">졸업년도</span>
-                        <span class="detail-value">2020년</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- 자격증/인증 -->
-                <div class="detail-section">
-                    <h3>자격증/인증</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">보유 자격증</span>
-                        <span class="detail-value">정보처리기사, AWS Certified Solutions Architect</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">전문 인증</span>
-                        <span class="detail-value">Oracle Certified Professional, Python Institute PCPP</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- AI 성과 요약 -->
-                <div class="detail-section">
-                    <h3>AI 성과 요약</h3>
-                    <div class="message-box">
-                        김민수 강사는 3년 이상의 강의 경력을 보유하고 있으며, 평균 평가 점수 4.8점으로 우수한 강의 품질을 유지하고 있습니다. 
-                        학생 만족도는 96%로 매우 높으며, 특히 Python 및 Java 과목에서 뛰어난 교육 성과를 보이고 있습니다. 
-                        출석률 95%로 성실한 근무 태도를 보여주며, 미처리 과제 및 질문 관리도 효율적으로 처리하고 있습니다. 
-                        지속적인 자격증 취득과 전문성 향상을 통해 교육 품질 개선에 힘쓰고 있습니다.
-                    </div>
-                </div>
-
-                <div class="edit-button-container">
-                    <button type="button" class="btn btn-edit" onclick="editInstructor()">수정하기</button>
-                </div>
+            <div th:if="${selected != null}" class="edit-button-container" style="margin-top:20px;">
+                <a th:href="@{/admin/users/{id}/access-history(id=${selected.id})}" class="btn btn-secondary">접속 이력</a>
+                <a th:href="@{/admin/users/{id}/edit(id=${selected.id})}" class="btn btn-edit">수정하기</a>
             </div>
         </section>
     </main>
 
     <script>
-        function performSearch() {
-            const searchValue = document.getElementById('instructorSearch').value;
-            console.log('검색어:', searchValue);
-            // 여기에 검색 로직 추가
-        }
-
-        function registerInstructor() {
-            window.location.href = 'admin-user-instructor-add.html';
-        }
-
-        function selectInstructor(row) {
-            // 기존 선택 제거
-            const allRows = document.querySelectorAll('.instructor-table tbody tr');
-            allRows.forEach(r => r.classList.remove('selected'));
-            
-            // 새 행 선택
-            row.classList.add('selected');
-            
-            // 여기에 상세정보 로드 로직 추가
-            console.log('선택된 강사:', row.cells[0].textContent);
-        }
-
-        function editInstructor() {
-            window.location.href = 'admin-user-instructor-update.html';
-        }
-
-        function changeInstructorStatus(select) {
-            const row = select.closest('tr');
-            const name = row.cells[0].textContent;
-            const status = select.value;
-            const previousValue = select.getAttribute('data-previous') || 'active';
-            
-            if (status === 'delete') {
-                if (confirm(name + ' 강사를 삭제하시겠습니까?')) {
-                    row.remove();
-                    alert('삭제되었습니다.');
-                } else {
-                    // 삭제 취소 시 이전 값으로 복원
-                    select.value = previousValue;
-                }
-            } else if (status === 'inactive') {
-                // 비활성화 상태일 때 row-inactive 클래스 추가
-                row.classList.add('row-inactive');
-                select.setAttribute('data-previous', 'inactive');
-            } else if (status === 'active') {
-                // 활성화 상태일 때 row-inactive 클래스 제거
-                row.classList.remove('row-inactive');
-                select.setAttribute('data-previous', 'active');
-            }
-        }
-
-        // Enter 키로도 검색 가능하게
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('instructorSearch').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
+        function filterUsers() {
+            const q = document.getElementById('userSearch').value.toLowerCase();
+            document.querySelectorAll('#userTableBody tr').forEach(function (tr) {
+                const nameCell = tr.querySelector('.cell-name');
+                if (!nameCell) return;
+                tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
             });
-        });
+        }
     </script>
 </body>
 </html>

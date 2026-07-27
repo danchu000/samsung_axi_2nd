@@ -1,10 +1,15 @@
 package com.ssa.lms.completion.web;
 
 import com.ssa.lms.completion.entity.ConfirmStatus;
+import com.ssa.lms.completion.service.CertificateService;
 import com.ssa.lms.completion.service.CompletionService;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +29,7 @@ public class CompletionAdminController {
     private static final String VIEW = "admin/admin-05-attendance/admin-attendance-graduate";
 
     private final CompletionService completionService;
+    private final CertificateService certificateService;
     private final CourseRepository courseRepository;
 
     @GetMapping
@@ -76,6 +82,17 @@ public class CompletionAdminController {
         completionService.changeConfirmStatus(completionId, status);
         ra.addFlashAttribute("message", "이수확정상태를 변경했습니다.");
         return "redirect:/admin/completion?courseId=" + courseId;
+    }
+
+    /** 이수증 PDF — 이수 확정(PASS+CONFIRMED) 수강생만. 새 탭에서 인라인 표시. */
+    @GetMapping("/{completionId}/certificate")
+    public ResponseEntity<byte[]> certificate(@PathVariable Long completionId) {
+        byte[] pdf = certificateService.generate(completionId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline().filename("certificate-" + completionId + ".pdf").build().toString())
+                .body(pdf);
     }
 
     private Course resolveSelected(List<Course> courses, Long courseId) {

@@ -1,608 +1,93 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/css/chatbot.css">
-  <script src="/static/js/chatbot.js" defer></script>
-    <title>학습 콘텐츠</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/font/pretendard.css">
     <link rel="stylesheet" href="/static/css/basic-form-trainee.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="/static/js/trainee/learning.js" defer></script>
-</head>
- <style>
-        /* 메인 콘텐츠 영역 레이아웃 */
-        .main-content-inner {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .content-container {
-            background: white;
-            position: relative;
-        }
-
-        /* header */
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 8px 16px 8px;
-        }
-
-        .content-header > span {
-            color: #666;
-        }
-
-        /* 경로 표시 (Breadcrumb) */
-        .content-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: white;
-            flex-wrap: wrap;
-        }
-
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: background-color 0.2s;
-            cursor: pointer;
-        }
-
-        .breadcrumb-item:hover {
-            background-color: var(--color-line-gray);
-        }
-
-        .breadcrumb-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #999;
-            text-transform: uppercase;
-        }
-
-        .breadcrumb-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .breadcrumb-separator {
-            color: #ddd;
-            font-size: 18px;
-            margin: 0 4px;
-        }
-
-        .breadcrumb-course {
-            color: var(--color-primary);
-        }
-
-        .breadcrumb-subject {
-            color: #555;
-        }
-
-        .breadcrumb-content {
-            color: #666;
-        }
-
-        /* 보기 모드 토글 */
-        .view-mode-toggle {
-            display: flex;
-            gap: 8px;
-            /* position: absolute; */
-            z-index: 10;
-            left: 20px;
-        }
-
-        .view-mode-btn {
-            padding: 6px 8px;
-            background: white;
-            border: 1px solid var(--color-line-gray);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #666;
-            transition: all 0.2s;
-        }
-
-        .view-mode-btn:hover {
-            background: #f5f5f5;
-        }
-
-        .view-mode-btn.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
-        }
-
-        /* 문서 뷰어 */
-        .document-viewer {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        /* 페이지 컨테이너 */
-        .pages-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            align-items: flex-start;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .pages-container.single-page {
-            /* max-width: 1300px; */
-            margin: 0 auto;
-        }
-
-        .document-page {
-            flex: 1;
-            /* max-width: 700px; */
-            min-height: 800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .pages-container.single-page .document-page {
-            max-width: 1400px;
-        }
-
-        .document-page h1 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #333;
-        }
-
-        .document-page h2 {
-            font-size: 20px;
-            margin-top: 24px;
-            margin-bottom: 12px;
-            color: #444;
-        }
-
-        .document-page p {
-            line-height: 1.8;
-            color: #555;
-            margin-bottom: 16px;
-        }
-
-        .document-page ul {
-            margin-left: 20px;
-            margin-bottom: 16px;
-        }
-
-        .document-page li {
-            line-height: 1.8;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
-        .document-page code {
-            background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-        }
-
-        .pdf-canvas {
-            max-width: 100%;
-            height: auto;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .page-number {
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-            margin-top: 16px;
-            font-weight: 500;
-        }
-
-        .loading-message {
-            text-align: center;
-            color: #666;
-            padding: 40px;
-            font-size: 16px;
-        }
-
-        /* 컨트롤 바 */
-        .document-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid var(--color-line-gray);
-        }
-
-        .document-controls > div {
-            flex: 1;
-        }
-
-        .document-controls > div:first-child {
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .page-info {
-            justify-content: flex-end;
-        }
-
-        .nav-btn {
-            padding: 8px 16px;
-            background: var(--color-primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: var(--color-primary-hover);
-        }
-
-        .nav-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .page-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .current-pages {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .progress-info {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .max-page-reached {
-            font-size: 14px;
-            color: var(--color-primary);
-            font-weight: 600;
-        }
+    <link rel="stylesheet" href="/static/css/font-style.css">
+    <link rel="stylesheet" href="/static/css/trainee/learning-report.css">
+    <title>학습 콘텐츠 - 차시별 학습</title>
+    <style>
+        .accordion { border:1px solid #eee; border-radius:8px; margin-bottom:12px; overflow:hidden; }
+        .accordion-header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; cursor:pointer; background:#fafbfc; }
+        .accordion-content { display:none; padding:8px 20px 16px; }
+        .accordion.open .accordion-content { display:block; }
+        .content-li { display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid #eee; }
+        .prog-badge { font-size:14px; color:#007bff; min-width:44px; text-align:right; }
+        .course-select-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+        .course-progress-pill { margin-left:auto; font-weight:600; color:#007bff; }
     </style>
-<!-- ********************************************************************************************************* -->
-<body>
-    <header>
-        <div class="header-logo">
-            <a href="/templates/trainee/index.html"><img src="/static/img/logo-white.png" alt="logo" style="width: 130px; cursor: pointer;"></a>
-        </div>  
-        <nav class="gnb">
-            <ul>
+</head>
+<body data-user-role="trainee">
+    <header th:replace="~{fragments/trainee :: header('contents')}"></header>
 
-                <li>
-                    <span><a href="/templates/trainee/my-course.html">나의 과정</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/my-course.html">수강 과정 목록</a></li>
-                        <li><a href="/templates/trainee/continue-learning.html">이어서 학습</a></li>
-                        <!-- <li><a href="/templates/trainee/learning-report.html">학습 리포트</a></li> -->
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/contents.html">학습콘텐츠</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/contents.html">전체 콘텐츠</a></li>
-                        <li><a href="/templates/trainee/coding-setup.html">코딩 환경 설정</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/online-test.html">온라인 시험</a></li>
-                        <li><a href="/templates/trainee/assignments.html">과제</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/tutoring.html">학습지원</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/tutoring.html">튜터링</a></li>
-                        <li><a href="/templates/trainee/qna.html">Q&A</a></li>
-                    </ul>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/ai-assistant.html">AI 헬피 챗봇</a></li>
-                        <li><a href="/templates/trainee/tutoring-qna.html">튜터링/Q&A</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/notices.html">공지사항</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/notices.html">공지</a></li>
-                        <li><a href="/templates/trainee/chat.html">채팅</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/attendance.html">출결/이수관리</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/attendance.html">출결현황</a></li>
-                        <li><a href="/templates/trainee/completion-management.html">이수관리</a></li>
-                        <li><a href="/templates/trainee/surveys.html">설문조사</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <div class="icon-container">
-                <div class="icon-box">
-                    <a href="/templates/trainee/alram.html"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.9342 14.98C18.6358 14.5033 18.4775 13.9524 18.4772 13.39V9.22602C18.4772 7.50822 17.7948 5.86077 16.5801 4.64609C15.3654 3.43142 13.718 2.74902 12.0002 2.74902C10.2824 2.74902 8.63492 3.43142 7.42024 4.64609C6.20557 5.86077 5.52317 7.50822 5.52317 9.22602V13.388C5.52325 13.9511 5.36488 14.5028 5.06617 14.98L3.97817 16.72C3.88357 16.8714 3.8312 17.0453 3.82652 17.2238C3.82183 17.4022 3.865 17.5787 3.95153 17.7348C4.03806 17.8909 4.16481 18.021 4.31861 18.1116C4.47242 18.2022 4.64767 18.25 4.82617 18.25H19.1742C19.3527 18.25 19.5279 18.2022 19.6817 18.1116C19.8355 18.021 19.9623 17.8909 20.0488 17.7348C20.1354 17.5787 20.1785 17.4022 20.1738 17.2238C20.1691 17.0453 20.1168 16.8714 20.0222 16.72L18.9342 14.98Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 21.25H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg></a>
-                </div>
-                <div class="icon-box">
-                    <a href="./my-info.html">
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19.6524 19.405C20.2044 19.29 20.5344 18.712 20.2594 18.218C19.6534 17.131 18.6994 16.175 17.4794 15.447C15.9074 14.509 13.9804 14 12.0004 14C10.0204 14 8.09339 14.508 6.52139 15.447C5.30139 16.175 4.34739 17.131 3.74139 18.218C3.46639 18.712 3.79639 19.29 4.34839 19.405C9.39517 20.4569 14.6046 20.4569 19.6514 19.405" fill="currentColor"/>
-                            <path d="M12 13C14.7614 13 17 10.7614 17 8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8C7 10.7614 9.23858 13 12 13Z" fill="currentColor"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="icon-box">
-                    <a href="/login">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="CurrentColor">
-                            <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-                        </svg>
-                    </a>
-                </div>
+    <main>
+        <section class="main-content-top">
+            <div class="main-wrap flex-between">
+                <h2>학습 콘텐츠 &gt; 차시별 학습</h2>
             </div>
-        </nav>
-    </header>
-    <!-- 메인 컨텐츠 ********************************************************************************************************* -->
-	<main>
-		
-		<section class="main-content-top">
-			<div class="main-wrap flex-between">
-				<h2>학습 콘텐츠 > 이론 학습(VOD/문서)</h2>
-			</div>
-		</section>
-		<section class="main-content main-wrap">
-                <!-- 상단 경로 표시 -->
-                <div class="content-header">
-                    <div class="content-breadcrumb">
-                        <div class="breadcrumb-item" onclick="location.href='admin-courses-edu.html'">
-                            <span class="breadcrumb-label">과정명</span>
-                            <span class="breadcrumb-value breadcrumb-course">풀스택 웹 개발 (React & Node.js)</span>
+        </section>
+
+        <section class="main-content">
+            <section class="main-content-inner main-wrap">
+                <!-- 과정 선택 -->
+                <form method="get" th:action="@{/trainee/learning}" class="course-select-bar">
+                    <label>과정 선택</label>
+                    <select class="input" name="courseId" onchange="this.form.submit()">
+                        <option value="">-- 과정 선택 --</option>
+                        <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.courseName}"
+                                th:selected="${selectedCourseId != null and selectedCourseId == c.id}">과정</option>
+                    </select>
+                    <span class="course-progress-pill">전체 진도율 <span th:text="${courseProgress}">0</span>%</span>
+                </form>
+
+                <p th:if="${#lists.isEmpty(courses)}" style="color:#999;">학습 중인(승인된) 과정이 없습니다.</p>
+                <p th:if="${selectedCourseId != null and #lists.isEmpty(groups)}" style="color:#999;">
+                    등록된 학습 콘텐츠가 없습니다.</p>
+
+                <!-- 차시별 아코디언 -->
+                <div class="subject-container">
+                    <div class="accordion open" th:each="g : ${groups}">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+                            <div>
+                                <span th:text="${g.sessionName}">차시명</span>
+                                <div style="font-size:13px; margin-top:4px; color:#444;">
+                                    <span><strong>진도율</strong>
+                                        <span style="color:#007bff;" th:text="${g.avgProgress} + '%'">0%</span></span>
+                                    <span style="margin-left:16px;"><strong>콘텐츠</strong>
+                                        <span th:text="${#lists.size(g.contents)}">0</span>개</span>
+                                </div>
+                            </div>
+                            <span aria-hidden="true">▾</span>
                         </div>
-                        <span class="breadcrumb-separator">›</span>
-                        <div class="breadcrumb-item" onclick="location.href='courses-detail.html'">
-                            <span class="breadcrumb-label">과목명</span>
-                            <span class="breadcrumb-value breadcrumb-subject">1. JavaScript 기초</span>
-                        </div>
-                        <span class="breadcrumb-separator">›</span>
-                        <div class="breadcrumb-item" onclick="location.href='courses-detail.html'">
-                            <span class="breadcrumb-label">콘텐츠명</span>
-                            <span class="breadcrumb-value breadcrumb-content">1-2. 연산자와 표현식</span>
+                        <div class="accordion-content">
+                            <ul style="list-style:none; padding:0; margin:0;">
+                                <li class="content-li" th:each="c : ${g.contents}">
+                                    <img th:src="${c.type.name() == 'VIDEO'} ? '/static/icons/content-video.png' : '/static/icons/content-document.png'"
+                                         alt="유형" style="width:40px;height:40px;object-fit:contain;">
+                                    <span style="flex:1;">
+                                        <span th:text="${c.title}">콘텐츠명</span>
+                                        <span style="font-size:14px;color:#999;margin-left:8px;"
+                                              th:if="${c.durationMinutes > 0}" th:text="${c.durationMinutes} + '분'">분</span>
+                                    </span>
+                                    <span class="prog-badge" th:text="${c.progressRate} + '%'">0%</span>
+                                    <span class="status-badge"
+                                          th:classappend="${c.completed} ? 'status-completed' : 'status-in-progress'"
+                                          th:text="${c.completed} ? '완료' : '진행중'">진행중</span>
+                                    <a class="btn" th:classappend="${c.completed} ? 'btn-gray' : 'btn-secondary'"
+                                       th:href="@{/trainee/contents/{id}/play(id=${c.contentId})}"
+                                       th:text="${c.completed} ? '다시보기' : '학습하기'">학습하기</a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <span>문서 / 30분</span>
                 </div>
-                
-                <!-- 하단 메인 콘텐츠 영역 -->
-                <div class="content-container">
-                    <div class="document-viewer">
-                        <!-- 컨트롤 바 -->
-                        <div class="document-controls ">
-                            <!-- 보기 모드 토글 -->
-                            <div class="view-mode-toggle">
-                                <button class="view-mode-btn" id="singlePageBtn" onclick="setViewMode('single')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="M278-279.33h276.67V-346H278v66.67Zm0-167.34h404v-66.66H278v66.66ZM278-614h404v-66.67H278V-614Zm-91.33 494q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm0-66.67h586.66v-586.66H186.67v586.66Zm0-586.66v586.66-586.66Z"/></svg>
-                                </button>
-                                <button class="view-mode-btn active" id="twoPageBtn" onclick="setViewMode('two')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="M146.67-160q-27 0-46.84-19.83Q80-199.67 80-226.67v-506.66q0-27 19.83-46.84Q119.67-800 146.67-800h666.66q27 0 46.84 19.83Q880-760.33 880-733.33v506.66q0 27-19.83 46.84Q840.33-160 813.33-160H146.67Zm0-66.67h300v-506.66h-300v506.66Zm366.66 0h300v-506.66h-300v506.66Zm-320-91.33H400v-66.67H193.33V-318Zm0-126H400v-66.67H193.33V-444Zm0-126H400v-66.67H193.33V-570ZM560-318h206.67v-66.67H560V-318Zm0-126h206.67v-66.67H560V-444Zm0-126h206.67v-66.67H560V-570ZM446.67-226.67v-506.66 506.66Z"/></svg>
-                                </button>
-                                <button class="btn btn-gray" onclick="firstPage()">처음으로</button>
-                            </div>
-                            <div class="nav-buttons">
-                                <button class="nav-btn" id="prevBtn" onclick="previousPage()">< 이전</button>
-                                <button class="nav-btn" id="nextBtn" onclick="nextPage()">다음 ></button>
-                            </div>
-                            <div class="page-info">
-                                <span class="current-pages" id="currentPages">1-2 / 10</span>
-                                <span class="progress-info">진행률: <span id="progressPercent">20</span>%</span>
-                                <span class="max-page-reached">최대 진행: <span id="maxPageReached">2</span>페이지</span>
-                            </div>
-                        </div>
-                        
-    
-                        <!-- 페이지 컨테이너 -->
-                        <div class="pages-container" id="pagesContainer">
-                            <!-- 페이지들이 동적으로 생성됨 -->
-                        </div>
-    
-                    </div>
-                </div>
-            <div class="button-container" style="margin-top:20px; text-align:center;">
-                <button class="big-btn btn-secondary">학습진도 저장하고 나가기</button>
-            </div>
-		</section>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
+            </section>
+        </section>
+    </main>
 
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
-
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
-
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-        <!-- 플로팅 메뉴 (AI 챗봇) -->
-        <div class="floating-chatbot-btn" id="floatingChatbotBtn">
-            <img src="/static/img/chatbot.png" alt="AI 헬피 챗봇">
-            <span class="chatbot-hint">AI 헬피 챗봇</span>
-        </div>
-
-        <!-- Floating Chatbot Window -->
-        <div class="floating-chatbot-window" id="floatingChatbotWindow" style="display:none;">
-            <div class="chatbot-header">
-                <span>AI 헬피 챗봇</span>
-                <button class="chatbot-close-btn" id="chatbotCloseBtn" title="닫기">×</button>
-            </div>
-            <div class="chatbot-messages" id="chatbotMessages">
-                <div class="chatbot-msg chatbot-msg-bot">안녕하세요! 무엇을 도와드릴까요?</div>
-            </div>
-            <div class="chatbot-badge-row" style="padding-left: 15px; display:flex; gap:7px; flex-wrap:wrap;background-color: #f7faff;">
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">출결 확인</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">과제 마감</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">시험 일정</span>
-                <span class="chatbot-badge" style="display:inline-block; color:#638ECB; border:1.2px solid #b1cfef; border-radius:12px; font-size:13px; padding:4px 6px; cursor:pointer; box-shadow:0 1.5px 6px rgba(30,40,60,0.07);">Q&A 문의</span>
-            </div>
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="메시지를 입력하세요..." autocomplete="off">
-                <button id="chatbotSendBtn" class="chatbot-send-btn">전송</button>
-            </div>
-        </div>
-	</main>
-<!-- 푸터 ********************************************************************************************************* -->
-	<footer class="simple-footer">
-  <div class="footer-inner">
-    <span class="footer-left">
-      © 2026 Samsung Academy LXP
-    </span>
-    <span class="footer-right">
-      <a href="#" class="footer-link">이용약관</a>
-      <span class="footer-dot">·</span>
-      <a href="#" class="footer-link">개인정보처리방침</a>
-    </span>
-  </div>
-</footer>
-<style>
-    /* ===== simple footer ===== */
-.simple-footer{
-
-  padding:14px 18px;
-  border-top:1px solid #eee;
-  background:#fff;
-  position: relative;
-  bottom: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.footer-inner{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  font-size:12px;
-  color:#777;
-  font-weight:700;
-}
-
-.footer-link{
-  color:#777;
-  text-decoration:none;
-}
-.footer-link:hover{
-  text-decoration:underline;
-}
-
-.footer-dot{
-  margin:0 6px;
-  color:#ccc;
-}
-
-@media (max-width:640px){
-  .footer-inner{
-    flex-direction:column;
-    gap:6px;
-  }
-}
-
-</style>
-
-	
+    <footer th:replace="~{fragments/trainee :: footer}"></footer>
 </body>
 </html>

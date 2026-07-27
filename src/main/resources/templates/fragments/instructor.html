@@ -43,7 +43,7 @@
                 <img src="/static/icons/02-user.svg" alt="trainee icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'trainees'} ? 'active_menu'">훈련생</span>
             </li>
-            <li onclick="handleMenuClick(this, 'contents.html')">
+            <li onclick="handleMenuClick(this, '/instructor/contents')">
                 <img src="/static/icons/03-description.svg" alt="contents icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'contents'} ? 'active_menu'">콘텐츠</span>
             </li>

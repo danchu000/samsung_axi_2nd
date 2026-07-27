@@ -61,7 +61,7 @@
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'eval-')} ? 'active_menu'">평가</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/templates/instructor/assignment.html"><li th:classappend="${active == 'eval-assignment'} ? 'active_menu'">과제 채점</li></a>
+                    <a href="/instructor/assignments"><li th:classappend="${active == 'eval-assignment'} ? 'active_menu'">과제 채점</li></a>
                     <a href="/templates/instructor/result.html"><li th:classappend="${active == 'eval-exam'} ? 'active_menu'">시험 채점</li></a>
                     <a href="/templates/instructor/proctor/exams.html"><li th:classappend="${active == 'eval-monitoring'} ? 'active_menu'">평가 모니터링</li></a>
                 </ul>
@@ -80,7 +80,7 @@
                 <span class="menu-text" th:classappend="${active == 'notices' or active == 'tutoring'} ? 'active_menu'">소통</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/templates/instructor/notices.html"><li th:classappend="${active == 'notices'} ? 'active_menu'">공지사항</li></a>
+                    <a href="/instructor/notice"><li th:classappend="${active == 'notices'} ? 'active_menu'">공지사항</li></a>
                     <a href="/templates/instructor/tutoring.html"><li th:classappend="${active == 'tutoring'} ? 'active_menu'">튜터링/Q&amp;A</li></a>
                 </ul>
             </li>

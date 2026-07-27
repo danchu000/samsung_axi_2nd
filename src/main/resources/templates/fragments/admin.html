@@ -9,11 +9,12 @@
 
   sidebar() 의 active 키:
     dashboard | user-trainee | user-instructor | user-admin | contents
-    | courses | schedule | eval-assignment | eval-exam | eval-monitoring
+    | courses | schedule | eval-exam(시험 관리) | eval-assignment | eval-grading(시험 채점) | eval-monitoring
     | att-status | att-graduate | att-survey | support-tutoring | support-response
     | notice | alarm
 
-  링크는 아직 정적 HTML 경로(/templates/...)를 유지한다.
+  B 도메인(평가/학습지원/공지알림/설문)은 컨트롤러 URL 로 전환 완료.
+  A 도메인(대시보드/사용자/과정/출결·이수)과 미구현분(시험채점/모니터링)은 정적 경로 유지.
   각 도메인이 컨트롤러로 전환될 때 이 파일에서만 URL 을 바꾸면 전 페이지에 반영된다.
 -->
 <body>
@@ -22,7 +23,7 @@
 <header class="header" th:fragment="header(title)">
     <h1 th:text="${title}">페이지 제목</h1>
     <div class="icon-container">
-        <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
+        <div class="icon-box" onclick="location.href='/admin/notice/alarms'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
         <div class="icon-box" onclick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
         <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
     </div>
@@ -50,7 +51,7 @@
                     <li class="submenu" th:classappend="${active == 'user-admin'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
                 </ul>
             </li>
-            <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
+            <li data-page="/admin/evaluation/questions" onclick="handleMenuClick(this, '/admin/evaluation/questions')">
                 <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'contents'} ? 'active_menu'">콘텐츠 관리</span>
             </li>
@@ -62,12 +63,13 @@
                     <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
                 </ul>
             </li>
-            <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
+            <li data-page="/admin/evaluation/assignments" onclick="handleMenuClick(this, '/admin/evaluation/assignments')">
                 <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'eval-')} ? 'active_menu'">평가 관리</span>
                 <ul>
-                    <li class="submenu" th:classappend="${active == 'eval-assignment'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-                    <li class="submenu" th:classappend="${active == 'eval-exam'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
+                    <li class="submenu" th:classappend="${active == 'eval-exam'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/exams'">시험 관리</li>
+                    <li class="submenu" th:classappend="${active == 'eval-assignment'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/assignments'">과제 채점</li>
+                    <li class="submenu" th:classappend="${active == 'eval-grading'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
                     <li class="submenu" th:classappend="${active == 'eval-monitoring'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
                 </ul>
             </li>
@@ -77,23 +79,23 @@
                 <ul>
                     <li class="submenu" th:classappend="${active == 'att-status'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
                     <li class="submenu" th:classappend="${active == 'att-graduate'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                    <li class="submenu" th:classappend="${active == 'att-survey'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
+                    <li class="submenu" th:classappend="${active == 'att-survey'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/survey'">설문조사 관리</li>
                 </ul>
             </li>
-            <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
+            <li data-page="/admin/support/tutoring" onclick="handleMenuClick(this, '/admin/support/tutoring')">
                 <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'support-')} ? 'active_menu'">학습 지원</span>
                 <ul>
-                    <li class="submenu" th:classappend="${active == 'support-tutoring'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&amp;A</li>
-                    <li class="submenu" th:classappend="${active == 'support-response'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
+                    <li class="submenu" th:classappend="${active == 'support-tutoring'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/support/tutoring'">튜터링/Q&amp;A</li>
+                    <li class="submenu" th:classappend="${active == 'support-response'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/support/response'">응답현황</li>
                 </ul>
             </li>
-            <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
+            <li data-page="/admin/notice" onclick="handleMenuClick(this, '/admin/notice')" class="white-icon">
                 <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'notice' or active == 'alarm'} ? 'active_menu'">공지/알림</span>
                 <ul>
-                    <li class="submenu" th:classappend="${active == 'notice'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                    <li class="submenu" th:classappend="${active == 'alarm'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
+                    <li class="submenu" th:classappend="${active == 'notice'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/notice'">공지 관리</li>
+                    <li class="submenu" th:classappend="${active == 'alarm'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/notice/alarms'">알림 관리</li>
                 </ul>
             </li>
         </ul>

@@ -253,3 +253,44 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 ### 데모 시드 (local 전용)
 - `course.CourseDemoDataInitializer @Order(20)` 추가 — 모집중 과정 `COURSE-2026-002`(trainee1 신청 대기),
   `COURSE-2026-003`. 기본 시더(@Order 0)는 미수정. B의 `@Order(10)` 대와 충돌 없음.
+
+---
+
+# 공통 파일 변경 알림 (A, feat/a-content — Phase 2 콘텐츠/진도 트랙 · P2-A)
+
+> B에게: 아래는 P2-A(콘텐츠/진도) 결과 요약. **SecurityConfig·build.gradle·공통 엔티티 스키마 변경 없음.**
+> 신규 경로는 기존 `/instructor/**`·`/trainee/**` catch-all 로 커버되어 규칙 수정 불필요.
+
+### Content↔Exam 연결 방향 확정 (P2 제안 그대로)
+- **Content 는 Exam 을 참조하지 않는다.** 연결은 **Exam 이 `content_id`(nullable) 를 갖는 방향**(B→A 의존).
+- A 소유 `content.entity.Content` (테이블 `content`, soft delete): 읽기용 주요 필드
+  `id`, `course`(FK, 필수), `session`(FK, nullable), `type`(VIDEO/DOCUMENT), `title`,
+  `status`(ACTIVE/ARCHIVED), `durationSeconds`/`pageCount`, `required`, `fileUrl`.
+  `admin-04-evaluation/contents-test.html` 이 콘텐츠 유형 "시험"을 Exam 과 연결할 때 이 방향으로 FK 를 두면 됨.
+
+### ProgressQueryService 계약 — 실제 구현 완료 (fallback 대체됨)
+- `content.service.ProgressQueryServiceImpl @Service` 등록 → base fallback(`ProgressContractConfig`,
+  `@ConditionalOnMissingBean`)은 자동으로 물러남. **fallback 파일은 미수정**(머지 충돌 방지).
+- `completedRatio(userId, courseId)` = 활성 콘텐츠 진도율 평균(0~100), 진도 기록 없는 콘텐츠는 0.
+- `hasCompletedAll(userId, courseId)` = **활성+필수** 콘텐츠 전부 완료 여부. 필수 콘텐츠가 0개면 false.
+- **인터페이스 시그니처 변경 없음** — 기존 2개 메서드 그대로. 이수 판정에 더 필요한 시그니처 있으면 알려줘.
+
+### 신규 경로/컨트롤러 (A 소유, com.ssa.lms.content.web)
+- 강사: `GET /instructor/contents`(목록·유형필터), `/new?type=VIDEO|DOCUMENT`(등록폼),
+  `POST /instructor/contents`(업로드 등록), `/{id}/edit`, `POST /{id}`(수정), `/{id}/status`, `/{id}/delete`.
+- 훈련생: `GET /trainee/contents`(학습콘텐츠), `/trainee/learning`(차시별), `/trainee/contents/{id}/play`(시청).
+- 진도 REST: `GET|POST /trainee/contents/{id}/progress`, `POST /{id}/complete` (JSON, CSRF 헤더 사용).
+- 업로드 파일 서비스 경로 `GET /content/files/**` (content 패키지 전용 WebMvcConfigurer, 공통 WebConfig 미수정).
+
+### 공동 소유 fragment 변경 (자기 도메인 링크 `<li>`만)
+- `fragments/instructor.html`: 콘텐츠 메뉴 → `/instructor/contents` (한 줄).
+- `fragments/trainee.html`: 학습콘텐츠 → `/trainee/contents`, 이어서 학습 → `/trainee/learning` (두 줄).
+  다른 메뉴 줄 불변 → auto-merge.
+
+### Enrollment 연동
+- `Enrollment.progressRate`(과정 시더가 예약해 둔 필드) 를 진도 갱신 시 콘텐츠 진도율 평균으로 동기화한다.
+  **상태 전이/최종 수료 판정은 P2-B(이수) 소관** — A는 진도율 값만 확정한다.
+
+### 데모 시드 (local 전용)
+- `content.ContentDemoDataInitializer @Order(30)` — `COURSE-2026-002` 에 VOD/문서 콘텐츠 2건 +
+  trainee1 진도 데모. 기본/과정 시더 미수정. (기존: core=0, user=10, course=20, **content=30**.)

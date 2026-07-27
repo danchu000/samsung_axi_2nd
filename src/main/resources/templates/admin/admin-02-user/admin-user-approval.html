@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+
+    <script src="/static/js/sidebar-function.js" defer></script>
+    <script src="/static/js/common-funtion.js" defer></script>
+    <title>Samsung Academy LXP - 가입 승인</title>
+    <style>
+        .approval-section { flex: 1; padding: 20px; overflow-y: auto; }
+        .approval-table { width: 100%; border-collapse: collapse; background-color: white; }
+        .approval-table thead { background-color: var(--color-light-gray); }
+        .approval-table th { padding: 12px 15px; text-align: center; font-weight: 600;
+            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid #ddd; }
+        .approval-table td { padding: 12px 15px; font-size: 14px; color: var(--color-font-gray);
+            border-bottom: 1px solid #f0f0f0; text-align: center; }
+        .approval-actions { display: inline-flex; gap: 8px; }
+        .approval-actions form { display: inline; }
+        .empty-row td { padding: 40px 15px; color: var(--color-font-gray-light); }
+        .flash { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+        .flash-success { background: #e8f5e9; color: #2e7d32; }
+        .flash-error { background: #fdecea; color: #c62828; }
+    </style>
+</head>
+<body>
+    <!-- 공통 레이아웃 fragment (사이드바/헤더) -->
+    <header th:replace="~{fragments/admin :: header('사용자 관리 > 가입 승인')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('user-approval')}"/>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <section class="approval-section">
+            <div class="section-header">
+                <h2>가입 승인 대기</h2>
+            </div>
+
+            <!-- 처리 결과 메시지 -->
+            <div class="flash flash-success" th:if="${message}" th:text="${message}"></div>
+            <div class="flash flash-error" th:if="${error}" th:text="${error}"></div>
+
+            <p style="font-size: 14px; color: var(--color-font-gray); margin: 8px 0 16px;">
+                신규 가입 계정은 승인 후에만 로그인할 수 있습니다.
+                총 <strong th:text="${#lists.size(pendingUsers)}">0</strong>건 대기 중.
+            </p>
+
+            <table class="approval-table">
+                <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th>아이디</th>
+                        <th>유형</th>
+                        <th>이메일</th>
+                        <th>연락처</th>
+                        <th>가입일시</th>
+                        <th>처리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${pendingUsers}">
+                        <td th:text="${u.name}">홍길동</td>
+                        <td th:text="${u.loginId}">gildong</td>
+                        <td th:text="${u.role.label}">훈련생</td>
+                        <td th:text="${u.email}">-</td>
+                        <td th:text="${u.phone}">-</td>
+                        <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-01-01 00:00</td>
+                        <td>
+                            <div class="approval-actions">
+                                <form th:action="@{/admin/users/{id}/approve(id=${u.id})}" method="post">
+                                    <button type="submit" class="btn-small btn-primary">승인</button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}/reject(id=${u.id})}" method="post"
+                                      onsubmit="return confirm('가입을 반려하시겠습니까? 계정이 삭제 처리됩니다.');">
+                                    <button type="submit" class="btn-small btn-danger">반려</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="empty-row" th:if="${#lists.isEmpty(pendingUsers)}">
+                        <td colspan="7">승인 대기 중인 가입 신청이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

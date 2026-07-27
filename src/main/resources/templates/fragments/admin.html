@@ -45,6 +45,7 @@
                 <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'user-')} ? 'active_menu'">사용자 관리</span>
                 <ul>
+                    <li class="submenu" th:classappend="${active == 'user-approval'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/pending'">가입 승인</li>
                     <li class="submenu" th:classappend="${active == 'user-trainee'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
                     <li class="submenu" th:classappend="${active == 'user-instructor'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
                     <li class="submenu" th:classappend="${active == 'user-admin'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>

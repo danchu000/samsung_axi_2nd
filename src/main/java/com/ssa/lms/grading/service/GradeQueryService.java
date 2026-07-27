@@ -43,6 +43,16 @@ public class GradeQueryService {
                 .toList();
     }
 
+    /**
+     * 평가 1건의 성적. 시험 채점 슬라이스에서 추가한 조회다 (기존 시그니처는 건드리지 않았다).
+     *
+     * @param evalRefId evalType 에 따라 exam.id 또는 course_assignment.id
+     */
+    public java.util.Optional<GradeSummary> findGrade(Long userId, Grade.EvalType evalType, Long evalRefId) {
+        return gradeRepository.findByUserIdAndEvalTypeAndEvalRefId(userId, evalType, evalRefId)
+                .map(GradeSummary::from);
+    }
+
     /** 확정 여부와 무관하게 그 과정의 성적 전부. 진행 현황 표시용. */
     public List<GradeSummary> findAllGrades(Long userId, Long courseId) {
         return gradeRepository.findByUserIdAndCourseId(userId, courseId).stream()

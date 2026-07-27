@@ -131,11 +131,20 @@ public class ExamAttempt extends BaseEntity {
         this.status = status;
     }
 
+    /**
+     * 점수 반영.
+     *
+     * <p><b>passScore 가 null 이면 passed 도 null 로 남긴다</b> — "수동 채점이 남아 합격 여부 미정"
+     * 이라는 뜻이다. 예전 구현은 {@code passScore != null && ...} 이라 미정인 회차가 항상
+     * {@code false}(불합격)로 저장됐고, 그 값이 결과 화면과 채점 목록에 "불합격"으로 표시됐다.
+     * (시험 채점 슬라이스에서 발견해 수정 — ExamAttemptService.finish() 가 manualPending 일 때
+     * passScore=null 로 부르는 것이 원래 의도다.)</p>
+     */
     public void applyScore(Integer autoScore, Integer manualScore, Integer passScore) {
         this.autoScore = autoScore;
         this.manualScore = manualScore;
         this.totalScore = (autoScore == null ? 0 : autoScore) + (manualScore == null ? 0 : manualScore);
-        this.passed = passScore != null && this.totalScore >= passScore;
+        this.passed = passScore == null ? null : this.totalScore >= passScore;
     }
 
     public void voidAttempt(User admin, String reason) {

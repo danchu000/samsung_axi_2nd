@@ -112,6 +112,42 @@ public class Grade extends BaseEntity {
         this.status = GradeStatus.GRADED;
     }
 
+    /**
+     * 수동 채점이 아직 남아 있는 <b>중간 저장</b>.
+     *
+     * <p>{@link #applyScore} 와 달리 합격 여부를 계산하지 않는다({@code passed=null}).
+     * 서술형 채점이 끝나지 않았는데 합격/불합격을 확정해 버리면, 화면과 A의 이수 판정이
+     * 아직 존재하지 않는 결론을 읽게 된다.</p>
+     */
+    public void applyInterimScore(Integer autoScore, Integer manualScore,
+                                  User grader, LocalDateTime at) {
+        this.autoScore = autoScore;
+        this.manualScore = manualScore;
+        this.totalScore = (autoScore == null ? 0 : autoScore) + (manualScore == null ? 0 : manualScore);
+        this.passed = null;
+        this.gradedBy = grader;
+        this.gradedAt = at;
+        this.status = GradeStatus.GRADING;
+    }
+
+    /**
+     * <b>확정 이후</b>의 성적 정정. 확정 상태(CONFIRMED)와 확정자/확정시각을 그대로 둔다.
+     *
+     * <p>{@link #applyScore} 를 재사용하면 status 가 GRADED 로 내려앉아 "확정된 성적"이
+     * 조용히 미확정으로 바뀐다 — A의 이수 판정이 이 값을 읽으므로 절대 그러면 안 된다.
+     * 호출한 쪽은 반드시 {@code GradeHistory} 를 사유와 함께 남겨야 한다.</p>
+     */
+    public void correctScore(Integer autoScore, Integer manualScore, Integer passScore,
+                             User grader, LocalDateTime at) {
+        this.autoScore = autoScore;
+        this.manualScore = manualScore;
+        this.totalScore = (autoScore == null ? 0 : autoScore) + (manualScore == null ? 0 : manualScore);
+        this.passed = passScore != null && this.totalScore >= passScore;
+        this.gradedBy = grader;
+        this.gradedAt = at;
+        // status / confirmedBy / confirmedAt 은 건드리지 않는다.
+    }
+
     public void confirm(User confirmer, LocalDateTime at) {
         this.confirmedBy = confirmer;
         this.confirmedAt = at;

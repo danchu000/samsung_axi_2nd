@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+    <link rel="stylesheet" href="/static/css/trainees.css">
+
+    <script src="/static/js/sidebar-function.js" defer></script>
+    <script src="/static/js/common-funtion.js" defer></script>
+    <title>Samsung Academy LXP - 사용자 정보 수정</title>
+    <style>
+        .edit-form { max-width: 640px; padding: 20px; }
+        .edit-form .info-row { margin-bottom: 14px; align-items: center; }
+        .edit-form .info-row .label { width: 120px; font-weight: 600; color: var(--color-font-gray); font-size: 14px; }
+        .edit-form input[type=text], .edit-form input[type=email], .edit-form input[type=date],
+        .edit-form select { padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 260px; }
+        .field-error { color: #c62828; font-size: 12px; margin-left: 8px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 24px; }
+        .readonly-badge { color: var(--color-font-gray); font-size: 14px; }
+    </style>
+</head>
+<body class="edit-mode">
+    <th:block th:with="active=${user.role.name() == 'INSTRUCTOR'} ? 'user-instructor' : 'user-trainee'">
+        <header th:replace="~{fragments/admin :: header('사용자 관리 > 정보 수정')}"></header>
+        <th:block th:replace="~{fragments/admin :: sidebar(${active})}"/>
+    </th:block>
+
+    <main class="main-content">
+        <section class="trainee-detail-section">
+            <div class="section-header">
+                <h2>사용자 정보 수정 — <span th:text="${user.role.label}">유형</span></h2>
+            </div>
+
+            <form class="edit-form" th:action="@{/admin/users/{id}(id=${user.id})}" method="post" th:object="${form}">
+                <div class="info-row">
+                    <span class="label">아이디</span>
+                    <span class="readonly-badge" th:text="${user.loginId}">loginId</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">이름</span>
+                    <input type="text" th:field="*{name}">
+                    <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">계정상태</span>
+                    <select th:field="*{status}">
+                        <option th:value="ACTIVE" th:text="'활성'">활성</option>
+                        <option th:value="SUSPENDED" th:text="'정지'">정지</option>
+                        <option th:value="PENDING" th:text="'승인대기'" disabled>승인대기</option>
+                        <option th:value="WITHDRAWN" th:text="'탈퇴'" disabled>탈퇴</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <span class="label">성별</span>
+                    <select th:field="*{gender}">
+                        <option value="">선택 안함</option>
+                        <option value="male">남</option>
+                        <option value="female">여</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <span class="label">생년월일</span>
+                    <input type="date" th:field="*{birthDate}">
+                </div>
+                <div class="info-row">
+                    <span class="label">이메일</span>
+                    <input type="email" th:field="*{email}">
+                    <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">연락처</span>
+                    <input type="text" th:field="*{phone}" placeholder="010-0000-0000">
+                </div>
+                <div class="info-row">
+                    <span class="label">최종학력</span>
+                    <input type="text" th:field="*{education}" placeholder="예: 4년제 대학 졸업">
+                </div>
+
+                <div class="form-buttons">
+                    <a th:href="@{/admin/users/{path}(path=${user.role.name() == 'INSTRUCTOR'} ? 'instructors' : 'trainees', selected=${user.id})}"
+                       class="btn btn-back">되돌아가기</a>
+                    <button type="submit" class="btn btn-save">저장하기</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

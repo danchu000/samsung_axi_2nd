@@ -3,14 +3,14 @@
 K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 정적 프론트엔드(HTML 155페이지)는 완성되어 있고, **Spring Boot 백엔드를 새로 구축해 기존 화면과 연동**하는 단계다. 전체 계획·역할 분담·정부 제출 증빙 체크리스트는 반드시 [PLAN.md](PLAN.md)를 먼저 읽을 것.
 
 ## 기술 스택 (확정)
-- Java 17+, Spring Boot 3.x, Spring Security, Spring Data JPA, Thymeleaf, MySQL(또는 MariaDB), Gradle
+- Java 17+, Spring Boot 3.x, Spring Security, Spring Data JPA, Thymeleaf, **PostgreSQL**(2026-07-27 MySQL→PostgreSQL 변경 — AI 기능 호환성/pgvector 대비), Gradle
 - 프론트: 기존 정적 HTML/CSS/Vanilla JS를 Thymeleaf 템플릿으로 전환 (JS 주석에 "th:each 교체 대비" 표기 있음)
 - 패키지 루트: `com.ssa.lms` — 컨트롤러는 `com.ssa.lms.web.{admin|instructor|trainee}.{도메인}` (메뉴구성도_IA 엑셀의 확정안)
 
 ## 빌드/실행
 - 요구사항: JDK 17 (Gradle은 wrapper가 자동 다운로드)
 - 실행: `./gradlew bootRun` → http://localhost:8080 (기본 `local` 프로필: 인메모리 H2, 시드 계정 admin / instructor1 / trainee1, pw `1234`)
-- 로컬 MySQL 사용: DB `lms` 생성 후 `./gradlew bootRun --args='--spring.profiles.active=dev'` (계정은 환경변수 `LMS_DB_USER`/`LMS_DB_PASSWORD`)
+- 로컬 PostgreSQL 사용: DB `lms` 생성 후 `./gradlew bootRun --args='--spring.profiles.active=dev'` (계정은 환경변수 `LMS_DB_USER`/`LMS_DB_PASSWORD`)
 - 테스트: `./gradlew test`
 - 정적 리소스는 `src/main/resources/static/`, 화면 템플릿은 `src/main/resources/templates/` (기존 `/static/...` 절대경로 링크는 WebConfig 매핑으로 그대로 동작)
 - 공통 레이아웃 fragment: `templates/fragments/{admin,instructor,trainee}.html` — 각자 자기 도메인 페이지를 컨트롤러로 연결할 때 복붙된 사이드바/헤더/푸터를 fragment 호출로 교체할 것 (사용법은 각 파일 상단 주석)

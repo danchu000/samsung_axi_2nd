@@ -1,5 +1,5 @@
     <!DOCTYPE html>
-    <html lang="ko">
+    <html lang="ko" xmlns:th="http://www.thymeleaf.org">
     <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="/static/css/play-grading.css">
     <link rel="stylesheet" href="/static/css/play.css">
 
-
+    <meta name="_csrf" th:content="${_csrf.token}" content="">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" content="">
 
     <!-- 공지 전용(추가) -->
     <title>Samsung Academy LXP</title>
@@ -54,8 +55,12 @@
                     <!-- 상단 요약 -->
                     <section class="exam-top card">
                         <div class="exam-top-left">
-                        <h2 class="exam-title" id="examTitle">시험명</h2>
-                        <p class="exam-notice" id="examNotice">간단 안내 문구 (제한시간 / 제출 주의)</p>
+                        <h2 class="exam-title" id="examTitle" th:text="${attempt.examName}">시험명</h2>
+                        <p class="exam-notice" id="examNotice"
+                           th:text="${attempt.note} ?: '제한시간 내에 답안을 제출하세요.'">간단 안내 문구 (제한시간 / 제출 주의)</p>
+                        <!-- 본인인증 배지 — 내역서 증빙 요건이라 화면에 남긴다 -->
+                        <p class="exam-notice" id="identityBadge" th:if="${attempt.identityVerifiedAt != null}"
+                           th:text="${'본인인증 완료 · ' + attempt.identityVerifiedAt + ' (' + attempt.identityVerifyMethod + ')'}"></p>
                         </div>
                         <div class="exam-top-right">
                         <div class="stat">
@@ -68,9 +73,33 @@
                         </div>
                         </div>
                     </section>
-            
+
+                    <!-- 제출 결과 (제출/자동제출된 회차일 때만) -->
+                    <section class="exam-result card" th:if="${result != null}"
+                             style="padding:18px;display:flex;flex-direction:column;gap:10px;">
+                        <h3 style="margin:0;" th:text="${result.autoSubmitted
+                                ? '제한시간 만료 — 서버가 자동 제출했습니다'
+                                : '답안이 제출되었습니다'}">제출 결과</h3>
+                        <div class="detail-grid" style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;">
+                            <div class="k">상태</div>      <div class="v" id="rStatus" th:text="${result.status}">-</div>
+                            <div class="k">제출시각</div>   <div class="v" id="rSubmittedAt" th:text="${result.submittedAt} ?: '-'">-</div>
+                            <div class="k">응답 문항</div>  <div class="v" id="rAnswered" th:text="${result.answeredCount + ' / ' + result.questionCount}">-</div>
+                            <div class="k">자동채점 점수</div>
+                            <div class="v" id="rScore"
+                                 th:text="${(result.autoScore == null ? 0 : result.autoScore) + ' / ' + result.examTotalScore + '점'}">-</div>
+                            <div class="k">합격 기준</div>  <div class="v" id="rPassScore" th:text="${result.passScore + '점'}">-</div>
+                            <div class="k">합격 여부</div>
+                            <div class="v" id="rPassed" th:text="${result.manualPending
+                                    ? '수동 채점 대기 — 아직 확정되지 않았습니다'
+                                    : (result.passed == null ? '-' : (result.passed ? '합격' : '불합격'))}">-</div>
+                        </div>
+                        <div>
+                            <a class="btn btn-gray" th:href="@{/trainee/exam}">시험 목록으로</a>
+                        </div>
+                    </section>
+
                     <!-- 본문: 좌측 네비 + 우측 문항 -->
-                    <section class="exam-body">
+                    <section class="exam-body" th:if="${result == null}">
                         <!-- 좌측: 문항 네비 -->
                         <aside class="exam-nav card">
                         <div class="nav-head">
@@ -121,7 +150,7 @@
                     </section>
             
                     <!-- 하단 액션 바 -->
-                    <section class="exam-footer card">
+                    <section class="exam-footer card" th:if="${result == null}">
                         <div class="left-actions">
                         <button class="btn btn-gray" type="button" id="prevBtn">이전 문항</button>
                         <button class="btn btn-gray" type="button" id="nextBtn">다음 문항</button>
@@ -142,6 +171,246 @@
 
     </main>
 
+    <!-- ===== 서버 연동 (개발자 B) ===== -->
+
+    <!-- 최종 제출 POST 폼. th:action 이라 Thymeleaf 가 CSRF 히든필드를 자동으로 넣는다. -->
+    <form id="submitForm" method="post"
+          th:action="@{/trainee/exam/attempt/{id}/submit(id=${attempt.attemptId})}" style="display:none;"></form>
+
+    <div th:if="${message}" class="toast-message" th:text="${message}"
+         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      window._serverAttempt = /*[[${attempt}]]*/ null;
+      window._attemptUrls = {
+        answers: /*[[@{/trainee/exam/attempt/{id}/answers(id=${attempt.attemptId})}]]*/ '',
+        events:  /*[[@{/trainee/exam/attempt/{id}/events(id=${attempt.attemptId})}]]*/ '',
+        list:    /*[[@{/trainee/exam}]]*/ '/trainee/exam'
+      };
+      /*]]>*/
+    </script>
+
+    <script>
+    (function () {
+      const attempt = window._serverAttempt;
+      const urls = window._attemptUrls || {};
+      if (!attempt) return;                       // 정적 미리보기 — 아무것도 하지 않는다
+      if (attempt.status !== 'IN_PROGRESS') return; // 결과 패널은 서버가 그린다
+
+      // ---------- Elements (기존 id 그대로 쓴다) ----------
+      const navGrid   = document.getElementById('navGrid');
+      const qNo       = document.getElementById('qNo');
+      const qStem     = document.getElementById('qStem');
+      const answerArea= document.getElementById('answerArea');
+      const markCheck = document.getElementById('markCheck');
+      const prevBtn   = document.getElementById('prevBtn');
+      const nextBtn   = document.getElementById('nextBtn');
+      const saveState = document.getElementById('saveState');
+      const tempSaveBtn = document.getElementById('tempSaveBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      const remainTime= document.getElementById('remainTime');
+      const currentNo = document.getElementById('currentNo');
+      const totalNo   = document.getElementById('totalNo');
+      const submitForm= document.getElementById('submitForm');
+
+      const questions = attempt.questions || [];
+      const marked = new Set();
+      let idx = 0;
+      let submitting = false;
+
+      const csrfToken  = (document.querySelector('meta[name="_csrf"]') || {}).content;
+      const csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+
+      function esc(s) {
+        return String(s == null ? '' : s)
+          .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+      }
+
+      function post(url, params) {
+        const body = new URLSearchParams(params);
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' };
+        if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+        return fetch(url, { method: 'POST', headers: headers, body: body, credentials: 'same-origin' })
+          .then(r => r.json().catch(() => ({ ok: false })));
+      }
+
+      // ---------- 답안 상태 ----------
+      function isAnswered(q) {
+        return !!(q.savedChoiceId || (q.savedText && q.savedText.trim()));
+      }
+
+      // ---------- 문항 네비 ----------
+      function renderNav() {
+        navGrid.innerHTML = questions.map((q, i) => {
+          const cls = ['nav-btn'];
+          if (i === idx) cls.push('current');
+          if (marked.has(q.questionId)) cls.push('mark');
+          else if (isAnswered(q)) cls.push('done');
+          return '<button type="button" class="' + cls.join(' ') + '" data-idx="' + i + '">' + q.no + '</button>';
+        }).join('');
+      }
+
+      // ---------- 문항 렌더 ----------
+      function renderQuestion() {
+        const q = questions[idx];
+        if (!q) {
+          qStem.textContent = '출제된 문항이 없습니다.';
+          answerArea.innerHTML = '';
+          return;
+        }
+        qNo.textContent = 'Q' + q.no + ' (' + q.typeLabel + ' · ' + q.score + '점)';
+        qStem.textContent = q.text;
+
+        if (q.type === 'MULTIPLE_CHOICE') {
+          answerArea.innerHTML = (q.choices || []).map(c =>
+            '<label class="choice-row" style="display:block;padding:6px 0;">' +
+            '<input type="radio" name="choice-' + esc(q.questionId) + '" value="' + esc(c.id) + '"' +
+            (String(q.savedChoiceId) === String(c.id) ? ' checked' : '') + '> ' +
+            '<span>' + c.seq + '. ' + esc(c.content) + '</span></label>'
+          ).join('');
+          answerArea.querySelectorAll('input[type=radio]').forEach(r => {
+            r.addEventListener('change', () => {
+              q.savedChoiceId = r.value;
+              save(q, { questionId: q.questionId, choiceId: r.value });
+            });
+          });
+        } else {
+          answerArea.innerHTML =
+            '<textarea id="answerText" rows="8" style="width:100%;padding:10px;" ' +
+            'placeholder="답안을 입력하세요">' + esc(q.savedText || '') + '</textarea>';
+          const ta = document.getElementById('answerText');
+          let timer = null;
+          ta.addEventListener('input', () => {
+            q.savedText = ta.value;
+            saveState.textContent = '저장 대기…';
+            clearTimeout(timer);
+            timer = setTimeout(() => save(q, { questionId: q.questionId, answerText: ta.value }), 800);
+          });
+          ta.addEventListener('blur', () => {
+            clearTimeout(timer);
+            save(q, { questionId: q.questionId, answerText: ta.value });
+          });
+        }
+
+        markCheck.checked = marked.has(q.questionId);
+        currentNo.textContent = q.no;
+        prevBtn.disabled = idx === 0;
+        nextBtn.disabled = idx >= questions.length - 1;
+        renderNav();
+      }
+
+      // ---------- 임시저장 ----------
+      function save(q, params) {
+        saveState.textContent = '저장 중…';
+        return post(urls.answers, params).then(res => {
+          if (res && res.ok) {
+            saveState.textContent = '저장됨 ' + (res.savedAt || '').replace('T', ' ').substring(0, 19);
+            renderNav();
+          } else if (res && res.expired) {
+            saveState.textContent = '제한시간 만료';
+            autoSubmit('제한시간이 만료되었습니다. 서버가 자동 제출합니다.');
+          } else {
+            saveState.textContent = '저장 실패' + (res && res.message ? ' — ' + res.message : '');
+          }
+          return res;
+        }).catch(() => { saveState.textContent = '저장 실패 (네트워크)'; });
+      }
+
+      function saveCurrent() {
+        const q = questions[idx];
+        if (!q) return Promise.resolve();
+        if (q.type === 'MULTIPLE_CHOICE') {
+          const picked = answerArea.querySelector('input[type=radio]:checked');
+          if (!picked) return Promise.resolve();
+          return save(q, { questionId: q.questionId, choiceId: picked.value });
+        }
+        const ta = document.getElementById('answerText');
+        return save(q, { questionId: q.questionId, answerText: ta ? ta.value : '' });
+      }
+
+      // ---------- 서버 타이머 ----------
+      // remainSeconds 는 서버가 expiresAt 으로 계산해 내려준 값이다. 화면 카운트다운은 표시용일 뿐이고
+      // 실제 마감 판정은 제출 시점에 서버가 다시 한다 (조작해도 결과가 달라지지 않는다).
+      const deadline = Date.now() + (attempt.remainSeconds || 0) * 1000;
+      function tick() {
+        const left = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+        const h = String(Math.floor(left / 3600)).padStart(2, '0');
+        const m = String(Math.floor((left % 3600) / 60)).padStart(2, '0');
+        const s = String(left % 60).padStart(2, '0');
+        remainTime.textContent = h + ':' + m + ':' + s;
+        if (left <= 0) {
+          clearInterval(timerId);
+          autoSubmit('제한시간이 만료되었습니다. 서버가 자동 제출합니다.');
+        }
+      }
+      const timerId = setInterval(tick, 1000);
+
+      function autoSubmit(message) {
+        if (submitting) return;
+        submitting = true;
+        alert(message);
+        submitForm.submit();
+      }
+
+      // ---------- 부정행위 이벤트 ----------
+      function sendEvent(type, detail) {
+        if (!urls.events) return;
+        post(urls.events, { eventType: type, detail: detail || '' });
+      }
+      if (attempt.blockTabSwitch) {
+        document.addEventListener('visibilitychange', () => {
+          if (submitting) return;
+          sendEvent(document.hidden ? 'TAB_BLUR' : 'TAB_FOCUS',
+                    document.hidden ? '탭/창 이탈' : '탭/창 복귀');
+        });
+        window.addEventListener('blur', () => { if (!submitting) sendEvent('TAB_BLUR', '창 포커스 이탈'); });
+      }
+      if (attempt.blockCopyPaste) {
+        document.addEventListener('copy', (e) => { e.preventDefault(); sendEvent('COPY', '복사 시도 차단'); });
+        document.addEventListener('paste', (e) => { e.preventDefault(); sendEvent('PASTE', '붙여넣기 시도 차단'); });
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+      }
+
+      // ---------- 이벤트 바인딩 ----------
+      navGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-idx]');
+        if (!btn) return;
+        saveCurrent().then(() => { idx = Number(btn.dataset.idx); renderQuestion(); });
+      });
+      prevBtn.addEventListener('click', () => {
+        if (idx === 0) return;
+        saveCurrent().then(() => { idx--; renderQuestion(); });
+      });
+      nextBtn.addEventListener('click', () => {
+        if (idx >= questions.length - 1) return;
+        saveCurrent().then(() => { idx++; renderQuestion(); });
+      });
+      markCheck.addEventListener('change', () => {
+        const q = questions[idx];
+        if (!q) return;
+        if (markCheck.checked) marked.add(q.questionId); else marked.delete(q.questionId);
+        renderNav();
+      });
+      tempSaveBtn.addEventListener('click', () => saveCurrent());
+      submitBtn.addEventListener('click', () => {
+        const unanswered = questions.filter(q => !isAnswered(q)).length;
+        const msg = unanswered > 0
+          ? '미응답 ' + unanswered + '문항이 있습니다. 제출하시겠습니까? (제출 후 수정할 수 없습니다)'
+          : '답안을 최종 제출하시겠습니까? (제출 후 수정할 수 없습니다)';
+        if (!confirm(msg)) return;
+        submitting = true;
+        saveCurrent().then(() => submitForm.submit());
+      });
+
+      // ---------- init ----------
+      totalNo.textContent = questions.length;
+      saveState.textContent = '자동 저장됨';
+      renderQuestion();
+      tick();
+    })();
+    </script>
 
     </body>
     </html>

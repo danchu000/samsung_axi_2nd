@@ -62,6 +62,13 @@ public class Enrollment extends BaseEntity {
         this.appliedAt = appliedAt != null ? appliedAt : LocalDateTime.now();
     }
 
+    /** 반려/취소된 신청을 다시 신청 상태로 되돌린다 (이력 보존 — 새 행 생성 대신 상태 재설정). */
+    public void reapply(LocalDateTime at) {
+        this.status = EnrollmentStatus.APPLIED;
+        this.appliedAt = at;
+        this.decidedAt = null;
+    }
+
     public void approve(LocalDateTime at) {
         this.status = EnrollmentStatus.APPROVED;
         this.decidedAt = at;

@@ -6,6 +6,7 @@ import com.ssa.lms.course.service.CourseInstructorService;
 import com.ssa.lms.course.service.CourseService;
 import com.ssa.lms.course.service.CurriculumService;
 import com.ssa.lms.course.service.DuplicateCourseCodeException;
+import com.ssa.lms.course.service.EnrollmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,7 @@ public class CourseAdminController {
     private final CourseService courseService;
     private final CurriculumService curriculumService;
     private final CourseInstructorService courseInstructorService;
+    private final EnrollmentService enrollmentService;
 
     /** 과정 목록 + 상단 통계. */
     @GetMapping
@@ -79,6 +81,7 @@ public class CourseAdminController {
         model.addAttribute("subjects", curriculumService.curriculum(id));
         model.addAttribute("instructors", courseInstructorService.instructorsOf(id));
         model.addAttribute("availableInstructors", courseInstructorService.availableInstructors());
+        model.addAttribute("enrollments", enrollmentService.enrollmentsOf(id));
         model.addAttribute("statuses", CourseStatus.values());
         model.addAttribute("subjectForm", new SubjectForm());
         model.addAttribute("sessionForm", new SessionForm());

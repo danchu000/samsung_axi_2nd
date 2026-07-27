@@ -174,7 +174,36 @@
                 </form>
             </div>
 
-            <!-- ▼ 수강신청 현황 섹션은 후속 슬라이스에서 삽입 -->
+            <!-- 수강신청 현황 -->
+            <div class="form-section">
+                <h3 class="section-title">수강신청 현황</h3>
+                <p th:if="${enrollmentError}" class="field-error" th:text="${enrollmentError}" style="color:#dc3545;"></p>
+                <p th:if="${enrollments.isEmpty()}" class="empty-hint">수강신청 내역이 없습니다.</p>
+
+                <table class="list-table" th:unless="${enrollments.isEmpty()}">
+                    <thead>
+                        <tr><th>훈련생</th><th>상태</th><th>신청일</th><th>처리</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="en : ${enrollments}">
+                            <td th:text="${en.traineeName}">훈련생</td>
+                            <td><span th:class="'badge-status badge-' + ${en.status}" th:text="${en.statusLabel}">상태</span></td>
+                            <td th:text="${#temporals.format(en.appliedAt, 'yyyy-MM-dd HH:mm')}">신청일</td>
+                            <td>
+                                <span th:if="${en.status.name() == 'APPLIED'}">
+                                    <form class="inline-form" th:action="@{/admin/courses/{cid}/enrollments/{eid}/approve(cid=${course.id},eid=${en.id})}" method="post">
+                                        <button type="submit" class="btn btn-primary" style="padding:4px 10px;">승인</button>
+                                    </form>
+                                    <form class="inline-form" th:action="@{/admin/courses/{cid}/enrollments/{eid}/reject(cid=${course.id},eid=${en.id})}" method="post">
+                                        <button type="submit" class="btn btn-gray" style="padding:4px 10px;">반려</button>
+                                    </form>
+                                </span>
+                                <span th:unless="${en.status.name() == 'APPLIED'}" style="color:#999;">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- 버튼 -->
             <div class="button-group">

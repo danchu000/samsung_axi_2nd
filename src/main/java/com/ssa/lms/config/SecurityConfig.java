@@ -1,5 +1,8 @@
 package com.ssa.lms.config;
 
+import com.ssa.lms.auth.LoginFailureHandler;
+import com.ssa.lms.auth.RoleBasedAuthenticationSuccessHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,12 +16,17 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * 공통 보안 설정 — 권한 3종(ADMIN/INSTRUCTOR/TRAINEE) URL 경계.
  * 공동 소유 파일: 수정 전 반드시 상대 개발자와 공유 (CLAUDE.md).
  *
- * <p>커스텀 로그인 화면(01-login/login.html) 연동은 개발자 A의 로그인 슬라이스에서 진행 예정.
- * 그 전까지는 Spring Security 기본 로그인 페이지(/login)로 동작 확인 가능.</p>
+ * <p>커스텀 로그인 화면(01-login/login.html) 연동 완료 (A 로그인 슬라이스, feat/a-auth-login).
+ * 로그인 성공 시 {@link RoleBasedAuthenticationSuccessHandler} 로 역할별 화면(/admin·/instructor·/trainee)
+ * 리다이렉트, 실패 시 {@link LoginFailureHandler} 로 사유별 분기(?error / ?pending).</p>
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final RoleBasedAuthenticationSuccessHandler successHandler;
+    private final LoginFailureHandler failureHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,8 +56,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        // TODO(A-로그인 슬라이스): .loginPage("/login") 커스텀 화면 연동
-                        .defaultSuccessUrl("/", true)
+                        // 커스텀 로그인 화면(01-login/login.html) 연동
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")   // POST /login 으로 인증 처리
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .successHandler(successHandler)  // 역할별 리다이렉트
+                        .failureHandler(failureHandler)  // 실패 사유별 분기(?error / ?pending)
                         .permitAll()
                 )
                 .logout(logout -> logout

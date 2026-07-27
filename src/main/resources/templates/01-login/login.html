@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../font-style.css">
+    <link rel="stylesheet" href="/static/css/font-style.css">
     <link rel="stylesheet" href="/static/css/common-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <title>Samsung Academy LXP - 로그인</title>
@@ -148,6 +148,16 @@
         font-weight: 100;
     }
 
+    .login-box .login-msg {
+        display: block;
+        width: 100%;
+        font-size: 0.85rem;
+        margin: -0.5rem 0 0;
+        text-align: left;
+    }
+    .login-error { color: #d33; }
+    .login-info { color: #2a72d4; }
+
 </style>
 <body class="login-bg">
     <main>
@@ -165,22 +175,26 @@
         <section class="right-side">
             <div>
                 <img id="logo" src="/static/img/logo.png" alt="logo">
-                <div class="login-box">
+                <!-- th:action 사용 시 Spring Security CSRF 히든 필드가 자동 삽입된다 -->
+                <form class="login-box" th:action="@{/login}" method="post">
                     <p>
                         ID
-                        <input type="text" placeholder="아이디 입력" autocomplete="username">
+                        <input type="text" name="username" placeholder="아이디 입력" autocomplete="username" required>
                     </p>
                     <p>
                         PW
-                        <input type="password" placeholder="비밀번호 입력" autocomplete="current-password">
+                        <input type="password" name="password" placeholder="비밀번호 입력" autocomplete="current-password" required>
                     </p>
-                    <button class="login-btn">로그인</button>
-                    <span class="signup-link" onclick="location.href='signup.html'">회원가입
+                    <p class="login-msg login-error" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+                    <p class="login-msg login-error" th:if="${param.pending}">승인 대기 중인 계정입니다. 관리자 승인 후 로그인할 수 있습니다.</p>
+                    <p class="login-msg login-info" th:if="${param.logout}">로그아웃되었습니다.</p>
+                    <button type="submit" class="login-btn">로그인</button>
+                    <span class="signup-link" onclick="location.href='/signup'">회원가입
                         <svg viewBox="0 -960 960 960" width="14" height="14">
                             <path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z"/>
                         </svg>
                     </span>
-                </div>
+                </form>
             </div>
         </section>
     </main>

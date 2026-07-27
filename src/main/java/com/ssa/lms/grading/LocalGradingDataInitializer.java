@@ -135,7 +135,9 @@ public class LocalGradingDataInitializer {
             submitAttempt(mixed, trainee, answersOf(trainee));
             submitAttempt(autoOnly, trainee, answersOf(trainee));
         }
-        log.info("[local] 채점 검증용 시험 3건 / 응시 회차 {}건 생성", trainees.size() * 2);
+        // 타 과정 시험에도 회차를 하나 만든다 — 회차 단위 권한 차단(attempts/{id})을 실제로 확인하려면 필요하다.
+        userRepository.findByLoginId("trainee1").ifPresent(t -> submitAttempt(foreign, t, true));
+        log.info("[local] 채점 검증용 시험 3건 / 응시 회차 {}건 생성", trainees.size() * 2 + 1);
     }
 
     /* ===== 내부 ===== */

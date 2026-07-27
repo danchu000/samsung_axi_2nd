@@ -54,9 +54,11 @@
                 </select>
                 <button type="button" class="btn btn-secondary">검색하기</button>
             </div>
-            <!-- 성적 목록 / 다운로드 -->
+            <!-- 성적 다운로드
+                 강사 쪽에는 "성적 목록/변경 이력" 전용 정적 화면이 없어서 링크를 두지 않는다.
+                 (관리자 화면 admin-evaluation-test-grading.html 만 있고, 그걸 강사 레이아웃으로
+                  복제하면 화면이 두 벌이 된다 — CLAUDE.md 위반.) 변경 이력은 채점 팝업에서 확인한다. -->
             <div class="exam-grade-actions" style="display:flex; gap:10px; justify-content:flex-end; margin:14px 0 6px 0;">
-                <a class="btn btn-gray btn-sm" th:href="${summary.gradesUrl}" href="#">성적 목록 / 변경 이력</a>
                 <a class="btn btn-secondary btn-sm" th:href="${summary.csvUrl}" href="#">성적 다운로드 (CSV)</a>
             </div>
 

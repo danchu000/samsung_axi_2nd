@@ -156,7 +156,10 @@ public class ExamGradingService {
 
     public ExamGradingSummary summary(Long examId, Long viewerId, boolean admin, String urlPrefix) {
         Exam exam = requireExam(examId);
-        boolean canGrade = canGrade(exam, viewerId, admin);
+        // 목록에서 걸러지긴 하지만 URL 의 examId 만 바꿔서 들어올 수 있으므로 여기서 막는다.
+        // 이 화면은 응시자 실명·점수를 보여주기 때문에 canGrade=false 로 내려보내는 것으로는 부족하다.
+        ensureCanGrade(exam, viewerId, admin);
+        boolean canGrade = true;
 
         List<ExamAttempt> attempts = latestPerUser(
                 examGradingRepository.findAttempts(List.of(examId), GRADABLE_STATUSES));
@@ -211,6 +214,7 @@ public class ExamGradingService {
      */
     public List<AttemptGradingRow> attemptList(Long examId, Long viewerId, boolean admin, String urlPrefix) {
         Exam exam = requireExam(examId);
+        ensureCanGrade(exam, viewerId, admin);
 
         List<ExamAttempt> attempts = latestPerUser(
                 examGradingRepository.findAttempts(List.of(examId), GRADABLE_STATUSES));
@@ -267,10 +271,8 @@ public class ExamGradingService {
         ExamAttempt attempt = requireAttempt(attemptId);
         Exam exam = examGradingRepository.findExamWithQuestions(attempt.getExam().getId())
                 .orElseThrow(() -> new GradingException("NOT_FOUND", "시험을 찾을 수 없습니다."));
-        boolean canGrade = canGrade(exam, viewerId, admin);
-        if (!admin && !canGrade) {
-            throw new AccessDeniedException("담당하지 않는 과정의 시험은 채점할 수 없습니다.");
-        }
+        ensureCanGrade(exam, viewerId, admin);
+        boolean canGrade = true;
 
         Map<Long, Answer> answers = answersByQuestion(attemptId);
 
@@ -381,9 +383,7 @@ public class ExamGradingService {
         ExamAttempt attempt = requireAttempt(attemptId);
         Exam exam = examGradingRepository.findExamWithQuestions(attempt.getExam().getId())
                 .orElseThrow(() -> new GradingException("NOT_FOUND", "시험을 찾을 수 없습니다."));
-        if (!canGrade(exam, graderId, admin)) {
-            throw new AccessDeniedException("담당하지 않는 과정의 시험은 채점할 수 없습니다.");
-        }
+        ensureCanGrade(exam, graderId, admin);
         User grader = examGradingRepository.findUsers(List.of(graderId)).stream().findFirst()
                 .orElseThrow(() -> new GradingException("NOT_FOUND", "채점자를 찾을 수 없습니다."));
 
@@ -510,9 +510,7 @@ public class ExamGradingService {
 
     public List<GradeListRow> gradeList(Long examId, Long viewerId, boolean admin) {
         Exam exam = requireExam(examId);
-        if (!canGrade(exam, viewerId, admin)) {
-            throw new AccessDeniedException("담당하지 않는 과정의 성적은 조회할 수 없습니다.");
-        }
+        ensureCanGrade(exam, viewerId, admin);
         List<Grade> grades = examGradingRepository.findGradesByExam(examId);
         Map<Long, Integer> historyCounts = toIntMap(gradeHistoryRepository.countByGrades(
                 grades.isEmpty() ? List.of(-1L) : grades.stream().map(Grade::getId).toList()));
@@ -542,9 +540,7 @@ public class ExamGradingService {
 
     public List<GradeHistoryRow> historyList(Long examId, Long viewerId, boolean admin) {
         Exam exam = requireExam(examId);
-        if (!canGrade(exam, viewerId, admin)) {
-            throw new AccessDeniedException("담당하지 않는 과정의 성적은 조회할 수 없습니다.");
-        }
+        ensureCanGrade(exam, viewerId, admin);
         List<Grade> grades = examGradingRepository.findGradesByExam(examId);
         if (grades.isEmpty()) {
             return List.of();
@@ -797,6 +793,13 @@ public class ExamGradingService {
             return false;
         }
         return courseQueryService.isInstructorOf(viewerId, exam.getCourse().getId());
+    }
+
+    /** 담당하지 않는 과정이면 403. 모든 진입점(목록·상세·채점·CSV)이 반드시 거쳐야 한다. */
+    private void ensureCanGrade(Exam exam, Long viewerId, boolean admin) {
+        if (!canGrade(exam, viewerId, admin)) {
+            throw new AccessDeniedException("담당하지 않는 과정의 시험입니다.");
+        }
     }
 
     private Exam requireExam(Long examId) {

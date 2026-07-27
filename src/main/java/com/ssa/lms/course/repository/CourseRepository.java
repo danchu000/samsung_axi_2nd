@@ -11,5 +11,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Optional<Course> findByCourseCode(String courseCode);
 
+    boolean existsByCourseCode(String courseCode);
+
     List<Course> findByStatusOrderByStartDateDesc(CourseStatus status);
+
+    List<Course> findAllByOrderByStartDateDesc();
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,113 +15,22 @@
     <script src="/static/js/pagination.js" defer></script>
     <title>Samsung Academy LXP - 관리자</title>
 
+    <meta name="_csrf" th:content="${_csrf.token}" content="">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" content="">
 </head>
 <body>
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>평가 관리 > 평가 모니터링 > 시험 녹화 조회</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
-
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')" >
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-                                                
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-                <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
+    <!-- 상단 헤더 / 사이드바 / 토글 버튼 — 공통 fragment 로 교체 -->
+    <header th:replace="~{fragments/admin :: header('평가 관리 > 평가 모니터링 > 시험 녹화 조회')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('eval-monitoring')}"/>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
         <!-- 왼쪽 콘텐츠 영역 -->
         <section class="content-left">
-                <!-- 영상 컨트롤 박스 -->
+            <p class="flash-message" th:if="${message}" th:text="${message}"
+               style="margin:0 0 12px; padding:10px 14px; border-radius:6px; background:#E8F4FF; color:#0b4a7d; font-size:14px;"></p>
+
+            <!-- 영상 컨트롤 박스 -->
             <div class="video-controls">
                 <div class="video-controls-top">
                     <div class="control-option">
@@ -136,20 +45,12 @@
                         </select>
                     </div>
                     <div class="controls-main">
-                        <button class="control-btn" id="prevBtn" title="이전">
-                            ⏮
-                        </button>
-                        <button class="control-btn play-btn" id="playPauseBtn" title="재생/일시정지">
-                            ▶
-                        </button>
-                        <button class="control-btn" id="nextBtn" title="다음">
-                            ⏭
-                        </button>
+                        <button class="control-btn" id="prevBtn" title="이전">⏮</button>
+                        <button class="control-btn play-btn" id="playPauseBtn" title="재생/일시정지">▶</button>
+                        <button class="control-btn" id="nextBtn" title="다음">⏭</button>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="icon-btn" id="muteBtn" title="음소거 해제">
-                            🔇
-                        </button>
+                        <button class="icon-btn" id="muteBtn" title="음소거 해제">🔇</button>
                     </div>
                 </div>
                 <div class="video-controls-bottom">
@@ -162,16 +63,17 @@
                             <div class="timeline-progress" id="timelineProgress"></div>
                             <div class="timeline-handle" id="timelineHandle"></div>
                         </div>
-                        <div class="timeline-time-markers" id="timelineMarkers">
-                            <!-- JavaScript로 마커 생성 -->
-                        </div>
+                        <div class="timeline-time-markers" id="timelineMarkers"></div>
                     </div>
                 </div>
             </div>
-            <!-- 비디오 그리드 (5x4 = 20개) -->
-            <div class="video-grid" id="videoGrid">
-                <!-- 비디오 아이템들은 JavaScript로 생성 -->
-            </div>
+
+            <!--
+              녹화 그리드. 타일은 서버가 내려준 ExamRecording 목록으로 recordings.js 가 만든다.
+              재생 소스는 항상 인증된 스트리밍 엔드포인트(/.../recordings/{id}/stream)다 —
+              저장소 경로(ExamRecording.filePath)는 화면으로 내려보내지 않는다.
+            -->
+            <div class="video-grid" id="videoGrid"></div>
 
             <!-- 전체화면 비디오 -->
             <div class="fullscreen-video" id="fullscreenVideo">
@@ -189,61 +91,58 @@
             </div>
 
             <div class="sidebar-content">
-                <!-- 시험 정보 -->
+                <!-- 선택한 녹화 정보 (recordings.js 가 채운다) -->
                 <div class="info-section">
                     <div class="info-row">
                         <div class="info-label">과정명</div>
-                        <div class="info-value">풀스택 웹 개발 (React & Node.js)</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">과목명</div>
-                        <div class="info-value">JavaScript 기초</div>
+                        <div class="info-value" id="detailCourse">-</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">시험명</div>
-                        <div class="info-value">JavaScript 기초 중간 평가</div>
+                        <div class="info-value" id="detailExam">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">응시자</div>
+                        <div class="info-value" id="detailTrainee">-</div>
                     </div>
                 </div>
 
-                <!-- 시험 시간 정보 -->
                 <div class="info-section">
                     <div class="info-row">
-                        <div class="info-label">시험 날짜</div>
-                        <div class="info-value">2026.01.15 (수)</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">응시 시간</div>
-                        <div class="info-value">14:30 ~ 16:00</div>
-                        <div class="info-value sub">(실제 응시: 14:32 ~ 15:58)</div>
+                        <div class="info-label">녹화 시각</div>
+                        <div class="info-value" id="detailRecordedAt">-</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">총 녹화시간</div>
-                        <div class="info-value">01:26:34</div>
+                        <div class="info-value" id="detailDuration">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">파일 크기 / 상태</div>
+                        <div class="info-value" id="detailStatus">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">이상행위 (주의/심각)</div>
+                        <div class="info-value" id="detailEvents">-</div>
                     </div>
                 </div>
 
-                <!-- 관리자 메모 -->
+                <!-- 관리자 메모 = 경고 메시지 / 무효 사유로 그대로 전송된다 -->
                 <div class="info-section">
-                    <div class="info-label">관리자 메모</div>
-                    <textarea class="memo-textarea" id="adminMemo" placeholder="관리자 메모를 입력하세요..."></textarea>
+                    <div class="info-label">메모 (경고 메시지 · 무효 사유로 전송)</div>
+                    <textarea class="memo-textarea" id="adminMemo" placeholder="내용을 입력하세요..."></textarea>
                 </div>
 
-                <!-- 학생 선택 -->
-                <!-- 제재 선택 -->
+                <!-- 학생 선택 / 제재 처리 -->
                 <div class="info-section">
                     <div class="info-label">학생 선택</div>
                     <select class="student-select" id="studentSelect">
                         <option value="">학생을 선택하세요</option>
-                        <option value="김민수">김민수</option>
-                        <option value="이지은">이지은</option>
-                        <option value="박준호">박준호</option>
-                        <option value="최서연">최서연</option>
-                        <option value="정우진">정우진</option>
-                        <option value="강민지">강민지</option>
-                        <option value="윤태희">윤태희</option>
-                        <option value="임하늘">임하늘</option>
-                        <option value="송지혜">송지혜</option>
-                        <option value="한동욱">한동욱</option>
+                        <option th:if="${monitor != null}" th:each="a : ${monitor.rows}"
+                                th:value="${a.attemptId}"
+                                th:text="|${a.traineeName} (${a.statusLabel})|">응시자</option>
+                        <option th:if="${monitor == null}" th:each="r : ${rows}"
+                                th:value="${r.attemptId}"
+                                th:text="|${r.traineeName} · ${r.examName}|">응시자</option>
                     </select>
                     <div class="info-label">제재 처리</div>
                     <div class="sanction-options">
@@ -266,272 +165,18 @@
                     </div>
                     <button class="btn btn-primary save-btn" onclick="saveSanction()">저장</button>
                 </div>
-
             </div>
         </aside>
     </main>
 
-    <script>
-        // 영상 컨트롤 상태
-        let isPlaying = false;
-        let isMuted = true; // 초기 음소거 상태
-        let allVideos = [];
-        let isDragging = false;
-        let duration = 0;
-        let currentTime = 0;
-
-        // 비디오 그리드 생성 (5x4 = 20개)
-        function createVideoGrid() {
-            const videoGrid = document.getElementById('videoGrid');
-            const sampleVideo = '../sample-videos/sample-video.mp4';
-
-            for (let i = 1; i <= 20; i++) {
-                const videoItem = document.createElement('div');
-                videoItem.className = 'video-item';
-                videoItem.innerHTML = `
-                    <video data-video-id="${i}" muted>
-                        <source src="${sampleVideo}" type="video/mp4">
-                    </video>
-                    <div class="video-label">카메라 ${i}</div>
-                `;
-
-                // 더블클릭 이벤트 추가
-                const video = videoItem.querySelector('video');
-                video.addEventListener('dblclick', function() {
-                    openFullscreen(this.querySelector('source').src, i);
-                });
-
-                videoGrid.appendChild(videoItem);
-            }
-
-            // 모든 비디오 참조 저장
-            allVideos = Array.from(document.querySelectorAll('.video-grid video'));
-            
-            // 첫 번째 비디오로 duration 설정
-            if (allVideos.length > 0) {
-                allVideos[0].addEventListener('loadedmetadata', function() {
-                    duration = this.duration;
-                    updateDurationDisplay();
-                    createTimelineMarkers();
-                });
-            }
-
-            // 모든 비디오 자동 재생 (음소거 상태)
-            allVideos.forEach(video => {
-                // 초기 설정 적용
-                video.muted = isMuted;
-                video.playbackRate = 1.0;
-                
-                video.play().catch(err => console.log('자동 재생 실패:', err));
-                
-                // timeupdate 이벤트로 타임라인 업데이트
-                video.addEventListener('timeupdate', function() {
-                    if (!isDragging && this === allVideos[0]) {
-                        currentTime = this.currentTime;
-                        updateTimeline();
-                    }
-                });
-            });
-        }
-
-        // 타임라인 마커 생성
-        function createTimelineMarkers() {
-            const markersContainer = document.getElementById('timelineMarkers');
-            const markerCount = 10;
-            markersContainer.innerHTML = '';
-            
-            for (let i = 0; i <= markerCount; i++) {
-                const time = (duration / markerCount) * i;
-                const marker = document.createElement('div');
-                marker.className = 'timeline-marker';
-                marker.textContent = formatTime(time);
-                markersContainer.appendChild(marker);
-            }
-        }
-
-        // 시간 포맷 (mm:ss)
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Duration 표시 업데이트
-        function updateDurationDisplay() {
-            document.getElementById('totalDuration').textContent = formatTime(duration);
-        }
-
-        // 타임라인 업데이트
-        function updateTimeline() {
-            const percentage = (currentTime / duration) * 100;
-            document.getElementById('timelineProgress').style.width = percentage + '%';
-            document.getElementById('timelineHandle').style.left = percentage + '%';
-            document.getElementById('currentTime').textContent = formatTime(currentTime);
-        }
-
-        // 타임라인 클릭/드래그로 시간 이동
-        function seekToPosition(clientX) {
-            const timelineBar = document.getElementById('timelineBar');
-            const rect = timelineBar.getBoundingClientRect();
-            const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            const newTime = percentage * duration;
-            
-            // 모든 비디오 시간 동기화
-            allVideos.forEach(video => {
-                video.currentTime = newTime;
-            });
-            
-            currentTime = newTime;
-            updateTimeline();
-        }
-
-        // 타임라인 이벤트 리스너
-        document.getElementById('timelineBar').addEventListener('mousedown', function(e) {
-            isDragging = true;
-            seekToPosition(e.clientX);
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                seekToPosition(e.clientX);
-            }
-        });
-
-        document.addEventListener('mouseup', function() {
-            isDragging = false;
-        });
-
-        document.getElementById('timelineHandle').addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            isDragging = true;
-        });
-
-        // 전체화면으로 비디오 열기
-        function openFullscreen(videoSrc, cameraId) {
-            const fullscreenDiv = document.getElementById('fullscreenVideo');
-            const fullscreenPlayer = document.getElementById('fullscreenPlayer');
-            
-            // Sidebar 상태 확인
-            const sidebar = document.querySelector('.sidebar');
-            const isSidebarCollapsed = sidebar.classList.contains('collapsed');
-            const sidebarWidth = isSidebarCollapsed ? 60 : 240;
-            
-            // 전체화면 위치 및 크기 조정 (right-sidebar 400px 포함)
-            fullscreenDiv.style.left = sidebarWidth + 'px';
-            fullscreenDiv.style.width = `calc(100vw - ${sidebarWidth}px - 400px)`;
-            
-            fullscreenPlayer.querySelector('source').src = videoSrc;
-            fullscreenPlayer.load();
-            fullscreenPlayer.play();
-            fullscreenDiv.classList.add('active');
-            
-        }
-
-        // 전체화면 닫기
-        function closeFullscreen() {
-            const fullscreenDiv = document.getElementById('fullscreenVideo');
-            const fullscreenPlayer = document.getElementById('fullscreenPlayer');
-            
-            fullscreenPlayer.pause();
-            fullscreenDiv.classList.remove('active');
-        }
-
-        // ESC 키로 전체화면 닫기
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeFullscreen();
-            }
-        });
-
-        // 페이지 로드 시 비디오 그리드 생성
-        window.addEventListener('DOMContentLoaded', function() {
-            createVideoGrid();
-        });
-
-        // 재생/일시정지 버튼
-        document.getElementById('playPauseBtn').addEventListener('click', function() {
-            isPlaying = !isPlaying;
-            this.textContent = isPlaying ? '⏸' : '▶';
-            
-            // 모든 비디오 재생/일시정지 동기화
-            allVideos.forEach(video => {
-                if (isPlaying) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-            });
-        });
-
-        // 이전 버튼
-        document.getElementById('prevBtn').addEventListener('click', function() {
-            console.log('이전 영상');
-            // 이전 영상으로 이동 로직 추가
-        });
-
-        // 다음 버튼
-        document.getElementById('nextBtn').addEventListener('click', function() {
-            console.log('다음 영상');
-            // 다음 영상으로 이동 로직 추가
-        });
-
-        // 배속 조절
-        document.getElementById('playbackSpeed').addEventListener('change', function() {
-            const speed = parseFloat(this.value);
-            
-            // 모든 비디오 배속 동기화
-            allVideos.forEach(video => {
-                video.playbackRate = speed;
-            });
-        });
-
-        // 음소거 버튼
-        document.getElementById('muteBtn').addEventListener('click', function() {
-            isMuted = !isMuted;
-            this.textContent = isMuted ? '🔇' : '🔊';
-            
-            // 모든 비디오 음소거 동기화
-            allVideos.forEach(video => {
-                video.muted = isMuted;
-            });
-        });
-
-        // 제재 처리 저장
-        function saveSanction() {
-            const student = document.getElementById('studentSelect').value;
-            const memo = document.getElementById('adminMemo').value;
-            const sanction = document.querySelector('input[name="sanction"]:checked').value;
-            
-            if (!student) {
-                alert('학생을 선택해주세요.');
-                return;
-            }
-            
-            const sanctionText = {
-                'none': '없음',
-                'warning': '경고',
-                'retest': '재시험',
-                'invalid': '무효처리'
-            };
-
-            console.log('저장된 내용:');
-            console.log('학생:', student);
-            console.log('관리자 메모:', memo);
-            console.log('제재 처리:', sanctionText[sanction]);
-            
-            alert(`저장되었습니다.\n학생: ${student}\n제재: ${sanctionText[sanction]}`);
-        }
-
-        // 전체화면 버튼
-        document.getElementById('fullscreenBtn').addEventListener('click', function() {
-            console.log('전체화면');
-            // 전체화면 전환 로직 추가
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                document.documentElement.requestFullscreen();
-            }
-        });
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 서버 데이터 주입 — recordings.js 가 defer 라 이 스크립트가 먼저 실행된다.
+        window._serverRecordingRows = /*[[${rows}]]*/ null;
+        window._proctorAttemptPrefix = /*[[${attemptUrlPrefix}]]*/ '';
+        window._proctorCanVoid = /*[[${canVoid}]]*/ false;
+        window._proctorRedirect = /*[[${selfUrl}]]*/ '';
+        /*]]>*/
     </script>
 </body>
 </html>

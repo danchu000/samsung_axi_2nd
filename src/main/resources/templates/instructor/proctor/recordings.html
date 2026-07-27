@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,99 +18,22 @@
     <style>
         /* 추가적인 페이지별 스타일은 여기에 작성 */
     </style>
+    <meta name="_csrf" th:content="${_csrf.token}" content="">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" content="">
 </head>
 <body data-user-role="instructor">
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1> > </h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box"><a href="/templates/instructor/alarm.html"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
-            <div class="icon-box" onClick="location.href='/templates/instructor/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
-
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li onclick="handleMenuClick(this, 'index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'trainees.html')">
-                    <img src="/static/icons/02-user.svg" alt="trainee icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">훈련생</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'contents.html')">
-                    <img src="/static/icons/03-description.svg" alt="contents icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'courses.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">담당 과정</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/courses.html"><li>과정 관리</li></a>
-                        <a href="/templates/instructor/scheduler.html"><li>일정 관리</li></a>
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, 'assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">평가</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/assignment.html"><li>과제 채점</li></a>
-                        <a href="/templates/instructor/result.html"><li>시험 채점</li></a>
-                        <a href="/templates/instructor/proctor/exams.html"><li>평가 모니터링</li></a>
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/attendance.html"><li>출결현황</li></a>
-                        <a href="/templates/instructor/graduate.html"><li>이수 관리</li></a>    
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, 'notices.html')">
-                    <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">소통</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/notices.html"><li>공지사항</li></a>
-                        <a href="/templates/instructor/tutoring.html"><li>튜터링/Q&A</li></a>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
+    <!-- 상단 헤더 / 사이드바 / 토글 버튼 — 공통 fragment 로 교체 -->
+    <header th:replace="~{fragments/instructor :: header('평가 > 평가 모니터링 > 시험 녹화 조회')}"></header>
+    <th:block th:replace="~{fragments/instructor :: sidebar('eval-monitoring')}"/>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
         <!-- 왼쪽 콘텐츠 영역 -->
         <section class="content-left">
-                <!-- 영상 컨트롤 박스 -->
+            <p class="flash-message" th:if="${message}" th:text="${message}"
+               style="margin:0 0 12px; padding:10px 14px; border-radius:6px; background:#E8F4FF; color:#0b4a7d; font-size:14px;"></p>
+
+            <!-- 영상 컨트롤 박스 -->
             <div class="video-controls">
                 <div class="video-controls-top">
                     <div class="control-option">
@@ -125,20 +48,12 @@
                         </select>
                     </div>
                     <div class="controls-main">
-                        <button class="control-btn" id="prevBtn" title="이전">
-                            ⏮
-                        </button>
-                        <button class="control-btn play-btn" id="playPauseBtn" title="재생/일시정지">
-                            ▶
-                        </button>
-                        <button class="control-btn" id="nextBtn" title="다음">
-                            ⏭
-                        </button>
+                        <button class="control-btn" id="prevBtn" title="이전">⏮</button>
+                        <button class="control-btn play-btn" id="playPauseBtn" title="재생/일시정지">▶</button>
+                        <button class="control-btn" id="nextBtn" title="다음">⏭</button>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="icon-btn" id="muteBtn" title="음소거 해제">
-                            🔇
-                        </button>
+                        <button class="icon-btn" id="muteBtn" title="음소거 해제">🔇</button>
                     </div>
                 </div>
                 <div class="video-controls-bottom">
@@ -151,16 +66,17 @@
                             <div class="timeline-progress" id="timelineProgress"></div>
                             <div class="timeline-handle" id="timelineHandle"></div>
                         </div>
-                        <div class="timeline-time-markers" id="timelineMarkers">
-                            <!-- JavaScript로 마커 생성 -->
-                        </div>
+                        <div class="timeline-time-markers" id="timelineMarkers"></div>
                     </div>
                 </div>
             </div>
-            <!-- 비디오 그리드 (5x4 = 20개) -->
-            <div class="video-grid" id="videoGrid">
-                <!-- 비디오 아이템들은 JavaScript로 생성 -->
-            </div>
+
+            <!--
+              녹화 그리드. 타일은 서버가 내려준 ExamRecording 목록으로 recordings.js 가 만든다.
+              재생 소스는 항상 인증된 스트리밍 엔드포인트(/.../recordings/{id}/stream)다 —
+              저장소 경로(ExamRecording.filePath)는 화면으로 내려보내지 않는다.
+            -->
+            <div class="video-grid" id="videoGrid"></div>
 
             <!-- 전체화면 비디오 -->
             <div class="fullscreen-video" id="fullscreenVideo">
@@ -178,61 +94,58 @@
             </div>
 
             <div class="sidebar-content">
-                <!-- 시험 정보 -->
+                <!-- 선택한 녹화 정보 (recordings.js 가 채운다) -->
                 <div class="info-section">
                     <div class="info-row">
                         <div class="info-label">과정명</div>
-                        <div class="info-value">풀스택 웹 개발 (React & Node.js)</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">과목명</div>
-                        <div class="info-value">JavaScript 기초</div>
+                        <div class="info-value" id="detailCourse">-</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">시험명</div>
-                        <div class="info-value">JavaScript 기초 중간 평가</div>
+                        <div class="info-value" id="detailExam">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">응시자</div>
+                        <div class="info-value" id="detailTrainee">-</div>
                     </div>
                 </div>
 
-                <!-- 시험 시간 정보 -->
                 <div class="info-section">
                     <div class="info-row">
-                        <div class="info-label">시험 날짜</div>
-                        <div class="info-value">2026.01.15 (수)</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">응시 시간</div>
-                        <div class="info-value">14:30 ~ 16:00</div>
-                        <div class="info-value sub">(실제 응시: 14:32 ~ 15:58)</div>
+                        <div class="info-label">녹화 시각</div>
+                        <div class="info-value" id="detailRecordedAt">-</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">총 녹화시간</div>
-                        <div class="info-value">01:26:34</div>
+                        <div class="info-value" id="detailDuration">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">파일 크기 / 상태</div>
+                        <div class="info-value" id="detailStatus">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">이상행위 (주의/심각)</div>
+                        <div class="info-value" id="detailEvents">-</div>
                     </div>
                 </div>
 
-                <!-- 관리자 메모 -->
+                <!-- 관리자 메모 = 경고 메시지 / 무효 사유로 그대로 전송된다 -->
                 <div class="info-section">
-                    <div class="info-label">관리자 메모</div>
-                    <textarea class="memo-textarea" id="adminMemo" placeholder="관리자 메모를 입력하세요..."></textarea>
+                    <div class="info-label">메모 (경고 메시지 · 무효 사유로 전송)</div>
+                    <textarea class="memo-textarea" id="adminMemo" placeholder="내용을 입력하세요..."></textarea>
                 </div>
 
-                <!-- 학생 선택 -->
-                <!-- 제재 선택 -->
+                <!-- 학생 선택 / 제재 처리 -->
                 <div class="info-section">
                     <div class="info-label">학생 선택</div>
                     <select class="student-select" id="studentSelect">
                         <option value="">학생을 선택하세요</option>
-                        <option value="김민수">김민수</option>
-                        <option value="이지은">이지은</option>
-                        <option value="박준호">박준호</option>
-                        <option value="최서연">최서연</option>
-                        <option value="정우진">정우진</option>
-                        <option value="강민지">강민지</option>
-                        <option value="윤태희">윤태희</option>
-                        <option value="임하늘">임하늘</option>
-                        <option value="송지혜">송지혜</option>
-                        <option value="한동욱">한동욱</option>
+                        <option th:if="${monitor != null}" th:each="a : ${monitor.rows}"
+                                th:value="${a.attemptId}"
+                                th:text="|${a.traineeName} (${a.statusLabel})|">응시자</option>
+                        <option th:if="${monitor == null}" th:each="r : ${rows}"
+                                th:value="${r.attemptId}"
+                                th:text="|${r.traineeName} · ${r.examName}|">응시자</option>
                     </select>
                     <div class="info-label">제재 처리</div>
                     <div class="sanction-options">
@@ -255,10 +168,18 @@
                     </div>
                     <button class="btn btn-primary save-btn" onclick="saveSanction()">저장</button>
                 </div>
-
             </div>
         </aside>
     </main>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 서버 데이터 주입 — recordings.js 가 defer 라 이 스크립트가 먼저 실행된다.
+        window._serverRecordingRows = /*[[${rows}]]*/ null;
+        window._proctorAttemptPrefix = /*[[${attemptUrlPrefix}]]*/ '';
+        window._proctorCanVoid = /*[[${canVoid}]]*/ false;
+        window._proctorRedirect = /*[[${selfUrl}]]*/ '';
+        /*]]>*/
+    </script>
 </body>
 </html>
-            

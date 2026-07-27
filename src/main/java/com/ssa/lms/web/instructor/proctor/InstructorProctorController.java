@@ -65,9 +65,11 @@ public class InstructorProctorController {
     public String detail(@PathVariable Long examId,
                          @AuthenticationPrincipal LoginUser loginUser,
                          Model model) {
+        // 담당 과정이 아니면 여기서 403 이 난다 (live() 안의 assertCanMonitor)
         model.addAttribute("monitor",
                 proctorMonitorService.live(examId, viewer(loginUser), urls()));
         model.addAttribute("rows", examRecordingService.list(viewer(loginUser), STREAM_PREFIX));
+        addActionAttributes(model, DETAIL_PREFIX + examId);
         return RECORDING_VIEW;
     }
 
@@ -75,7 +77,18 @@ public class InstructorProctorController {
     @GetMapping("/recordings")
     public String recordings(@AuthenticationPrincipal LoginUser loginUser, Model model) {
         model.addAttribute("rows", examRecordingService.list(viewer(loginUser), STREAM_PREFIX));
+        addActionAttributes(model, "/instructor/proctor/recordings");
         return RECORDING_VIEW;
+    }
+
+    /**
+     * 제재 UI 가 쓰는 값. {@code canVoid} 는 항상 false 다 — 강사는 무효 처리를 할 수 없다.
+     * 화면에서 감춰도 서버가 다시 막는다는 게 본질이고, 여기 값은 UI 힌트일 뿐이다.
+     */
+    private void addActionAttributes(Model model, String selfUrl) {
+        model.addAttribute("attemptUrlPrefix", "/instructor/proctor/attempt/");
+        model.addAttribute("canVoid", false);
+        model.addAttribute("selfUrl", selfUrl);
     }
 
     @GetMapping("/attempt/{attemptId}/events")
@@ -101,6 +114,25 @@ public class InstructorProctorController {
                               RedirectAttributes redirectAttributes) {
         ProctorWarningRow row = proctorWarningService.send(attemptId, viewer(loginUser), message);
         redirectAttributes.addFlashAttribute("message", "경고를 발송했습니다: " + row.message());
+        return "redirect:" + backTo(redirect);
+    }
+
+    /**
+     * 응시 무효 처리는 강사에게 허용되지 않는다 (권한정의서(1) 16행 — 제재는 관리자 O / 강사 △경고).
+     *
+     * <p>라우트를 아예 두지 않으면 404 가 되어 "경로가 없는 건지 권한이 없는 건지" 구분이 안 된다.
+     * 감사 관점에서는 <b>거부되었다</b>는 사실이 남는 편이 낫다. 그래서 명시적으로 403 을 던진다.
+     * 관리자 URL 로 우회해도 {@code ProctorMonitorService.voidAttempt} 가 같은 판정을 한다.</p>
+     */
+    @PostMapping("/attempt/{attemptId}/void")
+    public String voidAttempt(@PathVariable Long attemptId,
+                              @RequestParam(value = "reason", required = false) String reason,
+                              @RequestParam(value = "redirect", required = false) String redirect,
+                              @AuthenticationPrincipal LoginUser loginUser,
+                              RedirectAttributes redirectAttributes) {
+        // 강사면 여기서 403. (이 URL 은 관리자에게도 열려 있어 관리자는 정상 처리된다)
+        proctorMonitorService.voidAttempt(attemptId, viewer(loginUser), reason);
+        redirectAttributes.addFlashAttribute("message", "응시를 무효 처리했습니다.");
         return "redirect:" + backTo(redirect);
     }
 

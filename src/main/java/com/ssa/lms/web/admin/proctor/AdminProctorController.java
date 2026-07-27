@@ -68,13 +68,19 @@ public class AdminProctorController {
                        Model model) {
         LiveMonitorView view = proctorMonitorService.live(examId, viewer(loginUser), urls());
         model.addAttribute("monitor", view);
+        // 경고/무효 처리 후 되돌아올 경로. Thymeleaf 3.1 은 #httpServletRequest 를 제거해서 서버가 내려준다.
+        model.addAttribute("selfUrl", DETAIL_PREFIX + examId);
         return LIVE_VIEW;
     }
 
-    /** 녹화 목록. */
+    /** 녹화 목록. 재생은 스트리밍 엔드포인트로만 나간다 (파일 경로는 화면에 내려보내지 않는다). */
     @GetMapping("/recordings")
     public String recordings(@AuthenticationPrincipal LoginUser loginUser, Model model) {
         model.addAttribute("rows", examRecordingService.list(viewer(loginUser), STREAM_PREFIX));
+        model.addAttribute("attemptUrlPrefix", "/admin/evaluation/monitoring/attempt/");
+        // 이 URL 은 강사에게도 열려 있다 — 무효 처리 UI 는 관리자에게만 의미가 있다
+        model.addAttribute("canVoid", viewer(loginUser).isAdmin());
+        model.addAttribute("selfUrl", "/admin/evaluation/monitoring/recordings");
         return RECORDING_VIEW;
     }
 
@@ -154,8 +160,9 @@ public class AdminProctorController {
     }
 
     private ProctorMonitorService.ProctorUrls urls() {
+        // 목록 URL 에 끝 슬래시를 붙이지 않는다 — Spring Boot 3 는 trailing slash 매칭을 하지 않는다
         return new ProctorMonitorService.ProctorUrls(
-                "/admin/evaluation/monitoring/attempt/", DETAIL_PREFIX);
+                "/admin/evaluation/monitoring/attempt/", "/admin/evaluation/monitoring");
     }
 
     /** 되돌아갈 화면. 외부 URL 주입을 막으려고 내부 경로만 허용한다. */
@@ -163,6 +170,6 @@ public class AdminProctorController {
         if (redirect != null && redirect.startsWith("/admin/evaluation/monitoring")) {
             return redirect;
         }
-        return DETAIL_PREFIX;
+        return "/admin/evaluation/monitoring";
     }
 }

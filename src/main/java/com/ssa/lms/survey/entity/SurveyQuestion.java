@@ -72,6 +72,11 @@ public class SurveyQuestion extends BaseEntity {
         choice.assignQuestion(this);
     }
 
+    /** {@link Survey#clearQuestions()} 와 같은 이유로 flush 전에는 재삽입 금지. */
+    public void clearChoices() {
+        this.choices.clear();
+    }
+
     public enum SurveyQuestionType {
         /** 단일 선택 */
         SINGLE,

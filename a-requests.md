@@ -294,3 +294,41 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 ### 데모 시드 (local 전용)
 - `content.ContentDemoDataInitializer @Order(30)` — `COURSE-2026-002` 에 VOD/문서 콘텐츠 2건 +
   trainee1 진도 데모. 기본/과정 시더 미수정. (기존: core=0, user=10, course=20, **content=30**.)
+---
+
+# 공통 파일 변경 알림 (A, feat/a-attendance — Phase 2 출결/이수/이수증 슬라이스)
+
+> B에게: 아래는 **공동 소유 파일(build.gradle, 사이드바 fragment)** 변경 + 성적 계약 확인이다.
+> **공통 엔티티(User/Course/Session) 스키마 변경 없음** (읽기만). SecurityConfig 변경 없음
+> (`/admin/attendance/**`·`/admin/completion/**` 는 기존 `/admin/**`(ADMIN) catch-all 로 커버).
+
+### build.gradle (공유 파일) 변경 — 커밋 분리됨
+- **이수증 PDF 라이브러리 추가**: `implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'`
+  (transitive: apache pdfbox 2.0.24). P2-B(출결/이수) 전용. 다른 의존성 변경 없음.
+- 한글 폰트는 시스템 폰트(맑은 고딕)를 런타임 임베드 — `lms.certificate.font-path`
+  (기본 `C:/Windows/Fonts/malgun.ttf`) 로 재정의 가능. 운영(리눅스)에서는 나눔고딕 등 경로로 설정.
+
+### 공동 소유 fragment 변경 (자기 도메인 메뉴 `<li>`만 수정)
+- `fragments/admin.html` : 사이드바 “출결현황” → **`/admin/attendance`**, “이수 관리” → **`/admin/completion`**
+  (내 도메인 두 줄만 변경). “설문조사 관리(att-survey)” 줄은 **B 소유라 미변경**.
+
+### 신규 컨트롤러 / 경로 (A 소유, com.ssa.lms.{attendance,completion}.web)
+- `AttendanceAdminController` : `GET /admin/attendance`(과정별 출결 매트릭스),
+  `POST /admin/attendance/recalculate`(접속 로그 기반 재산정), `POST /admin/attendance/{id}/override`(수동 보정).
+- `CompletionAdminController` : `GET /admin/completion`(이수 현황), `POST /admin/completion/criteria`(기준 저장),
+  `POST /admin/completion/evaluate`(자동 판정), `POST /admin/completion/{id}/confirm`,
+  `POST /admin/completion/{id}/status`, `GET /admin/completion/{id}/certificate`(이수증 PDF).
+
+### ★ 성적 계약 확인 요청 — GradeQueryService (B 제공 예정, a-requests P1-8)
+- A의 이수 판정이 성적 요건을 읽어야 하나 `com.ssa.lms.grading` 은 아직 없어서, **A 트랙 안에**
+  포트 인터페이스 `completion.service.grade.GradeCompletionProvider#gradesConfirmed(userId, courseId)` 를
+  두고 fallback(false)로 단독 부팅 중. **B의 grading 패키지는 만들지 않았음.**
+- 통합 시: B의 `GradeQueryService#hasAllRequiredGradesConfirmed(userId, courseId)` 로 위임하는
+  **어댑터 빈**(`implements GradeCompletionProvider`)을 추가하면 fallback 이 자동 후퇴(`@ConditionalOnMissingBean`).
+  → B가 이 시그니처만 확정/구현해 주면 됨. (`Survey.reflectCompletion` 반영은 후속 논의.)
+- 진도 계약(`content.service.ProgressQueryService`, P2-A)은 이미 소비 중 — 로컬은 fallback 0.
+
+### 데모 시드 (local 전용)
+- `attendance.AttendanceCompletionDemoDataInitializer @Order(40)` 추가 — COURSE-2026-001 차시 진행일에
+  trainee1 접속 로그 심기 → 출결 산정 → 이수 기준(데모: 최소 진도율 0, 진도 통합 전) → 자동 판정 →
+  trainee1 이수 확정. 기본 시더/다른 러너 미수정. B의 시더와 `@Order` 충돌 없음.

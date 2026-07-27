@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,235 +7,167 @@
     <link rel="stylesheet" href="/static/css/sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/graduate.css">
-    <script src="/static/js/graduate.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
-    <title>Samsung Academy LXP - 관리자</title>
-
+    <title>Samsung Academy LXP - 이수 관리</title>
+    <style>
+        .toolbar { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; }
+        .toolbar label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
+        .toolbar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; min-width:280px; }
+        .flash-msg { background:#e7f6ec; color:#1b7a3d; border:1px solid #b6e0c4; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px; }
+        .criteria-box { background:#fff; border:1px solid var(--color-line-gray,#e5e5e5); border-radius:8px; padding:18px 20px; margin-bottom:20px; }
+        .criteria-box h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
+        .criteria-form { display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; }
+        .criteria-form label { display:block; font-size:13px; color:#777; margin-bottom:4px; }
+        .criteria-form input[type=number] { width:90px; padding:8px 10px; border:1px solid #ddd; border-radius:6px; }
+        .criteria-form input[type=text] { width:260px; padding:8px 10px; border:1px solid #ddd; border-radius:6px; }
+        .action-row { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+        table.grad-table { border-collapse:collapse; width:100%; font-size:13px; }
+        table.grad-table th, table.grad-table td { border-bottom:1px solid #eee; padding:10px 12px; text-align:center; }
+        table.grad-table th { background:#fafafa; color:#555; font-weight:600; }
+        .badge { display:inline-block; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+        .res-PASS { background:#d4edda; color:#155724; }
+        .res-FAIL { background:#f8d7da; color:#721c24; }
+        .res-PENDING { background:#e2e3e5; color:#383d41; }
+        .cs-CONFIRMED { background:#cfe2ff; color:#084298; }
+        .cs-EXPECTED { background:#fff3cd; color:#856404; }
+        .cs-PENDING { background:#e2e3e5; color:#383d41; }
+        .empty-hint { color:#999; font-size:14px; padding:24px 0; }
+        .inline-form { display:inline; }
+        .status-form { display:inline-flex; gap:4px; align-items:center; }
+        .status-form select { padding:2px 6px; font-size:12px; border:1px solid #ddd; border-radius:6px; }
+    </style>
 </head>
 <body data-user-role="admin">
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>출결/이수 관리 > 이수 관리</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/admin :: header('출결/이수 관리 > 이수 관리')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('att-graduate')}"/>
 
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')" >
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                         <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-                                                
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-                <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
-
-    <!-- 메인 콘텐츠 -->
     <main class="main-content">
         <section class="main-content-inner">
             <div class="section-header">
-                <h2>빠른선택</h2>
+                <h2>이수 관리</h2>
             </div>
 
-            <!-- 빠른 선택 과목 카드 영역 -->
-                <div class="quick-course-list" id="quickCourseList">
-                    <!-- JS에서 동적으로 생성 -->
-                </div>
-                <div class="divider"></div>
-            <!-- </div> -->
+            <p class="flash-msg" th:if="${message}" th:text="${message}"></p>
 
-            <section class="filter-section">
-                <div style="display: flex; gap:16px; align-items: center;">
-                    <div class="filter-left">
-                        <!-- 과정 선택 영역 -->
-                        <div class="course-select-section">
-                            <label for="courseSelect">과정 선택</label>
-                            <select id="courseSelect">
-                                <option value="view-all">-- 전체보기 --</option>
-                                <option value="course1">풀스택 웹 개발 (React & Node.js)</option>
-                                <option value="course2">AI 엔지니어링</option>
-                            </select>
-                        </div>
-        
-                    </div>
-
-                    <button data-user-role="admin" id="statusChangeBtn" class="btn btn-gray" onclick="openStatusChangeModal()">빠른 상태변경</button>
-                    <button class="btn btn-secondary">이수증 출력</button>
-                    <button class="btn-excel" onclick="uploadExcel()">
-                            <img src="/static/icons/excel.svg" alt="Excel icon">
-                            <span>엑셀로 다운로드</span>
-                    </button>
-                </div>
-                <!-- 정렬 기준 영역 -->
-                <div class="course-select-section">
-                    <label for="sortSelect">정렬 기준</label>
-                    <select id="sortSelect" style="min-width: 120px;">
-                        <option value="name">이름순</option>
-                        <option value="rate">출결률</option>
-                        <option value="confirmedDate">확정일자</option>
-                        <option value="finalDecision">최종판정</option>
-                        <option value="completionStatus">이수확정상태</option>
+            <!-- 과정 선택 -->
+            <form class="toolbar" method="get" th:action="@{/admin/completion}">
+                <div>
+                    <label for="courseSelect">과정 선택</label>
+                    <select id="courseSelect" name="courseId" onchange="this.form.submit()">
+                        <option th:each="c : ${courses}" th:value="${c.id}"
+                                th:selected="${selectedCourse != null and c.id == selectedCourse.id}"
+                                th:text="|${c.courseName} (${c.courseCode}${c.cohort != null ? ' / ' + c.cohort : ''})|">과정</option>
                     </select>
-                    <button id="sortOrderBtn" type="button" style="height: 36px; width: 36px; border: 1px solid #ccc; background: #fff; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <span id="sortOrderIcon" style="font-size: 18px;">▲</span>
-                    </button>
-                </div>       
-            </section>
+                </div>
+            </form>
 
+            <div th:if="${selectedCourse != null}">
+                <!-- 이수 기준 설정 -->
+                <div class="criteria-box">
+                    <h3>이수 기준 설정</h3>
+                    <form class="criteria-form" method="post" th:action="@{/admin/completion/criteria}">
+                        <input type="hidden" name="courseId" th:value="${selectedCourse.id}">
+                        <div>
+                            <label>최소 진도율(%)</label>
+                            <input type="number" name="minProgressRate" min="0" max="100"
+                                   th:value="${criteria.minProgressRate}">
+                        </div>
+                        <div>
+                            <label>최소 출석률(%)</label>
+                            <input type="number" name="minAttendanceRate" min="0" max="100"
+                                   th:value="${criteria.minAttendanceRate}">
+                        </div>
+                        <div>
+                            <label>성적 요건 반영</label>
+                            <label style="font-weight:400;color:#333;">
+                                <input type="checkbox" name="requireGradePass" value="true"
+                                       th:checked="${criteria.requireGradePass}">
+                                평가(성적) 이수 요건 포함
+                            </label>
+                        </div>
+                        <div>
+                            <label>비고</label>
+                            <input type="text" name="note" th:value="${criteria.note}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">기준 저장</button>
+                    </form>
+                    <p class="empty-hint" style="padding:8px 0 0;">
+                        성적 도메인 통합 전에는 성적 요건을 끄고(진도+출결 기준) 판정하세요. 진도율은 콘텐츠/진도 트랙 통합 후 실제 값이 반영됩니다.
+                    </p>
+                </div>
 
-            <!-- 출결정보 테이블 -->
-            <div class="attendance-info-section">
+                <!-- 자동 판정 실행 -->
+                <div class="action-row">
+                    <form class="inline-form" method="post" th:action="@{/admin/completion/evaluate}">
+                        <input type="hidden" name="courseId" th:value="${selectedCourse.id}">
+                        <button type="submit" class="btn btn-primary">이수 자동 판정 실행</button>
+                    </form>
+                    <span class="empty-hint" style="padding:0;">기준 대비 진도율·출석률(·성적)로 이수/미이수를 판정합니다.</span>
+                </div>
 
-                <table id="graduate_table" class="history-table">
-                    <thead>
-                        <tr>
-                            <th><button id="selectAllBtn" class="btn-small">전체선택</button></th>
-                            <th>번호</th>
-                            <th>훈련생명</th>
-                            <th>생년월일</th>
-                            <th>과정명/기수</th>
-                            <th>출결률(%)</th>
-                            <th>이수상태</th>
-                            <th>이수확정상태</th>
-                            <th>최종판정</th>
-                            <th>확정일자</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 동적 생성 -->
-                    </tbody>
-                </table>
+                <!-- 이수 현황 -->
+                <div class="attendance-info-section">
+                    <p class="empty-hint" th:if="${completions == null or completions.isEmpty()}">
+                        판정된 이수 정보가 없습니다. 이수 기준을 설정하고 자동 판정을 실행하세요.
+                    </p>
+                    <table class="grad-table" th:unless="${completions == null or completions.isEmpty()}">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>훈련생명</th>
+                                <th>생년월일</th>
+                                <th>과정명/기수</th>
+                                <th>진도율(%)</th>
+                                <th>출석률(%)</th>
+                                <th>이수상태</th>
+                                <th>이수확정상태</th>
+                                <th>확정일자</th>
+                                <th>이수증</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="row, i : ${completions}">
+                                <td th:text="${i.count}">1</td>
+                                <td th:text="${row.traineeName}">훈련생</td>
+                                <td th:text="${row.birthDate} ?: '-'">-</td>
+                                <td th:text="${row.courseLabel}">과정</td>
+                                <td th:text="${row.progressRate}">0</td>
+                                <td th:text="${row.attendanceRate}">0</td>
+                                <td><span class="badge" th:classappend="'res-' + ${row.result}" th:text="${row.resultLabel}">상태</span></td>
+                                <td>
+                                    <form class="status-form" method="post"
+                                          th:action="@{/admin/completion/{id}/status(id=${row.id})}">
+                                        <input type="hidden" name="courseId" th:value="${selectedCourse.id}">
+                                        <select name="status" onchange="this.form.submit()">
+                                            <option th:each="s : ${confirmStatuses}" th:value="${s}"
+                                                    th:selected="${s.name() == row.confirmStatus}"
+                                                    th:text="${s.label}">상태</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td th:text="${row.confirmedAt != null ? #temporals.format(row.confirmedAt, 'yyyy-MM-dd') : '-'}">-</td>
+                                <td>
+                                    <form th:if="${row.confirmStatus != 'CONFIRMED' and row.result == 'PASS'}"
+                                          class="inline-form" method="post"
+                                          th:action="@{/admin/completion/{id}/confirm(id=${row.id})}">
+                                        <input type="hidden" name="courseId" th:value="${selectedCourse.id}">
+                                        <button type="submit" class="btn btn-gray">확정</button>
+                                    </form>
+                                    <a th:if="${row.certificateIssuable}" class="btn btn-secondary"
+                                       th:href="@{/admin/completion/{id}/certificate(id=${row.id})}"
+                                       target="_blank">이수증 출력</a>
+                                    <span th:if="${row.confirmStatus != 'CONFIRMED' and row.result != 'PASS'}"
+                                          class="empty-hint" style="padding:0;">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <p class="empty-hint" th:if="${selectedCourse == null}">등록된 과정이 없습니다.</p>
         </section>
     </main>
-    <!-- 훈련생 초대 팝업 모달 -->
-    <div id="statusChangeModal" class="status-change-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>빠른 상태변경</h2>
-                <button class="modal-close" onclick="closeStatusChangeModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>선택한 훈련생들의 이수확정상태를 변경하시겠습니까?</p>
-                <div style="margin-top: 20px;">
-                    <label for="newStatusSelect">새 이수확정상태:</label>
-                    <select id="newStatusSelect" style="margin-left: 10px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px;">
-                        <option value="EXPECTED">이수예정</option>
-                        <option value="PENDING">판정대기</option>
-                        <option value="CONFIRMED">확정</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeStatusChangeModal()">일괄 변경</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 훈련생 상세정보 모달 -->
-    <div id="traineeDetailModal" class="status-change-modal" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>훈련생 상세정보</h2>
-                <button id="traineeDetailClose" class="modal-close" onclick="closeTraineeDetailModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                </button>
-            </div>
-            <div class="modal-body" id="traineeDetailBody">
-                <!-- JS로 내용 채움 -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeTraineeDetailModal()">저장하기</button>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>

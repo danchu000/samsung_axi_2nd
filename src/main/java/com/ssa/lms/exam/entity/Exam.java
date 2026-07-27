@@ -182,6 +182,62 @@ public class Exam extends BaseEntity {
         this.status = status;
     }
 
+    /** 시험 기본 정보 수정. 컬렉션(문항·규칙)은 서비스가 따로 갈아끼운다. */
+    public void update(String examName, ExamType examType, Course course, Subject subject,
+                       Session session, User instructor, Integer timeLimitMin, Integer autoScore,
+                       Integer manualScore, Integer totalScore, Integer passScore, boolean randomOrder,
+                       boolean retakeAllowed, Integer maxAttempts, LocalDateTime windowStart,
+                       LocalDateTime windowEnd, boolean requireIdentityVerification,
+                       boolean proctorEnabled, boolean requireWebcam, boolean blockTabSwitch,
+                       boolean blockCopyPaste, String note, ExamStatus status) {
+        this.examName = examName;
+        this.examType = examType;
+        this.course = course;
+        this.subject = subject;
+        this.session = session;
+        this.instructor = instructor;
+        this.timeLimitMin = timeLimitMin;
+        this.autoScore = autoScore;
+        this.manualScore = manualScore;
+        this.totalScore = totalScore;
+        this.passScore = passScore;
+        this.randomOrder = randomOrder;
+        this.retakeAllowed = retakeAllowed;
+        this.maxAttempts = maxAttempts;
+        this.windowStart = windowStart;
+        this.windowEnd = windowEnd;
+        this.requireIdentityVerification = requireIdentityVerification;
+        this.proctorEnabled = proctorEnabled;
+        this.requireWebcam = requireWebcam;
+        this.blockTabSwitch = blockTabSwitch;
+        this.blockCopyPaste = blockCopyPaste;
+        this.note = note;
+        this.status = status;
+    }
+
+    public void changeStatus(ExamStatus status) {
+        this.status = status;
+    }
+
+    /**
+     * 편성 문항 전체 제거.
+     * 호출 후 곧바로 add 하면 안 된다 — orphan DELETE 보다 INSERT 가 먼저 나가
+     * uk_exam_question(exam_id, question_id) 유니크 제약에 걸린다. 사이에 flush() 할 것.
+     */
+    public void clearExamQuestions() {
+        this.examQuestions.clear();
+    }
+
+    /** 자동 출제 규칙으로 편성된 문항만 제거 (규칙 재확정용). 마찬가지로 add 전에 flush 필요. */
+    public void removeRuleQuestions() {
+        this.examQuestions.removeIf(ExamQuestion::isFromRule);
+    }
+
+    /** 출제 규칙 전체 제거. 자식(ExamQuestionRuleDifficulty)도 cascade 로 함께 지워진다. */
+    public void clearQuestionRules() {
+        this.questionRules.clear();
+    }
+
     public void addExamQuestion(ExamQuestion examQuestion) {
         this.examQuestions.add(examQuestion);
         examQuestion.assignExam(this);

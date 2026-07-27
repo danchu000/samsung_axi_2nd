@@ -59,7 +59,7 @@
                 <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'courses' or active == 'schedule'} ? 'active_menu'">과정/운영 관리</span>
                 <ul>
-                    <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
+                    <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses'">과정 관리</li>
                     <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
                 </ul>
             </li>

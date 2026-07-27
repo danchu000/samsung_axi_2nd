@@ -221,3 +221,35 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 ### 참고 (B 영향 없음)
 - 가입 계정은 PENDING 이라 **관리자 승인 UI(사용자 관리, 후속 슬라이스)** 전까지는 로그인 불가.
   현재 로그인/역할 리다이렉트 확인은 시드 계정(admin/instructor1/trainee1, pw 1234)으로 가능.
+
+---
+
+# 공통 파일 변경 알림 (A, feat/a-course — 과정/수강신청 슬라이스)
+
+> B에게: 아래는 **공동 소유 레이아웃 fragment** 변경이다. **엔티티/스키마 변경 없음**
+> (Course/Subject/Session/Enrollment 필드·계약 그대로, B가 읽는 courseCode/courseName/cohort,
+> Session seq/name 유지). **SecurityConfig·build.gradle 변경 없음** — 신규 경로는 기존
+> `/admin/**`(ADMIN)·`/trainee/**`(TRAINEE,ADMIN) catch-all 로 커버되어 규칙 수정 불필요.
+
+### 공동 소유 fragment 변경 (자기 도메인 메뉴/링크 `<li>`만 수정)
+- `fragments/admin.html` : 사이드바 “과정 관리” 링크 `/templates/.../admin-courses-edu.html`
+  → **`/admin/courses`** (한 줄만 변경, 다른 메뉴 줄 그대로 → auto-merge).
+- `fragments/trainee.html` : GNB “나의 과정 / 수강 과정 목록” 링크 → **`/trainee/my-course`** (두 줄).
+
+### 신규 컨트롤러 / 경로 (A 소유, com.ssa.lms.course.web)
+- `CourseAdminController` : `/admin/courses` (목록), `/new`·`POST /`(등록),
+  `/{id}`(상세), `/{id}/edit`·`POST /{id}`(수정), `POST /{id}/status`, `POST /{id}/delete`.
+- `CurriculumAdminController` : `POST /admin/courses/{id}/subjects[/{sid}[/delete|/sessions]]`,
+  `POST .../sessions/{sid}[/delete]` (과목/차시 구성).
+- `InstructorAdminController` : `POST /admin/courses/{id}/instructors[/{mid}/delete]` (강사 배정/해제).
+- `EnrollmentAdminController` : `POST /admin/courses/{id}/enrollments/{eid}/approve|reject`.
+- `MyCourseController` : `GET /trainee/my-course`, `POST /trainee/courses/{id}/enroll`,
+  `POST /trainee/enrollments/{eid}/cancel`.
+
+### 계약 재확인 (B가 쓰는 것 — 그대로 유지)
+- `CourseQueryService.findUserIdsByCourseId` = APPROVED+COMPLETED 수강생, `isInstructorOf` 정상 동작.
+- 수강 상태 enum: APPLIED/APPROVED/REJECTED/CANCELLED/COMPLETED (취소·반려는 상태로만 남김, soft delete 무관).
+
+### 데모 시드 (local 전용)
+- `course.CourseDemoDataInitializer @Order(20)` 추가 — 모집중 과정 `COURSE-2026-002`(trainee1 신청 대기),
+  `COURSE-2026-003`. 기본 시더(@Order 0)는 미수정. B의 `@Order(10)` 대와 충돌 없음.

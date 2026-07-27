@@ -1,691 +1,222 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/common-style.css">
     <link rel="stylesheet" href="/static/css/sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
-    <link rel="stylesheet" href="/static/css/courses-detail.css">
-    <link rel="stylesheet" href="/static/css/courses-common.css">
-    
-    <script src="/static/js/courses-detail.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 과정 상세</title>
-
+    <style>
+        .form-wrap { max-width: 900px; padding: 20px; }
+        .form-section { background:#fff; margin-bottom:20px; border:1px solid var(--color-line-gray); padding:20px 24px 30px; border-radius:8px; display:flex; flex-direction:column; gap:16px; }
+        .section-title { font-size:18px; font-weight:700; color:#333; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+        .form-row-triple { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+        .form-label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
+        .meta-value { font-size:14px; color:#333; }
+        .status-badge { display:inline-block; padding:4px 12px; border-radius:12px; background:#e7f1ff; color:#1c6dd0; font-size:13px; font-weight:600; }
+        .button-group { display:flex; justify-content:space-between; align-items:center; padding-bottom:30px; }
+        .button-group-right { display:flex; gap:12px; }
+        .inline-form { display:inline; }
+        .status-select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; }
+        /* 과목/차시/강사/수강생 섹션 */
+        .list-table { width:100%; border-collapse:collapse; }
+        .list-table th, .list-table td { border-bottom:1px solid #eee; padding:10px 12px; font-size:14px; text-align:left; }
+        .list-table th { color:#777; font-weight:600; background:#fafafa; }
+        .subject-block { border:1px solid #eee; border-radius:8px; padding:12px 16px; }
+        .subject-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; }
+        .session-row { font-size:13px; color:#555; padding:4px 0 4px 12px; }
+        .mini-form { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-top:8px; }
+        .mini-form input, .mini-form select { padding:8px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; }
+        .chip { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; border-radius:16px; padding:4px 10px; font-size:13px; margin:0 6px 6px 0; }
+        .empty-hint { color:#999; font-size:13px; }
+        .badge-status { padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600; }
+        .badge-APPLIED { background:#fff3cd; color:#856404; }
+        .badge-APPROVED { background:#d4edda; color:#155724; }
+        .badge-REJECTED { background:#f8d7da; color:#721c24; }
+        .badge-CANCELLED { background:#e2e3e5; color:#383d41; }
+        .badge-COMPLETED { background:#cce5ff; color:#004085; }
+    </style>
 </head>
 <body data-user-role="admin">
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1>과정/운영 관리 > 과정 관리 > 과정 상세</h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box" onclick="location.href='/templates/admin/admin-07-notice/admin-alarm.html'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-            <div class="icon-box" onClick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/admin :: header('과정/운영 관리 > 과정 관리 > 과정 상세')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('courses')}"/>
 
-    <!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li data-page="/templates/admin/admin-02-user/admin-user-trainee.html" onclick="handleMenuClick(this, '/templates/admin/admin-02-user/admin-user-trainee.html')">
-                    <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">사용자 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-trainee.html'">훈련생 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user-instructor.html'">강사 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-question-bank.html')">
-                    <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠 관리</span>
-                </li>
-                <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">과정/운영 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-edu.html'">과정 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html" onclick="handleMenuClick(this, '/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 30px; margin-left:-4px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text active_menu">평가 관리</span>
-                    <ul>
-                        <li class="submenu active_menu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-assignment.html'">과제 채점</li>
-
-                    
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance.html'">출결현황</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-graduate.html'">이수 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-05-attendance/admin-attendance-survey.html'">설문조사 관리</li>
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-06-support/admin-support-tutoring.html" onclick="handleMenuClick(this, '/templates/admin/admin-06-support/admin-support-tutoring.html')">
-                    <img src="/static/icons/06-support.svg" alt="support icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">학습 지원</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-tutoring.html'">튜터링/Q&A</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-response.html'">응답현황</li>
-                        <!-- <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-06-support/admin-support-chat-monitoring.html'">채팅 모니터링</li> -->
-                    </ul>
-                </li>
-                <li data-page="/templates/admin/admin-07-notice/admin-notice.html" onclick="handleMenuClick(this, '/templates/admin/admin-07-notice/admin-notice.html')" class="white-icon">
-                    <img src="/static/icons/bell.svg" alt="notice icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">공지/알림</span>
-                    <ul>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-notice.html'">공지 관리</li>
-                        <li class="submenu" onclick="event.stopPropagation(); location.href='/templates/admin/admin-07-notice/admin-alarm.html'">알림 관리</li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-                <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>
-
-    <!-- 메인 콘텐츠 -->
     <main class="main-content">
         <div class="form-wrap">
-            <div class="section-header">
-                <h2>과정 상세 정보</h2>
-            </div>
-            <!-- 1. 기본 정보 -->
+            <div class="section-header"><h2 th:text="${course.courseName}">과정명</h2></div>
+
+            <!-- 기본 정보 -->
             <div class="form-section">
-                <h3 class="section-title">
-                    기본 정보
-                </h3>
-
-                <div class="form-group">
-                    <label class="form-label">과정명</label>
-                    <div class="meta-value" id="courseName">풀스택 웹 개발 (React & Node.js)</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">과정 카테고리</label>
-                    <div class="meta-value" id="category">KDT</div>
-                </div>
-
+                <h3 class="section-title">기본 정보</h3>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">강사 이름</label>
-                        <div class="meta-value" id="instructor">김민수 강사</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">운영 담당자 (관리자)</label>
-                        <div class="meta-value" id="manager">이지은 관리자</div>
-                    </div>
+                    <div><label class="form-label">과정 코드</label><div class="meta-value" th:text="${course.courseCode}">-</div></div>
+                    <div><label class="form-label">기수</label><div class="meta-value" th:text="${course.cohort} ?: '-'">-</div></div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">과정 설명</label>
-                    <div class="meta-value" id="description" style="line-height: 1.6;">React와 Node.js를 활용한 풀스택 웹 개발 과정입니다. 프론트엔드부터 백엔드까지 전반적인 웹 개발 스킬을 학습합니다.</div>
-                </div>
-            </div>
-
-            <!-- 2. 운영 상태 -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    운영 상태
-                </h3>
-
-                <div class="form-group" style="display: flex; align-items: center;">
-                    <label class="form-label" style="margin-bottom: 0; min-width: 65px;">운영 상태</label>
-                    <div class="meta-value">
-                        <span class="status-badge status-in-progress">활성</span>
-                    </div>
-                </div>
-
-                <div class="form-row-triple">
-                    <div class="form-group">
-                        <label class="form-label">과목 개수</label>
-                        <div class="meta-value" id="subjectCount">3개</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">과목 총 시간</label>
-                        <div class="meta-value" id="totalSubjectHours">150시간</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">수강생 수</label>
-                        <div class="meta-value" id="studentCount">28명</div>
-                    </div>
-                </div>
-                
-                <div class="form-management-chart">
-                    <div class="course-progress-info">
-                        <span class="progress-percentage">42%</span>
-                    </div>
-
-                    <!-- 진행률 그래프 -->
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: 42%;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. 운영 기간 -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    운영 기간
-                </h3>
-
-                <div class="form-group">
-                    <label class="form-label">과정 기간</label>
-                    <div class="meta-value" id="coursePeriod">2026-01-06 ~ 2026-06-30</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">요일별 수업 시간</label>
-                    <div style="display: grid; gap: 8px;">
-                        <div style="padding: 10px 12px; background: #f8f9fa; border-radius: 6px;">
-                            <span style="font-weight: 600; color: #333; margin-right: 12px;">월요일:</span>
-                            <span style="color: #666;">09:00 ~ 18:00</span>
-                        </div>
-                        <div style="padding: 10px 12px; background: #f8f9fa; border-radius: 6px;">
-                            <span style="font-weight: 600; color: #333; margin-right: 12px;">화요일:</span>
-                            <span style="color: #666;">09:00 ~ 18:00</span>
-                        </div>
-                        <div style="padding: 10px 12px; background: #f8f9fa; border-radius: 6px;">
-                            <span style="font-weight: 600; color: #333; margin-right: 12px;">수요일:</span>
-                            <span style="color: #666;">09:00 ~ 18:00</span>
-                        </div>
-                        <div style="padding: 10px 12px; background: #f8f9fa; border-radius: 6px;">
-                            <span style="font-weight: 600; color: #333; margin-right: 12px;">목요일:</span>
-                            <span style="color: #666;">09:00 ~ 18:00</span>
-                        </div>
-                        <div style="padding: 10px 12px; background: #f8f9fa; border-radius: 6px;">
-                            <span style="font-weight: 600; color: #333; margin-right: 12px;">금요일:</span>
-                            <span style="color: #666;">09:00 ~ 18:00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row-triple">
-                    <div class="form-group">
-                        <label class="form-label">총 교육 기간 (주)</label>
-                        <div class="meta-value" id="durationWeeks">26주</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">총 교육 기간 (개월)</label>
-                        <div class="meta-value" id="durationMonths">6.0개월</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">총 교육 시간</label>
-                        <div class="meta-value" id="totalHours">1,170시간</div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">주당 수업 시간</label>
-                    <div class="meta-value" id="weeklyHours">45시간/주</div>
-                </div>
-            </div>
-
-            <!-- 4. 정원 및 모집 -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    정원 및 모집
-                </h3>
-
-                <div class="form-row-triple">
-                    <div class="form-group">
-                        <label class="form-label">정원 (모집 인원)</label>
-                        <div class="meta-value" id="maxStudents">30명</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">최소 개설 인원</label>
-                        <div class="meta-value" id="minStudents">20명</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">현재 수강 인원</label>
-                        <div class="meta-value" id="currentStudents">28명</div>
-                    </div>
-                </div>
-
-                <!-- 수강신청 학생 리스트 -->
-                <div class="form-group">
-                    <label class="form-label">수강신청 학생 리스트</label>
-                    <div class="student-card-container">
-                        <div class="student-card" onclick="goToStudentPage('hong98')">
-                            <span>홍길동 <span class="age">(98)</span></span>
-                            <span class="student-risk-dot high" title="높음"></span>
-                        </div>
-                        <div class="student-card" onclick="goToStudentPage('mina00')">
-                            <span>김민아 <span class="age">(00)</span></span>
-                            <span class="student-risk-dot medium" title="중간"></span>
-                        </div>
-                        <div class="student-card" onclick="goToStudentPage('soo99')">
-                            <span>이수진 <span class="age">(99)</span></span>
-                            <span class="student-risk-dot low" title="낮음"></span>
-                        </div>
-                    </div>
-                        <p class="form-help" style="margin-top:8px;">이탈위험점수: <span style="color:#dc3545;font-weight:600;">● 높음</span> <span style="color:#ffc107;font-weight:600;">● 중간</span> <span style="color:#28a745;font-weight:600;">● 낮음</span></p>
-                </div>
-            </div>
-
-            <!-- 5. 수강 정책 / 평가 기준 -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    수강 정책 / 평가 기준
-                </h3>
-
-                <div class="form-group">
-                    <label class="form-label">출석 기준</label>
-                    <div class="meta-value" id="attendanceRate">80% 이상</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">수료 기준</label>
-                    <div class="meta-value" id="completionCriteria">출석, 시험, 과제</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">평가 요소</label>
-                    <div class="meta-value" id="evaluationElements">시험, 과제, 프로젝트</div>
-                </div>
-            </div>
-
-            <!-- 6. 비용 / 연계 정보 -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    비용 / 연계 정보
-                </h3>
-
                 <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">수강료</label>
-                        <div class="meta-value" id="tuitionFee">5,000,000원</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">자부담 비용</label>
-                        <div class="meta-value" id="selfPayment">0원</div>
+                    <div><label class="form-label">카테고리</label><div class="meta-value" th:text="${course.category} ?: '-'">-</div></div>
+                    <div><label class="form-label">운영 상태</label>
+                        <div class="meta-value"><span class="status-badge" th:text="${course.status.label}">상태</span></div>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">결제 방식</label>
-                    <div class="meta-value" id="paymentMethod">국비 지원</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">국비 과정 여부</label>
-                    <div class="meta-value" id="isGovernmentFunded">예</div>
-                </div>
+                <div><label class="form-label">과정 설명</label><div class="meta-value" th:text="${course.description} ?: '-'">-</div></div>
             </div>
 
-            <!-- 7. 관리용 메타 정보 -->
-            <div class="form-section" data-user-role="admin">
-                <h3 class="section-title">
-                    메타 정보
-                </h3>
-
-                <div class="meta-info-grid">
-                    <div class="meta-item">
-                        <span class="meta-label">과정 생성일</span>
-                        <span class="meta-value" id="createdDate">-</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">최종 수정일</span>
-                        <span class="meta-value" id="modifiedDate">-</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">생성 관리자</span>
-                        <span class="meta-value" id="createdBy">-</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">최종 수정 관리자</span>
-                        <span class="meta-value" id="modifiedBy">-</span>
-                    </div>
+            <!-- 운영 기간 / 정원 -->
+            <div class="form-section">
+                <h3 class="section-title">운영 기간 / 정원</h3>
+                <div class="form-row-triple">
+                    <div><label class="form-label">시작일</label><div class="meta-value" th:text="${course.startDate}">-</div></div>
+                    <div><label class="form-label">종료일</label><div class="meta-value" th:text="${course.endDate}">-</div></div>
+                    <div><label class="form-label">정원</label><div class="meta-value" th:text="|${course.capacity}명|">-</div></div>
                 </div>
-
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label">변경 이력 / 로그</label>
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>날짜</th>
-                                <th>관리자</th>
-                                <th>변경 내용</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
-                            <tr>
-                                <td colspan="3" class="history-empty">변경 이력이 없습니다.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div><label class="form-label">이수 기준 진도율</label><div class="meta-value" th:text="|${course.completionProgressRate}%|">-</div></div>
             </div>
 
-            <!-- 버튼 그룹 -->
+            <!-- 상태 변경 -->
+            <div class="form-section">
+                <h3 class="section-title">상태 변경</h3>
+                <form class="mini-form" th:action="@{/admin/courses/{id}/status(id=${course.id})}" method="post">
+                    <select name="status" class="status-select">
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"
+                                th:selected="${s == course.status}">상태</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">상태 변경</button>
+                </form>
+            </div>
+
+            <!-- 구성 과목 / 차시 -->
+            <div class="form-section">
+                <h3 class="section-title">구성 과목 / 차시</h3>
+                <p th:if="${curriculumError}" class="field-error" th:text="${curriculumError}" style="color:#dc3545;"></p>
+
+                <p th:if="${subjects.isEmpty()}" class="empty-hint">등록된 과목이 없습니다. 아래에서 과목을 추가하세요.</p>
+
+                <div class="subject-block" th:each="subject : ${subjects}">
+                    <div class="subject-head">
+                        <span th:text="|${subject.orderNo}. ${subject.name}|">과목명</span>
+                        <span>
+                            <form class="inline-form" th:action="@{/admin/courses/{cid}/subjects/{sid}/delete(cid=${course.id},sid=${subject.id})}"
+                                  method="post" onsubmit="return confirm('과목과 소속 차시를 모두 삭제하시겠습니까?');">
+                                <button type="submit" class="btn btn-gray" style="padding:4px 10px;">과목 삭제</button>
+                            </form>
+                        </span>
+                    </div>
+                    <div th:if="${subject.description}" style="color:#777; font-size:13px; margin:4px 0 8px;" th:text="${subject.description}">설명</div>
+
+                    <!-- 과목명 수정 -->
+                    <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects/{sid}(cid=${course.id},sid=${subject.id})}" method="post">
+                        <input type="text" name="name" th:value="${subject.name}" placeholder="과목명" style="min-width:180px;">
+                        <input type="text" name="description" th:value="${subject.description}" placeholder="설명(선택)" style="min-width:200px;">
+                        <button type="submit" class="btn" style="padding:6px 12px;">과목 수정</button>
+                    </form>
+
+                    <!-- 차시 목록 -->
+                    <div style="margin-top:8px;">
+                        <p th:if="${subject.sessions.isEmpty()}" class="empty-hint" style="padding-left:12px;">차시가 없습니다.</p>
+                        <div class="session-row" th:each="session : ${subject.sessions}">
+                            <span th:text="|${session.seq}차시 · ${session.name}|">차시</span>
+                            <span th:if="${session.lessonDate}" th:text="| · ${session.lessonDate}|"></span>
+                            <span th:if="${session.learningMinutes}" th:text="| · ${session.learningMinutes}분|"></span>
+                            <form class="inline-form" th:action="@{/admin/courses/{cid}/sessions/{sid}/delete(cid=${course.id},sid=${session.id})}" method="post">
+                                <button type="submit" class="btn btn-gray" style="padding:2px 8px; font-size:12px;">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 차시 추가 -->
+                    <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects/{sid}/sessions(cid=${course.id},sid=${subject.id})}" method="post">
+                        <input type="text" name="name" placeholder="차시명" required style="min-width:160px;">
+                        <input type="date" name="lessonDate">
+                        <input type="number" name="learningMinutes" placeholder="학습(분)" min="0" style="width:110px;">
+                        <button type="submit" class="btn btn-primary" style="padding:6px 12px;">차시 추가</button>
+                    </form>
+                </div>
+
+                <!-- 과목 추가 -->
+                <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects(cid=${course.id})}" method="post"
+                      style="border-top:1px solid #eee; padding-top:12px;">
+                    <input type="text" name="name" placeholder="새 과목명" required style="min-width:200px;">
+                    <input type="text" name="description" placeholder="설명(선택)" style="min-width:220px;">
+                    <button type="submit" class="btn btn-primary">+ 과목 추가</button>
+                </form>
+            </div>
+
+            <!-- 담당 강사 -->
+            <div class="form-section">
+                <h3 class="section-title">담당 강사</h3>
+                <p th:if="${instructorError}" class="field-error" th:text="${instructorError}" style="color:#dc3545;"></p>
+
+                <div>
+                    <p th:if="${instructors.isEmpty()}" class="empty-hint">배정된 강사가 없습니다.</p>
+                    <span class="chip" th:each="ins : ${instructors}">
+                        <span th:text="${ins.name}">강사명</span>
+                        <span th:if="${ins.primary}" style="color:#1c6dd0; font-weight:700;">(대표)</span>
+                        <form class="inline-form" th:action="@{/admin/courses/{cid}/instructors/{mid}/delete(cid=${course.id},mid=${ins.mappingId})}" method="post">
+                            <button type="submit" style="border:none; background:none; cursor:pointer; color:#999;">✕</button>
+                        </form>
+                    </span>
+                </div>
+
+                <!-- 강사 배정 -->
+                <form class="mini-form" th:action="@{/admin/courses/{cid}/instructors(cid=${course.id})}" method="post">
+                    <select name="userId" required class="status-select">
+                        <option value="">강사 선택</option>
+                        <option th:each="opt : ${availableInstructors}" th:value="${opt.userId}" th:text="${opt.name}">강사</option>
+                    </select>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+                        <input type="checkbox" name="primary" value="true"> 대표 강사
+                    </label>
+                    <button type="submit" class="btn btn-primary">강사 배정</button>
+                </form>
+            </div>
+
+            <!-- 수강신청 현황 -->
+            <div class="form-section">
+                <h3 class="section-title">수강신청 현황</h3>
+                <p th:if="${enrollmentError}" class="field-error" th:text="${enrollmentError}" style="color:#dc3545;"></p>
+                <p th:if="${enrollments.isEmpty()}" class="empty-hint">수강신청 내역이 없습니다.</p>
+
+                <table class="list-table" th:unless="${enrollments.isEmpty()}">
+                    <thead>
+                        <tr><th>훈련생</th><th>상태</th><th>신청일</th><th>처리</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="en : ${enrollments}">
+                            <td th:text="${en.traineeName}">훈련생</td>
+                            <td><span th:class="'badge-status badge-' + ${en.status}" th:text="${en.statusLabel}">상태</span></td>
+                            <td th:text="${#temporals.format(en.appliedAt, 'yyyy-MM-dd HH:mm')}">신청일</td>
+                            <td>
+                                <span th:if="${en.status.name() == 'APPLIED'}">
+                                    <form class="inline-form" th:action="@{/admin/courses/{cid}/enrollments/{eid}/approve(cid=${course.id},eid=${en.id})}" method="post">
+                                        <button type="submit" class="btn btn-primary" style="padding:4px 10px;">승인</button>
+                                    </form>
+                                    <form class="inline-form" th:action="@{/admin/courses/{cid}/enrollments/{eid}/reject(cid=${course.id},eid=${en.id})}" method="post">
+                                        <button type="submit" class="btn btn-gray" style="padding:4px 10px;">반려</button>
+                                    </form>
+                                </span>
+                                <span th:unless="${en.status.name() == 'APPLIED'}" style="color:#999;">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 버튼 -->
             <div class="button-group">
-                <button type="button" class="big-btn btn-gray" onclick="deleteCourse()">삭제하기</button>
+                <form class="inline-form" th:action="@{/admin/courses/{id}/delete(id=${course.id})}" method="post"
+                      onsubmit="return confirm('이 과정을 삭제하시겠습니까? (복구 불가)');">
+                    <button type="submit" class="big-btn btn-gray">삭제하기</button>
+                </form>
                 <div class="button-group-right">
-                    <button type="button" class="btn btn-back" onclick="goBack()">목록으로</button>
-                    <button type="button" class="btn btn-save" onclick="editCourse()">수정하기</button>
+                    <button type="button" class="btn btn-back" onclick="location.href='/admin/courses'">목록으로</button>
+                    <button type="button" class="btn btn-save" th:onclick="|location.href='/admin/courses/${course.id}/edit'|">수정하기</button>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 과목 관리 영역 -->
-        <div class="subject-wrap">
-            <div class="section-header">
-                <h2>과정 상세 > 구성 과목</h2>
-                <div class="toggle-text-group">
-                    <span id="toggleContentEdit" class="toggle-text active" onclick="setEditMode('content')">콘텐츠 편집</span>
-                    <span class="toggle-divider">|</span>
-                    <span id="toggleLessonEdit" class="toggle-text" onclick="window.location.href='courses-sesstion.html'">차시 편집</span>
-                </div>
-
-            </div>
-            <div class="divider"></div>
-            
-            <div class="subject-list" id="subjectList">
-                <button data-user-role="admin" class="btn btn-secondary" style="flex: none;" onclick="openSubjectModal()">
-                    <span>+ 과목 추가</span>
-                </button>
-                    <!-- 과목 추가 모달 -->
-                    <div class="modal-overlay" id="subjectModalOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.25); z-index:9999; align-items:center; justify-content:center;">
-                        <div class="modal" style="max-width:520px; width:100%;">
-                            <div class="section-header">
-                                <h2 id="subjectModalTitle">과목 추가</h2>
-                                <button class="modal-close" id="subjectModalCloseBtn">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                                </button>
-                            </div>
-                            <div class="subject-list" id="modalSubjectList">
-                                <div>
-                                    <label class="form-label required">과목명</label>
-                                    <input type="text" class="form-input subject-name" id="modalSubjectName" placeholder="과목명을 입력하세요">
-                                    <div class="subject-code" id="modalSubjectCode"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label required">과목 운영 기간</label>
-                                    <div class="modal-date-row" style="margin-bottom: 8px;">
-                                        <input type="date" class="modal-input" id="modalSubjectStartDate">
-                                        <span class="date-separator">부터</span>
-                                    </div>
-                                    <div class="modal-date-row">
-                                        <input type="date" class="modal-input" id="modalSubjectEndDate">
-                                        <span class="date-separator">까지</span>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label required">상태</label>
-                                    <div id="modalSubjectStatusRadio" style="display: flex; gap: 24px; margin-top: 8px;">
-                                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="radio" name="modalSubjectStatus" value="active" checked>
-                                            <span>활성</span>
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="radio" name="modalSubjectStatus" value="inactive">
-                                            <span>비활성</span>
-                                        </label>
-                                        <label data-user-role="admin" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="radio" name="modalSubjectStatus" value="hidden">
-                                            <span>숨김</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div style="display: flex; justify-content: flex-end;">
-                                    <button class="btn btn-primary" id="modalSubjectSaveBtn">저장하기</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <!-- 과목 카드 샘플 1 -->
-                <div draggable="true" class="subject-item">
-                    <div class="subject-card" onclick="toggleContent('content-001')">
-                        <div class="subject-card-header">
-                            <div>
-                                <div class="subject-name"><span>1. </span>JavaScript 기초</div>
-                                <div class="subject-code">SUB-001</div>
-                            </div>
-                            <div class="subject-actions" onclick="event.stopPropagation();">
-                                <select class="form-select" style="width: 90px; padding: 8px 12px;">
-                                    <option value="active" selected>활성</option>
-                                    <option value="inactive">비활성</option>
-                                    <option data-user-role="admin" value="hidden">숨김</option>
-                                </select>
-                                <button class="btn-icon" data-user-role="admin" onclick="deleteSubject('SUB-001')">
-                                    <span><img src="/static/icons/delete.svg" alt="delete"></span>
-                                    <span class="btn-text">삭제하기</span>
-                                </button>
-                                <button class="btn-icon" id="subjectEditBtn-SUB-001">
-                                    <span><img src="/static/icons/edit.svg" alt="edit"></span>
-                                    <span class="btn-text">수정하기</span>
-                                </button>
-                                <button class="btn-icon" id="addContentBtn-SUB-001">
-                                    <span><img src="/static/icons/add-content.svg" alt="add-content"></span>
-                                    <span class="btn-text">콘텐츠 추가</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="subject-info">
-                            <div class="subject-info-item">
-                                <strong>컨텐츠</strong> 15개
-                            </div>
-                            <div class="subject-info-item">
-                                <strong>총 시간</strong> 40시간
-                            </div>
-                            <div class="subject-info-item">
-                                <strong>수강 학생 수</strong> 8/28
-                            </div>
-                            <div class="subject-info-item">
-                                <strong>기간</strong> 2026.01.06~2026.01.31
-                            </div>
-                        </div>
-                    </div>
-                    <div class="content-list" id="content-001">
-                        <!-- JS로 동적 렌더링 -->
-                    </div>
-                        
-                </div>
-
-                <div class="button-group-right">
-                <button class="btn btn-save" onclick="saveSessionMatrix()">저장하기</button>
-
-                <!-- 문제 상세 모달 -->
-                <div id="questionModal" class="question-modal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="modalTitle">문제 상세</h3>
-                            <button class="modal-close" onclick="document.getElementById('questionModal').classList.remove('show')">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                            </button>
-                        </div>
-                        <div class="modal-body" id="modalContent">
-                            <!-- JS로 내용 바인딩 -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 콘텐츠 추가 모달 -->
-                <div class="modal-overlay" id="addContentModalOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.25); z-index:9999; align-items:center; justify-content:center;">
-                    <div class="modal-content" style="max-width:520px;">
-                        <div class="modal-header">
-                            <h3 style="font-size:18px;">추가할 콘텐츠 유형 선택</h3>
-                            <button class="modal-close" id="closeContentModalOverlay">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                            </button>
-                        </div>
-                        <div class="modal-body" style="padding:32px 24px;">
-                            <div class="type-card-list">
-                                <div class="type-card" data-type="video">
-                                    <img src="/static/icons/content-video.png" alt="영상 아이콘">
-                                    <span>영상 등록</span>
-                                </div>
-                                <div class="type-card" data-type="document">
-                                    <img src="/static/icons/content-document.png" alt="문서 아이콘">
-                                    <span>문서 등록</span>
-                                </div>
-                                <div class="type-card" data-type="class">
-                                    <img src="/static/icons/content-class.png" alt="강의 아이콘">
-                                    <span>강의 등록</span>
-                                </div>
-                                <div class="type-card" data-type="practice">
-                                    <img src="/static/icons/content-practice.png" alt="과제 아이콘">
-                                    <span>과제 등록</span>
-                                </div>
-                                <div class="type-card" data-type="grading">
-                                    <img src="/static/icons/content-grading.png" alt="시험 아이콘">
-                                    <span>시험 등록</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 콘텐츠 검색 모달 -->
-                <!-- 문제은행(콘텐츠 라이브러리) 검색 모달 -->
-                <div class="modal-overlay flex-center" id="bankSearchModalOverlay"
-                    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0;
-                            background:rgba(0,0,0,0.25); z-index:10000; align-items:center; justify-content:center;">
-                <div class="modal-content" style="max-width:860px; width:calc(100% - 32px);">
-                    <div class="modal-header">
-                    <div>
-                        <h3 id="bankModalTitle" style="font-size:18px; margin:0;">콘텐츠 검색</h3>
-                        <p id="bankModalDesc" style="margin:6px 0 0; font-size:13px; color:#666;">
-                        문제은행에서 콘텐츠를 검색해 선택하세요.
-                        </p>
-                    </div>
-
-                    <button class="modal-close" id="closeBankSearchModalOverlay" aria-label="닫기">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="CurrentColor">
-                        <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
-                        </svg>
-                    </button>
-                    </div>
-
-                    <div class="modal-body" style="padding:20px 24px;">
-                    <!-- 검색/필터 -->
-                    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-                        <div style="flex:1; min-width:240px;">
-                        <label style="display:block; font-size:12px; color:#666; margin-bottom:6px;">키워드</label>
-                        <input type="text" id="bankKeyword" placeholder="제목/태그/키워드 검색"
-                                style="width:100%; height:38px; padding:8px 12px; border:1px solid #bbb; border-radius:6px;">
-                        </div>
-
-                        <div style="width:160px;">
-                        <label style="display:block; font-size:12px; color:#666; margin-bottom:6px;">카테고리</label>
-                        <select id="bankCategory" style="width:100%; height:38px; border:1px solid #bbb; border-radius:6px;">
-                            <option value="">전체</option>
-                            <option value="highschool">고교위탁</option>
-                            <option value="kdt">K-Digital</option>
-                            <option value="etc">기타</option>
-                        </select>
-                        </div>
-
-                        <div style="width:160px;">
-                        <label style="display:block; font-size:12px; color:#666; margin-bottom:6px;">정렬</label>
-                        <select id="bankSort" style="width:100%; height:38px; border:1px solid #bbb; border-radius:6px;">
-                            <option value="recent">최신순</option>
-                            <option value="popular">사용 많은 순</option>
-                            <option value="name">이름순</option>
-                        </select>
-                        </div>
-
-                        <button id="bankSearchBtn" class="btn btn-primary" style="height:38px; padding:0 14px;">
-                        검색
-                        </button>
-                    </div>
-
-                    <!-- 타입별 안내 배지 -->
-                    <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
-                        <span id="bankTypeBadge"
-                            style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
-                                    border-radius:999px; background:#f3f5f7; font-size:12px; color:#333;">
-                        TYPE
-                        </span>
-                        <span id="bankHint" style="font-size:12px; color:#666;">
-                        결과에서 항목을 선택하면 아래에 미리보기가 표시됩니다.
-                        </span>
-                    </div>
-
-                    <!-- 결과 영역 -->
-                    <div style="margin-top:16px; display:grid; grid-template-columns: 1fr 320px; gap:16px;">
-                        <!-- 리스트 -->
-                        <div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-                        <div style="padding:12px 14px; background:#fafafa; border-bottom:1px solid #e5e7eb; font-size:13px; color:#666;">
-                            검색 결과
-                        </div>
-                        <div id="bankResultList" style="max-height:420px; overflow:auto;">
-                            <!-- JS로 결과 렌더 -->
-                            <div style="padding:14px; color:#888; font-size:13px;">검색어를 입력하고 검색하세요.</div>
-                        </div>
-                        </div>
-
-                        <!-- 선택 미리보기 -->
-                        <div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-                        <div style="padding:12px 14px; background:#fafafa; border-bottom:1px solid #e5e7eb; font-size:13px; color:#666;">
-                            선택 항목
-                        </div>
-                        <div id="bankSelectedPreview" style="padding:14px;">
-                            <div style="font-size:13px; color:#888;">아직 선택된 항목이 없습니다.</div>
-                        </div>
-                        </div>
-                    </div>
-                    </div>
-
-                    <div class="modal-footer" style="display:flex; justify-content:space-between; gap:10px; padding:14px 24px; border-top:1px solid #eee;">
-                    <button id="bankBackBtn" class="btn" style="height:38px; padding:0 14px;">← 유형 다시 선택</button>
-                    <div style="display:flex; gap:10px;">
-                        <button id="bankCancelBtn" class="btn" style="height:38px; padding:0 14px;">취소</button>
-                        <button id="bankConfirmBtn" class="btn btn-primary" style="height:38px; padding:0 14px;" disabled>
-                        선택 완료
-                        </button>
-                    </div>
-                    </div>
-                </div>
-                </div>
-
-
-                
-            </div>
             </div>
         </div>
     </main>
-
-
 </body>
 </html>

@@ -35,8 +35,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    // local 프로필 전용 인메모리 DB (MySQL 미설치 환경에서도 실행 가능)
+    runtimeOnly 'org.postgresql:postgresql'
+    // local 프로필 전용 인메모리 DB (PostgreSQL 미설치 환경에서도 실행 가능)
     runtimeOnly 'com.h2database:h2'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

@@ -190,5 +190,5 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 | 1 | ✅ `com.ssa.lms` |
 | 2 | ✅ A 도메인도 `<domain>/entity|repository|service|web` 구조로 재배치 완료 |
 | 3 | ✅ 이동 완료 (aed241d) — `/static/**` 절대경로 링크는 WebConfig 매핑으로 그대로 동작 |
-| 4 | ✅ local=H2 create-drop, dev=MySQL update. 스키마 확정 후 validate+schema.sql 동의 |
-| 5 | **MySQL 8 확정 제안** (이미 mysql-connector-j 사용, H2도 MySQL 모드) — 이견 있으면 말해줘 |
+| 4 | ✅ local=H2 create-drop, dev=PostgreSQL update. 스키마 확정 후 validate+schema.sql 동의 |
+| 5 | ~~MySQL 8 확정 제안~~ → **PostgreSQL로 확정** (2026-07-27, 추후 AI 기능 호환성/pgvector 대비. build.gradle 드라이버·dev 프로필·H2 모드 전부 전환 완료. B 쪽은 PostgreSQL 예약어만 확인해줘 — `user`, `session`, `order` 등. A 테이블은 users/course_session으로 이미 회피) |

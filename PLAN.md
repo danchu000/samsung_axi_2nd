@@ -51,10 +51,10 @@
 |---|---|---|---|
 | **서버 사양** (Web/동영상/DB/백업 서버별 대수·CPU·Memory·HDD·RAID) | 배포 환경 확정 — 클라우드(AWS/NCP 등) 또는 IDC. 클라우드면 인스턴스 사양표로 대체 | 서버 사양표, 네트워크 구성도, 서버(콘솔) 사진 — IP 식별 가능해야 함 | 공동(계약은 기관) |
 | **전산 장비** | IDC/호스팅/장비 임대·네트워크 계약 | 계약서 사본 | 기관/공동 |
-| **백업 정책** | ① DB 자동 백업 스크립트(mysqldump 또는 클라우드 스냅샷, 일 단위) ② 웹로그 보관 ③ 백업 일지·대장 양식 ④ 장애 대응 프로세스 도표 | 백업 스케줄 문서, 백업 일지, 웹로그 백업 자료, 장애대응 플로차트 | **A** |
+| **백업 정책** | ① DB 자동 백업 스크립트(pg_dump 또는 클라우드 스냅샷, 일 단위) ② 웹로그 보관 ③ 백업 일지·대장 양식 ④ 장애 대응 프로세스 도표 | 백업 스케줄 문서, 백업 일지, 웹로그 백업 자료, 장애대응 플로차트 | **A** |
 | **보안 관련** | ① HTTPS/TLS 적용(보안서버) ② 서버 백신·보안 SW ③ 방화벽/보안그룹 설정(클라우드면 Security Group + WAF로 IPS·웹방화벽 갈음) | 보안서버(SSL) 설치 확인서, 보안 SW 확인서, IPS/웹방화벽 설치 확인서(또는 클라우드 보안 설정 스크린샷) | **A** |
-| **DB 서버 (HA)** | DB 이중화 — 최소 Primary-Replica 복제 구성(MySQL replication 또는 클라우드 Multi-AZ) | HA 확인서, DB 구축 확인서, HA 구성도 이미지 | **A** |
-| **DBMS** | OS·DBMS 라이선스 정리(MySQL Community/MariaDB는 라이선스 문서로 명시) | OS 및 DBMS 라이선스 증빙 | 공동 |
+| **DB 서버 (HA)** | DB 이중화 — 최소 Primary-Replica 복제 구성(PostgreSQL streaming replication 또는 클라우드 Multi-AZ) | HA 확인서, DB 구축 확인서, HA 구성도 이미지 | **A** |
+| **DBMS** | OS·DBMS 라이선스 정리(PostgreSQL은 라이선스 문서로 명시) | OS 및 DBMS 라이선스 증빙 | 공동 |
 | **DNS 환경** | 도메인 확보 + DNS 설정 | DNS 설정 스크린샷, IP 주소 | 공동 |
 | **UPS** | IDC/클라우드 이용 시 제외 가능 → 제외 사유 명기 | (해당 시) 제원 자료 | — |
 | **암호화** | ① 비밀번호: bcrypt 해시(Spring Security 기본) ② 개인정보 컬럼(전화번호·이메일·생년월일 등): AES-256 암호화 — JPA `AttributeConverter`로 구현 ③ 전송구간: TLS | **DB 암호화 스크린샷**(DB 조회 시 암호문으로 보이는 화면 + 적용 알고리즘 명세) | **A** |
@@ -99,7 +99,7 @@
 ## 4. 단계별 일정
 
 ### Phase 0 — 공동 작업 (첫 주, 반드시 둘이 함께 확정)
-1. **Spring Boot 프로젝트 생성**: Java 17+, Spring Boot 3.x, Spring Security, Spring Data JPA, Thymeleaf, MySQL(또는 MariaDB), Gradle
+1. **Spring Boot 프로젝트 생성**: Java 17+, Spring Boot 3.x, Spring Security, Spring Data JPA, Thymeleaf, PostgreSQL(2026-07-27 MySQL→PostgreSQL 변경), Gradle
 2. **ERD/스키마 확정**: IA 엑셀 "데이터 정리" 시트 기반. 핵심 테이블 — user(role), course, subject, session(차시), content, enrollment, attendance, exam, question, exam_attempt, answer, assignment, submission, grade, completion, certificate, notice, qna, survey, chat_log, access_log
    - 내역서 요건 반영: 과정 단위 데이터 독립 수집, soft delete(3년 보존), 개인정보 컬럼 암호화
 3. **공통 레이아웃 fragment화**: 155개 페이지에 복붙된 사이드바/헤더/푸터를 Thymeleaf fragment로 추출 (이걸 안 하면 이후 모든 수정이 155번 반복됨)

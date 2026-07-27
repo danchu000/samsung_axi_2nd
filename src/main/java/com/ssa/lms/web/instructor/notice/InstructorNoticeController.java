@@ -49,8 +49,10 @@ public class InstructorNoticeController {
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        model.addAttribute("notice", noticeService.getDetail(id, true));
+    public String detail(@PathVariable Long id,
+                         @AuthenticationPrincipal LoginUser loginUser, Model model) {
+        model.addAttribute("notice", noticeService.getPublishedDetail(id,
+                visibilityService.instructorCourseIds(loginUser.getId()), true));
         return "instructor/notice-detail";
     }
 }

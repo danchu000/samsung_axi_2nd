@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
     <link rel="stylesheet" href="/static/css/notices.css">
-    <script src="/static/js/notices.js" defer></script>
     
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
@@ -121,17 +120,19 @@
         <!-- 훈련생 관리 -->
         <section class="main-content-inner">
             <!-- 필터 영역 -->
-            <div class="filter-section">
+            <form class="filter-section" method="get" th:action="@{/admin/notice}">
                 <div class="filter-row">
                     <div>
                         <label>카테고리</label>
-                        <select id="courseFilter">
-                            <!-- 카테고리 옵션은 DB에서 받아와 동적으로 추가됩니다. -->
+                        <select id="courseFilter" name="categoryId">
+                            <option value="">전체</option>
+                            <option th:each="category : ${categories}" th:value="${category.id}"
+                                    th:text="${category.name}" th:selected="${category.id == cond.categoryId}">카테고리</option>
                         </select>
                     </div>
                     <div>
                         <label>등록일</label>
-                        <select id="dateFilter">
+                        <select id="dateFilter" name="dateFilter">
                             <option value="">전체</option>
                             <option value="today">오늘</option>
                             <option value="this-week">이번 주</option>
@@ -146,17 +147,17 @@
                     </div>
                     <div class="filter-item">
                         <label>검색</label>
-                        <input type="text" id="searchInput" placeholder="공지사항 제목, 작성자, 내용으로 검색">
+                        <input type="text" id="searchInput" name="keyword" th:value="${cond.keyword}" placeholder="공지사항 제목, 작성자, 내용으로 검색">
                     </div>
-                    <button class="btn btn-secondary" onclick="filterAssignments()">
+                    <button class="btn btn-secondary" type="submit">
                         검색하기
                     </button>
-                    <button class="btn btn-primary" onclick="location.href='notice-add.html'" style="width: 130px; height: 38px;">
+                    <a class="btn btn-primary" th:href="@{/admin/notice/new}" style="width: 130px; height: 38px;">
                         <span>+</span>
                         <span>공지사항 등록</span>
-                    </button>
+                    </a>
                 </div>
-            </div>
+            </form>
             <section class="notice-board-section">
                 <table class="notice-table">
                     <colgroup>
@@ -179,18 +180,32 @@
                         </tr>
                     </thead>
                     <tbody id="noticeTableBody">
-                        <!-- JS로 동적 생성 -->
+                        <tr th:each="row : ${rows}">
+                            <td th:text="${row.id}">1</td><td th:text="${row.category}">일반</td>
+                            <td><a th:href="@{/admin/notice/{id}(id=${row.id})}" th:text="${row.title}">제목</a></td>
+                            <td th:text="${row.author}">관리자</td><td th:text="${row.date}">2026-01-01</td>
+                            <td th:text="${row.editDate}">2026-01-01</td><td th:text="${row.views}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}"><td colspan="7">등록된 공지가 없습니다.</td></tr>
                     </tbody>
                 </table>
                 <!-- 페이지네이션 -->
                 <div class="pagination">
                     <div class="page-info">
-                        <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                        <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
+                        (총 <span th:text="${totalCount}">0</span>건)
                     </div>
+                    <!-- 서버 페이징이라 pagination.js 의 changePage()(클라이언트 배열 전용)를 링크로 대체했다. -->
                     <div class="pagination-controls">
-                        <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
-                        <div id="pageNumbers"></div>
-                        <button id="nextPage" onclick="changePage(1)">다음</button>
+                        <a id="prevPage" th:classappend="${currentPage <= 1} ? 'disabled'"
+                           th:href="@{/admin/notice(page=${currentPage - 1},categoryId=${cond.categoryId},keyword=${cond.keyword})}">이전</a>
+                        <div id="pageNumbers">
+                            <a th:each="p : ${#numbers.sequence(1, totalPages)}"
+                               th:href="@{/admin/notice(page=${p},categoryId=${cond.categoryId},keyword=${cond.keyword})}"
+                               th:text="${p}" th:classappend="${p == currentPage} ? 'active'">1</a>
+                        </div>
+                        <a id="nextPage" th:classappend="${currentPage >= totalPages} ? 'disabled'"
+                           th:href="@{/admin/notice(page=${currentPage + 1},categoryId=${cond.categoryId},keyword=${cond.keyword})}">다음</a>
                     </div>
                 </div>
             </section>

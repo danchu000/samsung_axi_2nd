@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
     <link rel="stylesheet" href="/static/css/notices.css">
-    <script src="/static/js/notices-detail.js" defer></script>
+    <!-- notices-detail.js 는 innerHTML 로 더미를 그려 서버 렌더 결과를 덮어쓴다. 서버 전환하며 제거. -->
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 강사</title>
@@ -108,7 +108,76 @@
     <main class="main-content">
         <section class="main-content-inner">
             <section class="notice-board-section">
-                <div id="noticeDetailDynamic"></div>
+                <div id="noticeDetailDynamic">
+                    <table class="notice-table">
+                        <colgroup>
+                            <col style="width: 6%;"><col style="width: 8%;"><col style="width: 6%;">
+                            <col style="width: 12%;"><col style="width: 6%;"><col style="width: 14%;">
+                            <col style="width: 6%;"><col style="width: 14%;"><col style="width: 6%;">
+                            <col style="width: 10%;"><col style="width: 6%;"><col style="width: 6%;">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th colspan="12" style="font: 18px;" th:text="${notice.title}">제목</th>
+                            </tr>
+                            <tr>
+                                <th>번호</th><td th:text="${notice.id}">1</td>
+                                <th>작성자</th><td th:text="${notice.author}">관리자</td>
+                                <th>작성일</th><td th:text="${notice.date}">2026-01-01</td>
+                                <th>수정일</th><td th:text="${notice.editDate}">2026-01-01</td>
+                                <th>수정자</th><td th:text="${notice.editor}">운영팀</td>
+                                <th>조회수</th><td th:text="${notice.views}">0</td>
+                            </tr>
+                            <tr>
+                                <th>노출 범위</th>
+                                <td colspan="12" style="text-align: start;"
+                                    th:text="${notice.courseName} ?: '전체 공지'">전체 공지</td>
+                            </tr>
+                            <tr>
+                                <th>첨부파일</th>
+                                <td colspan="12" style="text-align: start;">
+                                    <span th:if="${#lists.isEmpty(notice.attachments)}">없음</span>
+                                    <span th:each="att, st : ${notice.attachments}">
+                                        <!-- TODO: 첨부 업로드/다운로드 엔드포인트 미구현. 지금은 저장 경로를 그대로 노출한다. -->
+                                        <a th:href="${att.url}" th:text="${att.name}" download>파일</a><span th:if="${!st.last}">, </span>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="notice-detail-content" th:utext="${#strings.replace(#strings.escapeXml(notice.content), '&#10;', '&lt;br&gt;')}">본문</div>
+                    <table class="notice-table">
+                        <tbody>
+                            <tr>
+                                <th style="width: 100px;">이전 글</th>
+                                <td colspan="11" style="text-align: left;">
+                                    <span th:if="${notice.prev == null}">없음</span>
+                                    <p class="between" th:if="${notice.prev != null}">
+                                        <a th:href="@{/instructor/notice/{id}(id=${notice.prev.id})}" th:text="${notice.prev.title}">이전</a>
+                                        <span style="color:#999;" th:text="${notice.prev.date}">2026-01-01</span>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>다음 글</th>
+                                <td colspan="11" style="text-align: left;">
+                                    <span th:if="${notice.next == null}">없음</span>
+                                    <p class="between" th:if="${notice.next != null}">
+                                        <a th:href="@{/instructor/notice/{id}(id=${notice.next.id})}" th:text="${notice.next.title}">다음</a>
+                                        <span style="color:#999;" th:text="${notice.next.date}">2026-01-01</span>
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- 강사는 조회만 한다. 삭제/수정 버튼은 관리자 화면에만 둔다. -->
+                    <div class="notice-detail-footer">
+                        <div>
+                            <a class="btn btn-save" style="padding: 12px 40px; font-size: 16px;"
+                               th:href="@{/instructor/notice}">목록</a>
+                        </div>
+                    </div>
+                </div>
             </section>
         </section>
     </main>

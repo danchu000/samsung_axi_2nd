@@ -1,6 +1,7 @@
 package com.ssa.lms.notice.service;
 
 import com.ssa.lms.course.service.CourseQueryService;
+import com.ssa.lms.course.repository.CourseInstructorRepository;
 import com.ssa.lms.notice.dto.NotificationForm;
 import com.ssa.lms.notice.dto.NotificationListRow;
 import com.ssa.lms.notice.dto.NotificationSearchCond;
@@ -9,12 +10,14 @@ import com.ssa.lms.notice.entity.NotificationRecipient;
 import com.ssa.lms.notice.repository.NotificationRecipientRepository;
 import com.ssa.lms.notice.repository.NotificationRepository;
 import com.ssa.lms.user.entity.User;
+import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -41,6 +44,7 @@ public class NotificationService {
     private final NotificationRecipientRepository recipientRepository;
     private final CourseQueryService courseQueryService;
     private final UserRepository userRepository;
+    private final CourseInstructorRepository courseInstructorRepository;
 
     /**
      * 알림 내역 목록. 수신자 수/읽음 수는 페이지에 담긴 id 묶음으로 한 번에 집계한다
@@ -99,7 +103,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public Long create(NotificationForm form, Long senderId) {
+    public Long create(NotificationForm form, Long senderId, Role role) {
+        assertCanSend(form.toTargetType(), form.getTargetRefId(), senderId, role);
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다. id=" + senderId));
 
@@ -125,8 +130,10 @@ public class NotificationService {
     }
 
     @Transactional
-    public void update(Long id, NotificationForm form) {
+    public void update(Long id, NotificationForm form, Long actorId, Role role) {
         Notification n = getOrThrow(id);
+        assertCanEdit(n, actorId, role);
+        assertCanSend(form.toTargetType(), form.getTargetRefId(), actorId, role);
         boolean wasSent = n.getStatus() == Notification.NotificationStatus.SENT;
         n.update(form.getTitle(), form.getContent(), form.toPriority(),
                 form.toTargetType(), form.getTargetRefId(), form.resolveSendAt(), form.getDueDate());
@@ -159,7 +166,8 @@ public class NotificationService {
 
     /** 선택 삭제 (soft delete — @SQLDelete). 수신자 행은 이력이라 남긴다. */
     @Transactional
-    public void delete(List<Long> ids) {
+    public void delete(List<Long> ids, Long actorId, Role role) {
+        for (Long id : ids) assertCanEdit(getOrThrow(id), actorId, role);
         notificationRepository.deleteAllById(ids);
     }
 
@@ -207,5 +215,22 @@ public class NotificationService {
             map.put((Long) row[0], new long[]{total, read});
         }
         return Collections.unmodifiableMap(map);
+    }
+
+    private void assertCanEdit(Notification notification, Long actorId, Role role) {
+        if (role == Role.ADMIN) return;
+        if (!notification.getSender().getId().equals(actorId)) {
+            throw new AccessDeniedException("본인이 작성한 알림만 수정할 수 있습니다.");
+        }
+        assertCanSend(notification.getTargetType(), notification.getTargetRefId(), actorId, role);
+    }
+
+    /** 강사는 담당 과정 수강생에게만 알림을 보낼 수 있다. */
+    private void assertCanSend(Notification.TargetType type, Long targetRefId, Long actorId, Role role) {
+        if (role == Role.ADMIN) return;
+        if (role != Role.INSTRUCTOR || type != Notification.TargetType.COURSE || targetRefId == null
+                || !courseInstructorRepository.existsByCourseIdAndInstructorId(targetRefId, actorId)) {
+            throw new AccessDeniedException("강사는 담당 과정에만 알림을 보낼 수 있습니다.");
+        }
     }
 }

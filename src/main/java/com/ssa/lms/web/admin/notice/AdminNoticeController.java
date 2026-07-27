@@ -70,7 +70,7 @@ public class AdminNoticeController {
             model.addAttribute("courses", noticeService.selectableCourses());
             return "admin/admin-07-notice/notice-add";
         }
-        Long id = noticeService.create(form, loginUser.getId());
+        Long id = noticeService.create(form, loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", "공지사항을 등록했습니다.");
         return "redirect:/admin/notice/" + id;
     }
@@ -97,21 +97,23 @@ public class AdminNoticeController {
                          @Valid @ModelAttribute("form") NoticeForm form,
                          BindingResult bindingResult,
                          Model model,
+                         @AuthenticationPrincipal LoginUser loginUser,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("categories", noticeService.activeCategories());
             model.addAttribute("courses", noticeService.selectableCourses());
             return "admin/admin-07-notice/notice-add";
         }
-        noticeService.update(id, form);
+        noticeService.update(id, form, loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", "공지사항을 수정했습니다.");
         return "redirect:/admin/notice/" + id;
     }
 
     /** 삭제 (soft delete). */
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        noticeService.delete(List.of(id));
+    public String delete(@PathVariable Long id, @AuthenticationPrincipal LoginUser loginUser,
+                         RedirectAttributes redirectAttributes) {
+        noticeService.delete(List.of(id), loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", "공지사항을 삭제했습니다.");
         return "redirect:/admin/notice";
     }

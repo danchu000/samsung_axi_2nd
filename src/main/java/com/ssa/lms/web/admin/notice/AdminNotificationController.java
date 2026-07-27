@@ -78,7 +78,7 @@ public class AdminNotificationController {
         if (bindingResult.hasErrors()) {
             return "admin/admin-07-notice/admin-alarm-add";
         }
-        notificationService.create(form, loginUser.getId());
+        notificationService.create(form, loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", "알림을 등록했습니다.");
         return "redirect:/admin/notice/alarms";
     }
@@ -88,11 +88,12 @@ public class AdminNotificationController {
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") NotificationForm form,
                          BindingResult bindingResult,
+                         @AuthenticationPrincipal LoginUser loginUser,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "admin/admin-07-notice/admin-alarm-add";
         }
-        notificationService.update(id, form);
+        notificationService.update(id, form, loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", "알림을 수정했습니다.");
         return "redirect:/admin/notice/alarms";
     }
@@ -100,8 +101,9 @@ public class AdminNotificationController {
     /** 선택 삭제 (soft delete). */
     @PostMapping("/delete")
     public String delete(@RequestParam("ids") List<Long> ids,
+                         @AuthenticationPrincipal LoginUser loginUser,
                          RedirectAttributes redirectAttributes) {
-        notificationService.delete(ids);
+        notificationService.delete(ids, loginUser.getId(), loginUser.getRole());
         redirectAttributes.addFlashAttribute("message", ids.size() + "건을 삭제했습니다.");
         return "redirect:/admin/notice/alarms";
     }

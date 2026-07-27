@@ -2,6 +2,7 @@ package com.ssa.lms.notice.service;
 
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.repository.CourseRepository;
+import com.ssa.lms.course.repository.CourseInstructorRepository;
 import com.ssa.lms.notice.dto.NoticeDetail;
 import com.ssa.lms.notice.dto.NoticeForm;
 import com.ssa.lms.notice.dto.NoticeListRow;
@@ -11,6 +12,7 @@ import com.ssa.lms.notice.entity.NoticeCategory;
 import com.ssa.lms.notice.repository.NoticeCategoryRepository;
 import com.ssa.lms.notice.repository.NoticeRepository;
 import com.ssa.lms.user.entity.User;
+import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * 공지사항 서비스.
@@ -42,6 +45,7 @@ public class NoticeService {
     private final NoticeCategoryRepository noticeCategoryRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final CourseInstructorRepository courseInstructorRepository;
 
     /** 관리자 목록 — 고정 공지 먼저, 그 다음 최신순. 정렬은 Pageable 로 컨트롤러가 준다. */
     public Page<NoticeListRow> search(NoticeSearchCond cond, Pageable pageable) {
@@ -85,6 +89,24 @@ public class NoticeService {
                 noticeRepository.findNext(id).orElse(null));
     }
 
+    /** 수강/담당 과정 밖의 공지를 URL로 직접 열람하는 것을 막는다. */
+    @Transactional
+    public NoticeDetail getPublishedDetail(Long id, Collection<Long> courseIds, boolean increaseView) {
+        Notice notice = noticeRepository.findWithDetailById(id)
+                .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다. id=" + id));
+        Collection<Long> ids = courseIds == null ? List.of() : courseIds;
+        if (notice.getPublishedAt() == null || notice.getPublishedAt().isAfter(LocalDateTime.now())
+                || (notice.getCourse() != null && !ids.contains(notice.getCourse().getId()))) {
+            throw new AccessDeniedException("열람 권한이 없는 공지입니다.");
+        }
+        if (increaseView) {
+            noticeRepository.increaseViewCount(id);
+            notice = noticeRepository.findWithDetailById(id).orElseThrow();
+        }
+        return NoticeDetail.of(notice, noticeRepository.findPrev(id).orElse(null),
+                noticeRepository.findNext(id).orElse(null));
+    }
+
     public NoticeForm loadForm(Long id) {
         return NoticeForm.from(getOrThrow(id));
     }
@@ -95,7 +117,8 @@ public class NoticeService {
     }
 
     @Transactional
-    public Long create(NoticeForm form, Long authorId) {
+    public Long create(NoticeForm form, Long authorId, Role role) {
+        assertCanManageCourse(form.getCourseId(), authorId, role);
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. id=" + authorId));
 
@@ -113,8 +136,10 @@ public class NoticeService {
     }
 
     @Transactional
-    public void update(Long id, NoticeForm form) {
+    public void update(Long id, NoticeForm form, Long actorId, Role role) {
         Notice notice = getOrThrow(id);
+        assertCanManageCourse(notice.getCourse() == null ? null : notice.getCourse().getId(), actorId, role);
+        assertCanManageCourse(form.getCourseId(), actorId, role);
         notice.update(findCategory(form.getCategoryId()), form.getTitle(), form.getContent(), form.isPinned());
         notice.changeCourse(findCourse(form.getCourseId()));
         if (form.isPublished()) {
@@ -129,7 +154,11 @@ public class NoticeService {
      * (내역서 3년 보존 요건 — CLAUDE.md 코드 컨벤션).
      */
     @Transactional
-    public void delete(List<Long> ids) {
+    public void delete(List<Long> ids, Long actorId, Role role) {
+        for (Long id : ids) {
+            Notice notice = getOrThrow(id);
+            assertCanManageCourse(notice.getCourse() == null ? null : notice.getCourse().getId(), actorId, role);
+        }
         noticeRepository.deleteAllById(ids);
     }
 
@@ -149,5 +178,13 @@ public class NoticeService {
         }
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("과정을 찾을 수 없습니다. id=" + courseId));
+    }
+
+    private void assertCanManageCourse(Long courseId, Long actorId, Role role) {
+        if (role == Role.ADMIN) return;
+        if (role != Role.INSTRUCTOR || courseId == null
+                || !courseInstructorRepository.existsByCourseIdAndInstructorId(courseId, actorId)) {
+            throw new AccessDeniedException("담당 과정의 공지만 관리할 수 있습니다.");
+        }
     }
 }

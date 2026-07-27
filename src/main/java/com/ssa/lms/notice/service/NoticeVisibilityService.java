@@ -43,4 +43,9 @@ public class NoticeVisibilityService {
                 .distinct()
                 .toList();
     }
+
+    /** 공지 상세도 목록과 동일한 노출 규칙을 적용한다. */
+    public boolean canView(Long courseId, List<Long> visibleCourseIds) {
+        return courseId == null || visibleCourseIds.contains(courseId);
+    }
 }

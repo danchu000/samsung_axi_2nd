@@ -16,9 +16,9 @@ import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,14 +35,18 @@ import java.util.List;
  *  - admin-alarm.html 인라인      alarmHistory (5건)
  *
  * A의 {@code config.LocalDataInitializer} 와 파일을 나눠 두어 서로 충돌하지 않는다.
- * @Order(200) 로 A의 계정·과정 시드(기본 순서)보다 뒤에 돈다.
+ *
+ * <p><b>주의</b>: 예전에는 {@code CommandLineRunner + @Order(200)} 이었는데, A의
+ * {@code LocalDataInitializer} 에 {@code @Order} 가 없어 LOWEST_PRECEDENCE 로 취급된다.
+ * 그래서 B 시드가 <b>먼저</b> 돌아 admin 계정을 못 찾고 통째로 건너뛰었다(실측 확인).
+ * {@code ApplicationReadyEvent} 는 모든 {@code CommandLineRunner} 가 끝난 뒤에 발행되므로
+ * 순서 의존을 없애려고 이쪽으로 바꿨다. 되돌리지 말 것.</p>
  */
 @Slf4j
 @Component
 @Profile("local")
-@Order(200)
 @RequiredArgsConstructor
-public class LocalNoticeDataInitializer implements CommandLineRunner {
+public class LocalNoticeDataInitializer {
 
     private final NoticeRepository noticeRepository;
     private final NoticeCategoryRepository noticeCategoryRepository;
@@ -51,9 +55,9 @@ public class LocalNoticeDataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    @Override
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
-    public void run(String... args) {
+    public void seed() {
         if (noticeRepository.count() > 0) {
             return;
         }

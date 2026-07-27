@@ -1,5 +1,5 @@
     <!DOCTYPE html>
-    <html lang="ko">
+    <html lang="ko" xmlns:th="http://www.thymeleaf.org">
     <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,7 +14,6 @@
     <!-- 공지 전용(추가) -->
 
 
-    <script src="/static/js/trainee/notices.js" defer></script>
     <title>Samsung Academy LXP</title>
     </head>
 <!-- ********************************************************************************************************* -->
@@ -110,15 +109,15 @@
         </section>
         <section class="main-content" id="notice-list-section">
             <div class="main-wrap">
-                <div class="filter-section" style="margin-bottom:18px; display:flex; gap:12px; align-items:center;">
-                    <input type="text" id="noticeSearchInput" placeholder="공지사항 검색">
-                    <select id="noticeSortSelect" style="padding:8px 12px; border:1px solid #d6d6d6; border-radius:8px; font-size:15px;">
+                <form class="filter-section" method="get" th:action="@{/trainee/notice}" style="margin-bottom:18px; display:flex; gap:12px; align-items:center;">
+                    <input type="text" id="noticeSearchInput" name="keyword" th:value="${keyword}" placeholder="공지사항 검색">
+                    <select id="noticeSortSelect" name="sort" style="padding:8px 12px; border:1px solid #d6d6d6; border-radius:8px; font-size:15px;">
                         <option value="recent">최신순</option>
                         <option value="old">오래된순</option>
                         <option value="title">제목순</option>
                     </select>
-                    <button type="button" id="noticeSearchBtn" class="btn btn-secondary" style="width: 100px;">검색</button>
-                </div>
+                    <button type="submit" id="noticeSearchBtn" class="btn btn-secondary" style="width: 100px;">검색</button>
+                </form>
                 <table class="basic-table notice-table" style="width:100%;margin-top:24px;">
                     <thead>
                         <tr>
@@ -131,10 +130,15 @@
                         </tr>
                     </thead>
                     <tbody id="notice-list-tbody">
-                        <!-- JS로 공지사항 목록이 동적으로 삽입됩니다. -->
+                        <tr th:each="row : ${rows}">
+                            <td th:text="${row.id}">1</td><td th:text="${row.category}">일반</td>
+                            <td><a th:href="@{/trainee/notice/{id}(id=${row.id})}" th:text="${row.title}">제목</a></td>
+                            <td th:text="${row.date}">2026-01-01</td><td th:text="${row.author}">관리자</td><td th:text="${row.views}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}"><td colspan="6">등록된 공지가 없습니다.</td></tr>
                     </tbody>
                 </table>
-                <div class="notice-pagination" id="noticePagination"></div>
+                <div class="notice-pagination" id="noticePagination" th:text="|${currentPage} / ${totalPages} 페이지|"></div>
             </div>
         </section>
         <!-- 플로팅 메뉴 (AI 챗봇) -->

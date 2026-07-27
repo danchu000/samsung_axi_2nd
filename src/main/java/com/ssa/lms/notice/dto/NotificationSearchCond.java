@@ -30,12 +30,14 @@ public record NotificationSearchCond(
         if (isAll(priority)) {
             return null;
         }
+        // 알 수 없는 값에 예외를 던지면 URL 쿼리스트링만 조작해도 500 이 난다(실측 확인).
+        // 검색 조건은 사용자 입력이므로 인식 못 하는 값은 "조건 없음"으로 흘려보낸다.
         return switch (priority) {
-            case "긴급", "URGENT" -> Notification.Priority.URGENT;
+            case "긴급", "URGENT", "urgent" -> Notification.Priority.URGENT;
             case "높음", "HIGH", "high" -> Notification.Priority.HIGH;
             case "중간", "보통", "NORMAL", "normal" -> Notification.Priority.NORMAL;
             case "낮음", "LOW", "low" -> Notification.Priority.LOW;
-            default -> throw new IllegalArgumentException("알 수 없는 중요도 값: " + priority);
+            default -> null;
         };
     }
 

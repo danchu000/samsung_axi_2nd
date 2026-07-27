@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -120,17 +120,22 @@
         <div class="main-content-inner">
 
             <!-- 필터 영역 -->
-        <section class="filter-section">
+        <form class="filter-section" method="get" th:action="@{/admin/notice/alarms}">
                 <div class="filter-row">
                     <div>
-                        <label>카테고리</label>
-                    <select id="courseFilter">
-                        <!-- 카테고리 옵션은 DB에서 받아와 동적으로 추가됩니다. -->
+                        <!-- 알림에는 공지 분류가 없다. 이 셀렉트는 중요도 필터로 쓴다 (NotificationSearchCond). -->
+                        <label>중요도</label>
+                    <select id="courseFilter" name="priority">
+                        <option value="">전체</option>
+                        <option value="high" th:selected="${cond.priority == 'high'}">높음</option>
+                        <option value="normal" th:selected="${cond.priority == 'normal'}">중간</option>
+                        <option value="low" th:selected="${cond.priority == 'low'}">낮음</option>
+                        <option value="urgent" th:selected="${cond.priority == 'urgent'}">긴급</option>
                     </select>
                 </div>
                 <div>
                     <label>등록일</label>
-                    <select id="dateFilter">
+                    <select id="dateFilter" name="dateFilter">
                         <option value="">전체</option>
                         <option value="today">오늘</option>
                         <option value="this-week">이번 주</option>
@@ -139,23 +144,23 @@
                     </select>
                 </div>
                 <div id="customDateRange" style="display: none;">
-                    <input type="date" id="startDate">
+                    <input type="date" id="startDate" name="startDate">
                     <span style="margin: 0 4px;">~</span>
-                    <input type="date" id="endDate">
+                    <input type="date" id="endDate" name="endDate">
                 </div>
                 <div class="filter-item">
                     <label>검색</label>
-                    <input type="text" id="searchInput" placeholder="공지사항 제목, 작성자, 내용으로 검색">
+                    <input type="text" id="searchInput" name="keyword" th:value="${cond.keyword}" placeholder="알림 제목, 내용으로 검색">
                 </div>
-                <button class="btn btn-secondary" onclick="filterAssignments()">
+                <button class="btn btn-secondary" type="submit">
                     검색하기
                 </button>
-                <button class="btn btn-primary" onclick="window.open('admin-alarm-add.html','alarmAddModal','width=520,height=600,scrollbars=yes,resizable=no');" style="width: 130px; height: 38px;">
+                <button class="btn btn-primary" type="button" onclick="window.open('/admin/notice/alarms/new','alarmAddModal','width=520,height=600,scrollbars=yes,resizable=no');" style="width: 130px; height: 38px;">
                     <span>+</span>
                     <span>새 알람 등록</span>
                 </button>
             </div>
-        </section>
+        </form>
         
         <!-- AI 자동 알림 생성 -->
         
@@ -181,16 +186,53 @@
                             <th style="width:120px;">날짜</th>
                             <th style="width:90px;">중요도</th>
                             <th style="width:110px;">작성자</th>
+                            <th style="width:90px;">수신/읽음</th>
                             <th style="width: 40px;">상세보기</th>
                         </tr>
                     </thead>
                     <tbody id="alarmTableBody">
-                        <!-- JS로 행이 동적으로 추가됩니다. -->
+                        <tr th:each="row : ${rows}">
+                            <td><input type="checkbox" class="alarm-checkbox" name="ids" th:value="${row.id}" form="alarmBulkForm"></td>
+                            <td>
+                                <span th:text="${row.status}" style="font-weight:600;">발송완료</span><br>
+                                <span th:text="${row.readStatus}"
+                                      th:style="${row.readStatus == '읽지않음'} ? 'color:#e74c3c;font-weight:600;' : 'color:#888;'">읽음</span>
+                            </td>
+                            <td th:text="${row.id}">1</td>
+                            <td th:text="${row.title}">제목</td>
+                            <td class="alarm-content-cell" tabindex="0" th:title="${row.content}">
+                                <span class="alarm-content-inner" th:text="${row.content}">내용</span>
+                            </td>
+                            <td th:text="${row.date}">2026-01-01</td>
+                            <td th:text="${row.importance}">높음</td>
+                            <td th:text="${row.author}">관리자</td>
+                            <td th:text="${row.readCount} + ' / ' + ${row.recipientCount}">0 / 0</td>
+                            <td>
+                                <button class="btn btn-secondary" type="button"
+                                        th:attr="onclick=|window.open('/admin/notice/alarms/${row.id}','alarmDetailModal','width=520,height=600,scrollbars=yes,resizable=no');|">상세보기</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}"><td colspan="10">등록된 알림이 없습니다.</td></tr>
                     </tbody>
                 </table>
-                <div style="display:flex;gap:10px;justify-content:flex-start;margin:18px 0 0 0;">
-                    <button class="btn btn-gray" id="btnDeleteSelected" type="button" data-user-role="admin">선택삭제</button>
-                    <button class="btn btn-gray" id="btnMarkRead" type="button">읽음처리</button>
+                <!-- 선택삭제/읽음처리는 같은 체크박스를 공유한다. form 속성으로 테이블 밖 폼에 붙였다. -->
+                <form id="alarmBulkForm" method="post" th:action="@{/admin/notice/alarms/delete}"
+                      style="display:flex;gap:10px;justify-content:flex-start;margin:18px 0 0 0;">
+                    <button class="btn btn-gray" id="btnDeleteSelected" type="submit" data-user-role="admin"
+                            th:formaction="@{/admin/notice/alarms/delete}">선택삭제</button>
+                    <button class="btn btn-gray" id="btnMarkRead" type="submit"
+                            th:formaction="@{/admin/notice/alarms/read}">읽음처리</button>
+                </form>
+                <div class="pagination">
+                    <div class="page-info">
+                        <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">1</span> 페이지
+                        (총 <span th:text="${totalCount}">0</span>건)
+                    </div>
+                    <div class="pagination-controls">
+                        <a th:each="p : ${#numbers.sequence(1, totalPages)}"
+                           th:href="@{/admin/notice/alarms(page=${p},priority=${cond.priority},keyword=${cond.keyword})}"
+                           th:text="${p}" th:classappend="${p == currentPage} ? 'active'">1</a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -224,36 +266,8 @@
         }
         </style>
         <script>
-        // 알림 더미 데이터 (DB에서 받아온다고 가정)
-        const alarmHistory = [
-            { id: 1, status: '읽지않음', title: '출석률 위험', content: '홍길동 학생의 출석률이 60% 미만입니다. 조치가 필요합니다. 홍길동 학생의 출석률이 60% 미만입니다. 조치가 필요합니다. 홍길동 학생의 출석률이 60% 미만입니다. 조치가 필요합니다.', date: '2026-01-22', importance: '높음', author: '관리자A' },
-            { id: 2, status: '읽음', title: '수강률 저조', content: '김민아 학생의 수강률이 70% 미만으로 떨어졌습니다.', date: '2026-01-21', importance: '중간', author: '관리자B' },
-            { id: 3, status: '읽지않음', title: '과정 출석률 위험', content: 'Python 입문반 전체 출석률이 65%로 낮습니다.', date: '2026-01-20', importance: '높음', author: '관리자A' },
-            { id: 4, status: '읽음', title: '수강률 경고', content: 'JavaScript 중급 과정의 전체 수강률이 68%입니다.', date: '2026-01-19', importance: '낮음', author: '관리자C' },
-            { id: 5, status: '읽지않음', title: '출석률 경고', content: '이영희 학생의 출석률이 50% 미만입니다.', date: '2026-01-18', importance: '높음', author: '관리자B' }
-        ];
+        // 더미 alarmHistory / renderAlarmTable 제거 — tbody 는 Thymeleaf 가 서버에서 렌더한다.
 
-        function renderAlarmTable() {
-            const tbody = document.getElementById('alarmTableBody');
-            tbody.innerHTML = '';
-            alarmHistory.forEach((alarm, idx) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><input type="checkbox" class="alarm-checkbox"></td>
-                        <td><span style="color:${alarm.status==='읽지않음' ? '#e74c3c' : '#888'};font-weight:600;">${alarm.status}</span></td>
-                        <td>${alarm.id}</td>
-                        <td>${alarm.title}</td>
-                        <td class="alarm-content-cell" tabindex="0" title="${alarm.content}"><span class="alarm-content-inner">${alarm.content}</span></td>
-                        <td>${alarm.date}</td>
-                        <td>${alarm.importance}</td>
-                        <td>${alarm.author}</td>
-                        <td><button class="btn btn-secondary" type="button" onclick="window.open('admin-alarm-add.html','alarmDetailModal','width=520,height=600,scrollbars=yes,resizable=no');">상세보기</button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        // 애니메이션으로 내용 스르르 이동
         function addAlarmContentScrollAnimation() {
             const cells = document.querySelectorAll('.alarm-content-cell');
             cells.forEach(cell => {
@@ -287,7 +301,6 @@
 
         // DOMContentLoaded 시 테이블 렌더 + 애니메이션 이벤트 연결
         document.addEventListener('DOMContentLoaded', () => {
-            renderAlarmTable();
             addAlarmContentScrollAnimation();
         });
         </script>

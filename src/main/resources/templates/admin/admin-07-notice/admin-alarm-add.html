@@ -6,27 +6,33 @@
 
 
 <!-- ✅ 알림 모달 -->
-<div id="alarmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="alarmModalTitle" hidden data-user-role="instructor">
-  <div class="modal" role="document">
+<div id="alarmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="alarmModalTitle" data-user-role="instructor"
+     xmlns:th="http://www.thymeleaf.org">
+  <!-- window.open 으로 단독 페이지로 뜨는 화면이라 hidden 속성을 제거했다(원본은 모달 전제라 항상 안 보였다). -->
+  <form class="modal" role="document" method="post"
+        th:action="${row == null} ? @{/admin/notice/alarms} : @{/admin/notice/alarms/{id}(id=${form.id})}">
 
     <!-- Header -->
     <header class="modal-header">
       <div class="header-left">
-        <h2 id="alarmModalTitle" class="modal-title">알림 상세</h2>
+        <h2 id="alarmModalTitle" class="modal-title" th:text="${row == null} ? '알림 등록' : '알림 상세'">알림 상세</h2>
       </div>
     </header>
+
+    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
     <!-- Meta -->
     <section class="modal-meta">
       <div class="meta-row">
         <div class="meta-item">
-          <span class="badge badge-unread" id="alarmStatusBadge">미확인</span>
-          <span class="pill" id="alarmPriorityPill">중요도: 높음</span>
+          <span class="badge badge-unread" id="alarmStatusBadge" th:text="${row?.status} ?: '미확인'">미확인</span>
+          <span class="pill" id="alarmPriorityPill" th:text="${row != null} ? '중요도: ' + ${row.importance} : '중요도: 높음'">중요도: 높음</span>
+          <span class="pill" th:if="${row != null}" th:text="'수신 ' + ${row.recipientCount} + '명 / 읽음 ' + ${row.readCount} + '명'">수신 0명</span>
         </div>
         <div class="meta-item right">
-          <span class="kv"><span class="k">번호</span><span class="v" id="alarmNo">00124</span></span>
-          <span class="kv"><span class="k">작성자</span><span class="v" id="alarmAuthor">관리자A</span>
-          <span class="kv"><span class="k">날짜</span><span class="v" id="alarmDate">2026-01-24 14:10</span></span>
+          <span class="kv"><span class="k">번호</span><span class="v" id="alarmNo" th:text="${row?.id} ?: '-'">00124</span></span>
+          <span class="kv"><span class="k">작성자</span><span class="v" id="alarmAuthor" th:text="${row?.author} ?: '-'">관리자A</span>
+          <span class="kv"><span class="k">날짜</span><span class="v" id="alarmDate" th:text="${row?.date} ?: '-'">2026-01-24 14:10</span></span>
         </div>
       </div>
     </section>
@@ -35,15 +41,12 @@
     <main class="modal-body">
       <div class="field">
         <label class="label" for="alarmTitle">제목</label>
-        <input id="alarmTitle" class="input" type="text" value="서비스 점검 안내" />
+        <input id="alarmTitle" name="title" class="input" type="text" th:value="${form.title}" value="" />
       </div>
 
       <div class="field">
         <label class="label" for="alarmContent">내용</label>
-        <textarea id="alarmContent" class="textarea" rows="8">안녕하세요. 시스템 안정화를 위해 아래 시간 동안 서비스 점검이 진행됩니다.
-- 일시: 2026-01-25 02:00 ~ 04:00
-- 영향: 일부 기능 이용 불가
-이용에 불편을 드려 죄송합니다.</textarea>
+        <textarea id="alarmContent" name="content" class="textarea" rows="8" th:text="${form.content}"></textarea>
         <p class="hint">※ 긴 내용은 스크롤되며 줄바꿈이 유지됩니다.</p>
       </div>
     </main>
@@ -53,44 +56,61 @@
       <div class="footer-left">
 
         <div class="select-row">
-          <label class="label-inline" for="categorySelect">카테고리</label>
-          <select id="categorySelect" class="select">
-            <option value="guide" selected>안내</option>
-            <option value="recommend">권장</option>
-            <option value="caution">주의</option>
-            <option value="kakao">카카오알림톡</option>
+          <!-- 원본의 "카테고리"(안내/권장/주의)는 대응 필드가 없다. 실제로 필요한 발송 대상으로 바꿨다. -->
+          <label class="label-inline" for="targetTypeSelect">대상</label>
+          <select id="targetTypeSelect" name="targetType" class="select">
+            <option value="ALL" th:selected="${form.targetType == 'ALL'}">전체</option>
+            <option value="COURSE" th:selected="${form.targetType == 'COURSE'}">과정</option>
+            <option value="USER" th:selected="${form.targetType == 'USER'}">개인</option>
           </select>
         </div>
 
         <div class="select-row">
+          <label class="label-inline" for="targetRefIdInput">대상 ID</label>
+          <input id="targetRefIdInput" name="targetRefId" class="input" type="number" style="width:110px;"
+                 th:value="${form.targetRefId}" placeholder="과정/사용자 id">
+        </div>
+
+        <div class="select-row">
+          <label class="label-inline" for="sendAtInput">발송 시각</label>
+          <input id="sendAtInput" name="sendAt" class="input" type="datetime-local" style="width:210px;"
+                 th:value="${form.sendAt != null} ? ${#temporals.format(form.sendAt, 'yyyy-MM-dd''T''HH:mm')} : ''">
+        </div>
+
+        <div class="select-row">
           <label class="label-inline" for="statusSelect">상태 변경</label>
-          <select id="statusSelect" class="select">
-            <option value="unread" selected>미확인</option>
-            <option value="read">확인</option>
-            <option value="scheduled">예약</option>
-            <option value="sent">발송완료</option>
-            <option value="hidden">숨김</option>
+          <select id="statusSelect" name="status" class="select">
+            <option value="unread" th:selected="${form.status == 'unread'}">미확인</option>
+            <option value="read" th:selected="${form.status == 'read'}">확인</option>
+            <option value="scheduled" th:selected="${form.status == 'scheduled'}">예약</option>
+            <option value="sent" th:selected="${form.status == 'sent'}">발송완료</option>
+            <option value="hidden" th:selected="${form.status == 'canceled'}">숨김</option>
           </select>
         </div>
 
         <div class="select-row">
           <label class="label-inline" for="prioritySelect">중요도</label>
-          <select id="prioritySelect" class="select">
-            <option value="high" selected>높음</option>
-            <option value="normal">보통</option>
-            <option value="low">낮음</option>
+          <select id="prioritySelect" name="priority" class="select">
+            <option value="urgent" th:selected="${form.priority == 'urgent'}">긴급</option>
+            <option value="high" th:selected="${form.priority == 'high'}">높음</option>
+            <option value="normal" th:selected="${form.priority == 'normal'}">보통</option>
+            <option value="low" th:selected="${form.priority == 'low'}">낮음</option>
           </select>
         </div>
       </div>
 
       <div class="footer-right">
-        <button type="button" class="btn btn-ghost" id="editBtn" data-user-role="admin">수정</button>
-        <button type="button" class="btn btn-ghost danger" id="deleteBtn" data-user-role="admin">삭제</button>
-        <button type="button" class="btn btn-primary" id="markReadBtn">확인 처리</button>
+        <button type="submit" class="btn btn-ghost" id="editBtn" data-user-role="admin"
+                th:text="${row == null} ? '등록' : '저장'">저장</button>
+        <button type="submit" class="btn btn-ghost danger" id="deleteBtn" data-user-role="admin" th:if="${row != null}"
+                th:formaction="@{/admin/notice/alarms/delete}" name="ids" th:value="${form.id}"
+                onclick="return confirm('이 알림을 삭제할까요?');">삭제</button>
+        <button type="submit" class="btn btn-primary" id="markReadBtn" th:if="${row != null}"
+                th:formaction="@{/admin/notice/alarms/read}" name="ids" th:value="${form.id}">확인 처리</button>
       </div>
     </footer>
 
-  </div>
+  </form>
 </div>
 
 <style>
@@ -269,21 +289,7 @@
     statusSelect.addEventListener('change', () => applyStatusUI(statusSelect.value));
     prioritySelect.addEventListener('change', () => applyPriorityUI(prioritySelect.value));
 
-    // "확인 처리" = 상태를 확인으로 변경(데모)
-    markReadBtn.addEventListener('click', () => {
-      statusSelect.value = 'read';
-      applyStatusUI('read');
-      alert('확인 처리되었습니다. (데모)');
-      closeModal();
-    });
-
-    // 삭제(데모)
-    deleteBtn.addEventListener('click', () => {
-      if (confirm('이 알림을 삭제할까요? (데모)')) {
-        alert('삭제 처리되었습니다. (데모)');
-        closeModal();
-      }
-    });
+    // 확인 처리 / 삭제는 서버로 실제 submit 한다 (th:formaction). 데모 리스너 제거.
 
     // init
     applyStatusUI(statusSelect.value);

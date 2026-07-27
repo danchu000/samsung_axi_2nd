@@ -3,6 +3,7 @@ package com.ssa.lms.course.web;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.CourseStatus;
 import com.ssa.lms.course.service.CourseService;
+import com.ssa.lms.course.service.CurriculumService;
 import com.ssa.lms.course.service.DuplicateCourseCodeException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class CourseAdminController {
     private static final String VIEW_DIR = "admin/admin-03-courses/";
 
     private final CourseService courseService;
+    private final CurriculumService curriculumService;
 
     /** 과정 목록 + 상단 통계. */
     @GetMapping
@@ -72,7 +74,10 @@ public class CourseAdminController {
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("course", courseService.get(id));
+        model.addAttribute("subjects", curriculumService.curriculum(id));
         model.addAttribute("statuses", CourseStatus.values());
+        model.addAttribute("subjectForm", new SubjectForm());
+        model.addAttribute("sessionForm", new SessionForm());
         return VIEW_DIR + "courses-detail";
     }
 

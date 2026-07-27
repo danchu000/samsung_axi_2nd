@@ -88,7 +88,64 @@
                 </form>
             </div>
 
-            <!-- ▼ 구성 과목/차시 · 담당 강사 · 수강신청 현황 섹션은 후속 슬라이스에서 삽입 -->
+            <!-- 구성 과목 / 차시 -->
+            <div class="form-section">
+                <h3 class="section-title">구성 과목 / 차시</h3>
+                <p th:if="${curriculumError}" class="field-error" th:text="${curriculumError}" style="color:#dc3545;"></p>
+
+                <p th:if="${subjects.isEmpty()}" class="empty-hint">등록된 과목이 없습니다. 아래에서 과목을 추가하세요.</p>
+
+                <div class="subject-block" th:each="subject : ${subjects}">
+                    <div class="subject-head">
+                        <span th:text="|${subject.orderNo}. ${subject.name}|">과목명</span>
+                        <span>
+                            <form class="inline-form" th:action="@{/admin/courses/{cid}/subjects/{sid}/delete(cid=${course.id},sid=${subject.id})}"
+                                  method="post" onsubmit="return confirm('과목과 소속 차시를 모두 삭제하시겠습니까?');">
+                                <button type="submit" class="btn btn-gray" style="padding:4px 10px;">과목 삭제</button>
+                            </form>
+                        </span>
+                    </div>
+                    <div th:if="${subject.description}" style="color:#777; font-size:13px; margin:4px 0 8px;" th:text="${subject.description}">설명</div>
+
+                    <!-- 과목명 수정 -->
+                    <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects/{sid}(cid=${course.id},sid=${subject.id})}" method="post">
+                        <input type="text" name="name" th:value="${subject.name}" placeholder="과목명" style="min-width:180px;">
+                        <input type="text" name="description" th:value="${subject.description}" placeholder="설명(선택)" style="min-width:200px;">
+                        <button type="submit" class="btn" style="padding:6px 12px;">과목 수정</button>
+                    </form>
+
+                    <!-- 차시 목록 -->
+                    <div style="margin-top:8px;">
+                        <p th:if="${subject.sessions.isEmpty()}" class="empty-hint" style="padding-left:12px;">차시가 없습니다.</p>
+                        <div class="session-row" th:each="session : ${subject.sessions}">
+                            <span th:text="|${session.seq}차시 · ${session.name}|">차시</span>
+                            <span th:if="${session.lessonDate}" th:text="| · ${session.lessonDate}|"></span>
+                            <span th:if="${session.learningMinutes}" th:text="| · ${session.learningMinutes}분|"></span>
+                            <form class="inline-form" th:action="@{/admin/courses/{cid}/sessions/{sid}/delete(cid=${course.id},sid=${session.id})}" method="post">
+                                <button type="submit" class="btn btn-gray" style="padding:2px 8px; font-size:12px;">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 차시 추가 -->
+                    <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects/{sid}/sessions(cid=${course.id},sid=${subject.id})}" method="post">
+                        <input type="text" name="name" placeholder="차시명" required style="min-width:160px;">
+                        <input type="date" name="lessonDate">
+                        <input type="number" name="learningMinutes" placeholder="학습(분)" min="0" style="width:110px;">
+                        <button type="submit" class="btn btn-primary" style="padding:6px 12px;">차시 추가</button>
+                    </form>
+                </div>
+
+                <!-- 과목 추가 -->
+                <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects(cid=${course.id})}" method="post"
+                      style="border-top:1px solid #eee; padding-top:12px;">
+                    <input type="text" name="name" placeholder="새 과목명" required style="min-width:200px;">
+                    <input type="text" name="description" placeholder="설명(선택)" style="min-width:220px;">
+                    <button type="submit" class="btn btn-primary">+ 과목 추가</button>
+                </form>
+            </div>
+
+            <!-- ▼ 담당 강사 · 수강신청 현황 섹션은 후속 슬라이스에서 삽입 -->
 
             <!-- 버튼 -->
             <div class="button-group">

@@ -9,5 +9,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     List<Session> findBySubjectIdOrderBySeq(Long subjectId);
 
+    long countBySubjectId(Long subjectId);
+
     List<Session> findBySubjectCourseIdOrderBySubjectOrderNoAscSeqAsc(Long courseId);
 }

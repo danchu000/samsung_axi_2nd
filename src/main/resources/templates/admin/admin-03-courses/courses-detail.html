@@ -145,7 +145,36 @@
                 </form>
             </div>
 
-            <!-- ▼ 담당 강사 · 수강신청 현황 섹션은 후속 슬라이스에서 삽입 -->
+            <!-- 담당 강사 -->
+            <div class="form-section">
+                <h3 class="section-title">담당 강사</h3>
+                <p th:if="${instructorError}" class="field-error" th:text="${instructorError}" style="color:#dc3545;"></p>
+
+                <div>
+                    <p th:if="${instructors.isEmpty()}" class="empty-hint">배정된 강사가 없습니다.</p>
+                    <span class="chip" th:each="ins : ${instructors}">
+                        <span th:text="${ins.name}">강사명</span>
+                        <span th:if="${ins.primary}" style="color:#1c6dd0; font-weight:700;">(대표)</span>
+                        <form class="inline-form" th:action="@{/admin/courses/{cid}/instructors/{mid}/delete(cid=${course.id},mid=${ins.mappingId})}" method="post">
+                            <button type="submit" style="border:none; background:none; cursor:pointer; color:#999;">✕</button>
+                        </form>
+                    </span>
+                </div>
+
+                <!-- 강사 배정 -->
+                <form class="mini-form" th:action="@{/admin/courses/{cid}/instructors(cid=${course.id})}" method="post">
+                    <select name="userId" required class="status-select">
+                        <option value="">강사 선택</option>
+                        <option th:each="opt : ${availableInstructors}" th:value="${opt.userId}" th:text="${opt.name}">강사</option>
+                    </select>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+                        <input type="checkbox" name="primary" value="true"> 대표 강사
+                    </label>
+                    <button type="submit" class="btn btn-primary">강사 배정</button>
+                </form>
+            </div>
+
+            <!-- ▼ 수강신청 현황 섹션은 후속 슬라이스에서 삽입 -->
 
             <!-- 버튼 -->
             <div class="button-group">

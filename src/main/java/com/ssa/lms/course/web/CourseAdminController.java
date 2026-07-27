@@ -2,6 +2,7 @@ package com.ssa.lms.course.web;
 
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.CourseStatus;
+import com.ssa.lms.course.service.CourseInstructorService;
 import com.ssa.lms.course.service.CourseService;
 import com.ssa.lms.course.service.CurriculumService;
 import com.ssa.lms.course.service.DuplicateCourseCodeException;
@@ -27,6 +28,7 @@ public class CourseAdminController {
 
     private final CourseService courseService;
     private final CurriculumService curriculumService;
+    private final CourseInstructorService courseInstructorService;
 
     /** 과정 목록 + 상단 통계. */
     @GetMapping
@@ -75,6 +77,8 @@ public class CourseAdminController {
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("course", courseService.get(id));
         model.addAttribute("subjects", curriculumService.curriculum(id));
+        model.addAttribute("instructors", courseInstructorService.instructorsOf(id));
+        model.addAttribute("availableInstructors", courseInstructorService.availableInstructors());
         model.addAttribute("statuses", CourseStatus.values());
         model.addAttribute("subjectForm", new SubjectForm());
         model.addAttribute("sessionForm", new SessionForm());

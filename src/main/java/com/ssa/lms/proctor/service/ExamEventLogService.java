@@ -72,7 +72,7 @@ public class ExamEventLogService {
      * 이벤트별 심각도. 모니터링 화면(다음 슬라이스)이 이 값으로 경고를 띄운다.
      * 심각도는 서버가 정한다 — 클라이언트가 보낸 값을 그대로 믿으면 부정행위를 INFO 로 낮춰 보낼 수 있다.
      */
-    private ExamEventLog.Severity severityOf(ExamEventLog.EventType type) {
+    public ExamEventLog.Severity severityOf(ExamEventLog.EventType type) {
         return switch (type) {
             case ENTER, EXIT, RESUME, TAB_FOCUS -> ExamEventLog.Severity.INFO;
             case TAB_BLUR, COPY, PASTE, FULLSCREEN_EXIT, NETWORK_DROP -> ExamEventLog.Severity.WARN;

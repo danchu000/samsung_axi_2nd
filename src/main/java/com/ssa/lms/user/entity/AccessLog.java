@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AccessLog {
 
-    public enum Type { LOGIN, LOGOUT, LOGIN_FAIL }
+    public enum Type { LOGIN, LOGOUT, LOGIN_FAIL, IDENTITY_VERIFY }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

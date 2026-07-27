@@ -34,9 +34,16 @@ public class SecurityConfig {
                                 "/icons/**", "/font/**", "/favicon.ico").permitAll()
                         .requestMatchers("/", "/login", "/signup/**", "/error").permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
-                        // 역할별 URL 경계 (관리자는 강사/훈련생 화면 접근 허용)
+                        // 역할별 URL 경계 — 구체 경로가 먼저 와야 한다 (권한정의서 기준, a-requests.md P1-6)
+                        // B 도메인: 관리자 모듈 중 강사도 접근 가능한 영역
+                        .requestMatchers("/admin/evaluation/**", "/admin/support/**",
+                                "/admin/notice/**", "/admin/survey/**").hasAnyRole("ADMIN", "INSTRUCTOR")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/instructor/proctor/**").hasAnyRole("ADMIN", "INSTRUCTOR")
                         .requestMatchers("/instructor/**").hasAnyRole("INSTRUCTOR", "ADMIN")
+                        // B 도메인: 훈련생 전용 (응시/제출은 본인만 — ADMIN 도 불가)
+                        .requestMatchers("/trainee/exam/**", "/trainee/assignment/**",
+                                "/trainee/survey/**", "/trainee/qna/**").hasRole("TRAINEE")
                         .requestMatchers("/trainee/**").hasAnyRole("TRAINEE", "ADMIN")
                         .anyRequest().authenticated()
                 )

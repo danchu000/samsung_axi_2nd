@@ -1,6 +1,9 @@
 package com.ssa.lms.config;
 
-import com.ssa.lms.course.*;
+import com.ssa.lms.course.entity.*;
+import com.ssa.lms.course.repository.CourseInstructorRepository;
+import com.ssa.lms.course.repository.CourseRepository;
+import com.ssa.lms.course.repository.EnrollmentRepository;
 import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.repository.UserRepository;
@@ -63,7 +66,9 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .build());
 
         Course course = Course.builder()
-                .name("클라우드 기반 풀스택 개발자 양성과정 1기")
+                .courseCode("COURSE-2026-001")
+                .courseName("클라우드 기반 풀스택 개발자 양성과정")
+                .cohort("1기")
                 .category("웹개발")
                 .description("Spring Boot + AWS 풀스택 개발자 양성 데모 과정")
                 .startDate(LocalDate.now().minusDays(7))
@@ -74,9 +79,9 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .build();
 
         Subject subject = Subject.builder().name("백엔드 기초").description("Java/Spring 입문").orderNo(1).build();
-        subject.addSession(Session.builder().title("1차시 - 개발환경 구축").orderNo(1)
+        subject.addSession(Session.builder().seq(1).name("1차시 - 개발환경 구축")
                 .lessonDate(LocalDate.now().minusDays(6)).learningMinutes(60).build());
-        subject.addSession(Session.builder().title("2차시 - Java 문법 기초").orderNo(2)
+        subject.addSession(Session.builder().seq(2).name("2차시 - Java 문법 기초")
                 .lessonDate(LocalDate.now().minusDays(5)).learningMinutes(60).build());
         course.addSubject(subject);
         courseRepository.save(course);

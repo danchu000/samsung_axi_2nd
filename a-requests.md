@@ -162,3 +162,33 @@ A는 `Grade` 엔티티/리포지토리를 직접 쓰지 말고 이 서비스만 
 | 3 | `templates/`, `static/` 을 `src/main/resources/` 아래로 이동 | **A가 스켈레톤 올릴 때 A가 같이 해줄 것.** 155개 파일이 움직이는 커밋이라 나눠서 하면 충돌난다 |
 | 4 | `ddl-auto` | 개발 중 `update`, 스키마 확정 후 `validate` + `schema.sql` |
 | 5 | DB | MySQL 8 / MariaDB 중 확정 필요 (B는 예약어 회피만 해둠) |
+
+---
+
+# A 답변 (2026-07-27, 커밋 f8be486 + 후속 커밋 반영)
+
+## P0 — 전부 반영 완료
+1. **의존성** ✅ 요청한 것 전부 포함 + validation/thymeleaf-extras-springsecurity6/H2(local). **Lombok 사용 확정.**
+2. **BaseEntity** ✅ `com.ssa.lms.common.entity.BaseEntity` — 제안한 필드명 그대로 (createdAt/updatedAt/createdBy/updatedBy/deletedAt/deleted, 컬럼 is_deleted). `@EnableJpaAuditing` + `AuditorAware<Long>`(로그인 사용자 id) 구성 완료. `@Id` 없음. soft delete가 필요한 엔티티는 User/Course처럼 `@SQLDelete`+`@SQLRestriction` 패턴 사용.
+3. **FQCN** ✅ 전부 B 가정대로: `user.entity.User`(id/loginId/name/role), `course.entity.Course`(**courseCode**·**courseName**·**cohort** — cohort는 더미 데이터 형식대로 `"1기"` 문자열), `course.entity.Subject`(name), `course.entity.Session`(**seq**/**name**, 테이블명만 예약어 회피로 `course_session`).
+4. **조회 인터페이스** ✅ `com.ssa.lms.course.service.CourseQueryService`
+   - `findUserIdsByCourseId(courseId)` — APPROVED+COMPLETED 수강생만 반환 (신청/반려/취소 제외). 다른 기준 필요하면 말해줘.
+   - `isInstructorOf(userId, courseId)` ✅
+5. **CryptoConverter** ✅ `com.ssa.lms.common.converter.CryptoConverter` (AES-256/GCM, 키: `lms.crypto.secret` → 운영은 env `LMS_CRYPTO_SECRET`). `@Convert(converter = CryptoConverter.class)` 붙이면 됨 — User의 email/phone/birthDate에 적용 예시 있음.
+
+## P1
+6. **SecurityConfig** ✅ 요청 표 그대로 반영 (구체 경로가 /admin/** 앞에 오도록 배치). 단 `/trainee/exam/**` 등은 표대로 **TRAINEE 전용**으로 했는데 ADMIN 열람이 필요해지면 알려줘.
+7. **본인인증** ✅ `com.ssa.lms.auth.IdentityVerificationService` — 제안 시그니처 그대로 + `VerifyRequest(method, credential)` record. 기본 구현 `PasswordIdentityVerificationService`(비밀번호 재확인, 성공 시 access_log에 IDENTITY_VERIFY 기록 → lastVerifiedAt은 이 로그로 판정). 외부 인증(PASS/SMS)은 같은 인터페이스로 확장 예정. 실패 시 `IdentityVerificationException`.
+8. **이수↔성적** 👍 A는 `GradeQueryService` 두 메서드만 호출하겠음. `Survey.reflectCompletion` 읽기 OK. 이수 로직 만들 때 시그니처 더 필요하면 요청할게.
+
+## P2
+9. **Content↔Exam 연결 방향 제안**: 의존 방향(B→A)을 유지하기 위해 **Exam이 content_id(nullable)를 갖는 쪽**을 제안. A의 Content 엔티티는 Phase 2 초에 올릴 테니 그때 확정하자.
+
+## 공통 결정 답변
+| # | 답변 |
+|---|---|
+| 1 | ✅ `com.ssa.lms` |
+| 2 | ✅ A 도메인도 `<domain>/entity|repository|service|web` 구조로 재배치 완료 |
+| 3 | ✅ 이동 완료 (aed241d) — `/static/**` 절대경로 링크는 WebConfig 매핑으로 그대로 동작 |
+| 4 | ✅ local=H2 create-drop, dev=MySQL update. 스키마 확정 후 validate+schema.sql 동의 |
+| 5 | **MySQL 8 확정 제안** (이미 mysql-connector-j 사용, H2도 MySQL 모드) — 이견 있으면 말해줘 |

@@ -32,6 +32,8 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 정�
 - 커밋 메시지는 한글 허용, 기존 스타일 유지.
 
 ## 코드 컨벤션
+- 도메인 하위 패키지 구조: `<domain>/{entity,repository,service,web}` (A·B 합의 — a-requests.md)
+- 전 엔티티는 `com.ssa.lms.common.entity.BaseEntity` 상속 (createdAt/updatedAt/createdBy/updatedBy/deletedAt/is_deleted). soft delete는 `@SQLDelete`+`@SQLRestriction` 패턴 (User/Course 참고).
 - UI 텍스트는 한국어. 기존 화면의 클래스명/구조를 최대한 유지하며 Thymeleaf 속성만 추가하는 방식으로 전환.
 - JS의 하드코딩 더미 배열(`const ...Data = [...]`)은 서버 데이터로 교체하되, 원본 더미는 `data.sql` 시드 데이터로 옮긴다.
 - 개인정보 컬럼(전화번호·이메일·생년월일 등)은 **엔티티 설계 시점부터** AES-256 `AttributeConverter` 적용, 비밀번호는 bcrypt (내역서 증빙 요건 — PLAN.md §2-1).

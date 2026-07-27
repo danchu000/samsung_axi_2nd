@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +21,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * local 프로필 전용 시드 데이터 — 개발용 계정 3종과 데모 과정 1개.
- * (기존 프론트 더미 JS 배열의 data.sql 이관은 각 도메인 슬라이스에서 진행)
+ * local 프로필 전용 <b>기본(core) 시드</b> — 개발용 계정 3종과 데모 과정 1개.
+ * 계정: admin / instructor1 / trainee1, 비밀번호는 모두 "1234".
  *
- * 계정: admin / instructor1 / trainee1, 비밀번호는 모두 "1234"
+ * <p><b>이 파일은 병렬 작업 중 동결(freeze)한다.</b> 도메인별 시드가 필요하면 이 파일을 수정하지 말고
+ * 별도의 {@code @Component @Profile("local") @Order(n>0)} CommandLineRunner 를 새로 추가할 것.
+ * {@code @Order(0)} 이라 항상 가장 먼저 실행되므로, 도메인 시더는 여기서 만든 계정/데모 과정에
+ * 의존해도 된다. (협업 규칙: PARALLEL.md)</p>
  */
 @Slf4j
 @Component
 @Profile("local")
+@Order(0)
 @RequiredArgsConstructor
 public class LocalDataInitializer implements CommandLineRunner {
 

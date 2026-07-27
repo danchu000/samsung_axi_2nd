@@ -1,5 +1,5 @@
     <!DOCTYPE html>
-    <html lang="ko">
+    <html lang="ko" xmlns:th="http://www.thymeleaf.org">
     <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +12,7 @@
 
     <!-- 공지 전용(추가) -->
 
-    <script src="/static/js/trainee/notices.js" defer></script>
+    <!-- trainee/notices.js 는 더미 배열을 렌더한다. 서버 전환하며 제거. -->
     <title>Samsung Academy LXP</title>
     </head>
 <!-- ********************************************************************************************************* -->
@@ -119,23 +119,33 @@
                     <tbody>
                         <tr>
                             <th>제목</th>
-                            <td colspan="3" id="notice-title">공지사항 제목 예시</td>
+                            <td colspan="3" id="notice-title" th:text="${notice.title}">공지사항 제목 예시</td>
                         </tr>
                         <tr>
                             <th>카테고리</th>
-                            <td id="notice-category">일반</td>
+                            <td id="notice-category" th:text="${notice.category}">일반</td>
                             <th>등록일</th>
-                            <td id="notice-date">2026-01-26</td>
+                            <td id="notice-date" th:text="${notice.date}">2026-01-26</td>
                         </tr>
                         <tr>
                             <th>등록인</th>
-                            <td id="notice-writer">관리자</td>
+                            <td id="notice-writer" th:text="${notice.author}">관리자</td>
                             <th>조회수</th>
-                            <td id="notice-views">123</td>
+                            <td id="notice-views" th:text="${notice.views}">123</td>
+                        </tr>
+                        <tr>
+                            <th>첨부파일</th>
+                            <td colspan="3">
+                                <span th:if="${#lists.isEmpty(notice.attachments)}">없음</span>
+                                <span th:each="att, st : ${notice.attachments}">
+                                    <a th:href="${att.url}" th:text="${att.name}" download>파일</a><span th:if="${!st.last}">, </span>
+                                </span>
+                            </td>
                         </tr>
                         <tr>
                             <th>내용</th>
-                            <td colspan="3" id="notice-content" style="min-height:200px;">
+                            <td colspan="3" id="notice-content" style="min-height:200px; white-space:pre-line;"
+                                th:text="${notice.content}">
                                 공지사항 상세 내용이 여기에 표시됩니다.<br>
                                 여러 줄의 공지사항 본문을 지원합니다.
                             </td>
@@ -143,7 +153,7 @@
                     </tbody>
                 </table>
                 <div style="margin-top:32px; text-align:right;">
-                    <a href="notices.html" class="btn btn-primary">목록으로</a>
+                    <a th:href="@{/trainee/notice}" class="btn btn-primary">목록으로</a>
                 </div>
             </div>
         </section>

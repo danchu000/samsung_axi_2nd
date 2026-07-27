@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -173,7 +173,9 @@
     <main class="main-content">
         <!-- 훈련생 관리 -->
         <section class="main-content-inner">
-            <section class="notice-board-section">
+            <form class="notice-board-section" method="post"
+                  th:action="${form.id == null} ? @{/admin/notice} : @{/admin/notice/{id}(id=${form.id})}">
+                <input type="hidden" name="id" th:value="${form.id}">
                 <table class="notice-table">
                     <colgroup>
                         <col style="width: 6%;">
@@ -192,12 +194,12 @@
                     <tbody>
                         <tr>
                             <th colspan="12">
-                                <input id="noticeTitle" type="text" placeholder="공지 제목을 입력하세요" style="background-color: transparent; font-size: 24px;"/>
+                                <input id="noticeTitle" name="title" th:value="${form.title}" type="text" placeholder="공지 제목을 입력하세요" style="background-color: transparent; font-size: 24px;"/>
                             </th>
                         </tr>
                         <tr>
                             <th>번호</th>
-                            <td id="noticeId"></td>
+                            <td id="noticeId" th:text="${form.id ?: '-'}"></td>
                             <th>작성자</th>
                             <td id="noticeAuthor"></td>
                             <th>작성일</th>
@@ -213,25 +215,27 @@
                         <tr>
                             <th>첨부파일</th>
                             <td colspan="11" style="text-align: start;">
-                            <input type="file" name="files" multiple style="border:none;" />
-                            <div id="noticeAttachments"></div>
+                            <label>카테고리 <select name="categoryId"><option value="">선택 안 함</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${category.id == form.categoryId}">일반</option></select></label>
+                            <label>과정 <select name="courseId"><option value="">전체 공지</option><option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.courseName}" th:selected="${course.id == form.courseId}">과정</option></select></label>
+                            <label><input type="checkbox" name="pinned" th:checked="${form.pinned}"> 상단 고정</label>
+                            <label><input type="checkbox" name="published" th:checked="${form.published}"> 게시</label>
                             </td>
                         </tr>
                     </tbody>
                 </table>
 
                         
-                <textarea class="notice-detail-content" id="noticeContent" placeholder="공지사항 본문을 입력하세요"></textarea>
+                <textarea class="notice-detail-content" id="noticeContent" name="content" th:text="${form.content}" placeholder="공지사항 본문을 입력하세요"></textarea>
 
                 
 
                 <div class="notice-detail-footer">
-                    <button class="btn btn-gray" style="padding: 12px 40px; font-size: 16px;" onclick="goBack()">돌아가기</button>
+                    <a class="btn btn-gray" th:href="@{/admin/notice}" style="padding: 12px 40px; font-size: 16px;">돌아가기</a>
                     <div>
-                        <button class="btn btn-save" style="padding: 12px 40px; font-size: 16px;" onclick="window.history.back()">저장하기</button>
+                        <button type="submit" class="btn btn-save" style="padding: 12px 40px; font-size: 16px;">저장하기</button>
                     </div>
                 </div>
-            </section>
+            </form>
         </section>
     </main>
 

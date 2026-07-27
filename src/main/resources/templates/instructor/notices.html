@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
     <link rel="stylesheet" href="/static/css/notices.css">
-    <script src="/static/js/notices.js" defer></script>
+    <!-- notices.js 는 더미 배열을 렌더한다. 서버 전환하며 제거. -->
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 강사</title>
@@ -109,14 +109,8 @@
         <!-- 훈련생 관리 -->
         <section class="main-content-inner">
             <!-- 필터 영역 -->
-            <div class="filter-section">
+            <form class="filter-section" method="get" th:action="@{/instructor/notice}">
                 <div class="filter-row">
-                    <div>
-                        <label>카테고리</label>
-                        <select id="courseFilter">
-                            <!-- 카테고리 옵션은 DB에서 받아와 동적으로 추가됩니다. -->
-                        </select>
-                    </div>
                     <div>
                         <label>등록일</label>
                         <select id="dateFilter">
@@ -134,17 +128,18 @@
                     </div>
                     <div class="filter-item">
                         <label>검색</label>
-                        <input type="text" id="searchInput" placeholder="공지사항 제목, 작성자, 내용으로 검색">
+                        <input type="text" id="searchInput" name="keyword" th:value="${keyword}" placeholder="공지사항 제목, 작성자, 내용으로 검색">
                     </div>
-                    <button class="btn btn-secondary" onclick="filterAssignments()">
+                    <button class="btn btn-secondary" type="submit">
                         검색하기
                     </button>
-                    <button class="btn btn-primary" onclick="location.href='notice-add.html'" style="width: 130px; height: 38px;">
+                    <!-- 강사의 공지 등록은 관리자 화면(/admin/notice)을 공유한다 (SecurityConfig: /admin/notice/** → ADMIN,INSTRUCTOR) -->
+                    <a class="btn btn-primary" th:href="@{/admin/notice/new}" style="width: 130px; height: 38px;">
                         <span>+</span>
                         <span>공지사항 등록</span>
-                    </button>
+                    </a>
                 </div>
-            </div>
+            </form>
             <section class="notice-board-section">
                 <table class="notice-table">
                     <colgroup>
@@ -167,18 +162,34 @@
                         </tr>
                     </thead>
                     <tbody id="noticeTableBody">
-                        <!-- JS로 동적 생성 -->
+                        <tr th:each="row : ${rows}">
+                            <td th:text="${row.id}">1</td>
+                            <td th:text="${row.category}">일반</td>
+                            <td><a th:href="@{/instructor/notice/{id}(id=${row.id})}" th:text="${row.title}">제목</a></td>
+                            <td th:text="${row.author}">관리자</td>
+                            <td th:text="${row.date}">2026-01-01</td>
+                            <td th:text="${row.editDate}">2026-01-01</td>
+                            <td th:text="${row.views}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}"><td colspan="7">등록된 공지가 없습니다.</td></tr>
                     </tbody>
                 </table>
                 <!-- 페이지네이션 -->
                 <div class="pagination">
                     <div class="page-info">
-                        <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                        <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
                     </div>
+                    <!-- 서버 페이징: pagination.js 의 changePage() 는 클라이언트 배열 전용이라 링크로 대체 -->
                     <div class="pagination-controls">
-                        <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
-                        <div id="pageNumbers"></div>
-                        <button id="nextPage" onclick="changePage(1)">다음</button>
+                        <a id="prevPage" class="btn" th:classappend="${currentPage <= 1} ? 'disabled'"
+                           th:href="@{/instructor/notice(page=${currentPage - 1},keyword=${keyword})}">이전</a>
+                        <div id="pageNumbers">
+                            <a th:each="p : ${#numbers.sequence(1, totalPages)}"
+                               th:href="@{/instructor/notice(page=${p},keyword=${keyword})}"
+                               th:text="${p}" th:classappend="${p == currentPage} ? 'active'">1</a>
+                        </div>
+                        <a id="nextPage" class="btn" th:classappend="${currentPage >= totalPages} ? 'disabled'"
+                           th:href="@{/instructor/notice(page=${currentPage + 1},keyword=${keyword})}">다음</a>
                     </div>
                 </div>
             </section>

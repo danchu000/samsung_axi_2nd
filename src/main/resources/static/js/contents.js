@@ -7,8 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.style.display = 'none';
     });
 
-    // 예시: DB에서 받아온 문제 리스트
-    const questionList = [
+    // 서버(Thymeleaf)가 window._serverContentRows 를 내려주면 그것을 쓰고,
+    // 아직 컨트롤러가 없는 페이지는 아래 더미 배열로 동작한다 (하위호환).
+    //   - 문제은행: /admin/evaluation/questions 가 문제(type='문제') 행을 채운다
+    //   - 영상/문서/강의/과제: A의 콘텐츠 컨트롤러가 붙으면 같은 배열에 합쳐진다
+    const questionList = window._serverContentRows || [
         { id: 'Q-001', type: '영상', title: '예시 영상 1', difficulty: 'easy', category: 'KDT', usedCourseCount: 3, avgAchievement: '85%', createdAt: '2024-01-01', status: 'Active', subject: '프로그래밍', topic: '웹', subtopic: 'HTML', authorId: 'user1' },
         { id: 'Q-002', type: '문서', title: '예시 문서 1', difficulty: 'medium', category: '고교위탁', usedCourseCount: 1, avgAchievement: '72%', createdAt: '2024-01-10', status: 'Archived', subject: '수학', topic: '통계', subtopic: '평균', authorId: 'user2' },
         { id: 'Q-003', type: '강의', title: '예시 강의 1', difficulty: 'hard', category: 'KDT', usedCourseCount: 2, avgAchievement: '90%', createdAt: '2024-01-15', status: 'Active', subject: '프로그래밍', topic: '백엔드', subtopic: 'Node.js', authorId: 'user1' },
@@ -116,7 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     case '영상': page = 'contents-video.html'; break;
                     case '문서': page = 'contents-document.html'; break;
                     case '강의': page = 'contents-class.html'; break;
-                    case '문제': page = 'contents-test.html'; break;
+                    // 문제은행은 컨트롤러 전환 완료 — 페이지가 URL 을 내려주면 그쪽으로 간다
+                    case '문제': page = (window._questionUrls && window._questionUrls.add) || 'contents-test.html'; break;
                     case '과제': page = 'contents-practice.html'; break;
                     case '시험': page = 'contents-grading.html'; break;
                     default: page = 'contents-video.html'; break;
@@ -356,6 +360,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (typeTd) {
                     type = typeTd.textContent.trim();
                 }
+            }
+            // 문제은행은 REST 스타일 URL 이라 ?id= 규칙과 다르다
+            if (type === '문제' && window._questionUrls && window._questionUrls.edit) {
+                window.location.href = window._questionUrls.edit.replace('{id}', encodeURIComponent(qid));
+                return;
             }
             const page = getUpdatePageByType(type);
             window.location.href = `${page}?id=${encodeURIComponent(qid)}`;

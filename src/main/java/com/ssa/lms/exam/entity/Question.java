@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,8 @@ import java.util.List;
                 @Index(name = "idx_question_status", columnList = "status")
         }
 )
+@SQLDelete(sql = "UPDATE question SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Question extends BaseEntity {
@@ -129,6 +133,36 @@ public class Question extends BaseEntity {
     public void addChoice(QuestionChoice choice) {
         this.choices.add(choice);
         choice.assignQuestion(this);
+    }
+
+    /** 수정 시 보기를 통째로 갈아끼우기 위해 비운다. orphanRemoval 로 기존 행이 지워진다. */
+    public void clearChoices() {
+        this.choices.clear();
+    }
+
+    public void update(QuestionType questionType, String questionText, String correctAnswer,
+                       String explanation, Difficulty difficulty, Integer score,
+                       String categoryL, String categoryM, String categoryS, String tags,
+                       Integer timeLimit, boolean caseSensitive, boolean allowPartial,
+                       QuestionStatus status) {
+        this.questionType = questionType;
+        this.questionText = questionText;
+        this.correctAnswer = correctAnswer;
+        this.explanation = explanation;
+        this.difficulty = difficulty;
+        this.score = score;
+        this.categoryL = categoryL;
+        this.categoryM = categoryM;
+        this.categoryS = categoryS;
+        this.tags = tags;
+        this.timeLimit = timeLimit;
+        this.caseSensitive = caseSensitive;
+        this.allowPartial = allowPartial;
+        this.status = status;
+    }
+
+    public void changeStatus(QuestionStatus status) {
+        this.status = status;
     }
 
     /** 객관식 여부. 자동 채점 가능 여부 판단에 쓴다. */

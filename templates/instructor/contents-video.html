@@ -146,7 +146,7 @@
                     <div class="form-group" style="width:100%;">
                         <label class="form-label">영상 미리보기</label>
                         <div id="videoPreviewArea" style="width: 100%;background:#f8f9fa; border-radius:8px; padding:16px; text-align:center; min-height:180px;">
-                            <span style="color:#aaa;">영상 URL을 입력하면 미리보기가 표시됩니다.</span>
+                            <span style="color:#aaa;">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>
                         </div>
                     </div>
                     <div class="form-row">
@@ -213,42 +213,41 @@
     //     document.getElementById('title').value = data.title || '';
     //     document.getElementById('status').value = data.status || 'Active';
     //     document.getElementById('description').value = data.description || '';
-    //     document.getElementById('previewUrl').value = data.previewUrl || '';
     //     document.getElementById('duration').value = data.duration || '';
     //     document.getElementById('difficulty').value = data.difficulty || '';
     //     document.getElementById('category').value = data.category || '';
     //     document.getElementById('usedCourseCount').value = data.usedCourseCount || '';
     //     document.getElementById('avgAchievement').value = data.avgAchievement || '';
     //     document.getElementById('createdAt').value = data.createdAt || '';
+    //     // 초기 미리보기: 기존 URL 있으면 보여주기
     //     updateVideoPreview(data.previewUrl);
     // }
-
-    // function updateVideoPreview(url) {
-    //     const area = document.getElementById('videoPreviewArea');
-    //     if (url && (url.endsWith('.mp4') || url.startsWith('http'))) {
-    //         area.innerHTML = `<video src="${url}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
-    //     } else {
-    //         area.innerHTML = '<span style="color:#aaa;">영상 URL을 입력하면 미리보기가 표시됩니다.</span>';
-    //     }
-    // }
-
-    // document.getElementById('previewUrl').addEventListener('input', function() {
-    //     updateVideoPreview(this.value);
-    // });
 
     // document.addEventListener('DOMContentLoaded', function() {
     //     renderVideoForm(videoData);
     // });
-        // 영상 파일 업로드 시 미리보기
-    document.getElementById('videoFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
+
+    // 영상 미리보기: 업로드한 파일(File) / 기존 영상 URL(string) 모두 처리
+    function updateVideoPreview(urlOrFile) {
         const area = document.getElementById('videoPreviewArea');
-        if (!file) {
-            area.innerHTML = '<span style="color:#aaa;">영상 URL을 입력하면 미리보기가 표시됩니다.</span>';
-            return;
+        if (urlOrFile instanceof File) {
+            const fileURL = URL.createObjectURL(urlOrFile);
+            area.innerHTML = `<video src="${fileURL}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
+        } else if (urlOrFile && (typeof urlOrFile === 'string') && (urlOrFile.endsWith('.mp4') || urlOrFile.startsWith('http'))) {
+            area.innerHTML = `<video src="${urlOrFile}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
+        } else {
+            area.innerHTML = '<span style="color:#aaa;">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>';
         }
-        const fileUrl = URL.createObjectURL(file);
-        area.innerHTML = `<video src="${fileUrl}" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>`;
+    }
+
+    // 영상 파일 업로드 시 미리보기
+    document.getElementById('videoFile').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            updateVideoPreview(file);
+        } else {
+            updateVideoPreview(null);
+        }
     });
 
     document.addEventListener('DOMContentLoaded', function() {

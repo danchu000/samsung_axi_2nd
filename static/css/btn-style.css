@@ -6,6 +6,8 @@
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    align-self: center;
+    width: fit-content;
 }
 
 .big-btn {
@@ -16,6 +18,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s;
+    align-self: center;
+    width: fit-content;
 }
 
 .btn-xs {
@@ -25,6 +29,8 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    align-self: center;
+    width: fit-content;
 }
 
 .btn-container {

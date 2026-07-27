@@ -143,7 +143,7 @@
                     <div class="form-group" style="width:100%;">
                         <label class="form-label">문서 미리보기</label>
                         <div id="documentPreviewArea" style="background:#f8f9fa; border-radius:8px; padding:16px; text-align:center; min-height:180px;">
-                            <span style="color:#aaa;">문서 URL을 입력하면 미리보기가 표시됩니다.</span>
+                            <span style="color:#aaa;">업로드할 문서를 선택하면 미리보기가 표시됩니다.</span>
                         </div>
                     </div>
                     <div class="form-row">
@@ -210,53 +210,59 @@
     //     document.getElementById('title').value = data.title || '';
     //     document.getElementById('status').value = data.status || 'Active';
     //     document.getElementById('description').value = data.description || '';
-    //     document.getElementById('previewUrl').value = data.previewUrl || '';
     //     document.getElementById('documentType').value = data.documentType || '';
     //     document.getElementById('difficulty').value = data.difficulty || '';
     //     document.getElementById('category').value = data.category || '';
     //     document.getElementById('usedCourseCount').value = data.usedCourseCount || '';
     //     document.getElementById('avgAchievement').value = data.avgAchievement || '';
     //     document.getElementById('createdAt').value = data.createdAt || '';
+    //     // 초기 미리보기: 기존 URL 있으면 보여주기
     //     updateDocumentPreview(data.previewUrl);
     // }
 
-    // function updateDocumentPreview(url) {
-    //     const area = document.getElementById('documentPreviewArea');
-    //     if (url && url.endsWith('.pdf')) {
-    //         area.innerHTML = `<iframe src="${url}" style="width:100%; height:320px; border-radius:8px; border:1px solid #eee;"></iframe><div style='margin-top:8px; color:#888;'>문서 미리보기 (PDF)</div>`;
-    //     } else if (url && (url.endsWith('.jpg') || url.endsWith('.png') || url.endsWith('.jpeg'))) {
-    //         area.innerHTML = `<img src='${url}' alt='문서 미리보기' style='max-width:100%; height:320px; object-fit:contain; border-radius:8px; border:1px solid #eee;'><div style='margin-top:8px; color:#888;'>문서 미리보기</div>`;
-    //     } else {
-    //         area.innerHTML = '<span style="color:#aaa;">문서 URL을 입력하면 미리보기가 표시됩니다.</span>';
-    //     }
-    // }
-
-    // document.getElementById('previewUrl').addEventListener('input', function() {
-    //     updateDocumentPreview(this.value);
-    // });
     // document.addEventListener('DOMContentLoaded', function() {
     //     renderDocumentForm(documentData);
     // });
-    // 파일 업로드 시 미리보기
-    document.getElementById('documentFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
+
+    // 문서 미리보기: 업로드한 파일(File) / 기존 문서 URL(string) 모두 처리
+    function updateDocumentPreview(fileOrUrl) {
         const area = document.getElementById('documentPreviewArea');
-        if (!file) {
-            area.innerHTML = '<span style="color:#aaa;">문서 URL을 입력하면 미리보기가 표시됩니다.</span>';
-            return;
-        }
-        const fileUrl = URL.createObjectURL(file);
-        if (file.type === 'application/pdf') {
-            area.innerHTML = `<iframe src="${fileUrl}" style="width:100%; height:320px; border-radius:8px; border:1px solid #eee;"></iframe><div style='margin-top:8px; color:#888;'>문서 미리보기 (PDF)</div>`;
-        } else if (file.type.startsWith('image/')) {
-            area.innerHTML = `<img src='${fileUrl}' alt='문서 미리보기' style='max-width:100%; height:320px; object-fit:contain; border-radius:8px; border:1px solid #eee;'><div style='margin-top:8px; color:#888;'>문서 미리보기</div>`;
+        if (fileOrUrl instanceof File) {
+            const fileURL = URL.createObjectURL(fileOrUrl);
+            if (fileOrUrl.type === 'application/pdf') {
+                area.innerHTML = `<iframe src="${fileURL}" style="width:100%; height:320px; border-radius:8px; border:1px solid #eee;"></iframe><div style='margin-top:8px; color:#888;'>문서 미리보기 (PDF)</div>`;
+            } else if (fileOrUrl.type.startsWith('image/')) {
+                area.innerHTML = `<img src='${fileURL}' alt='문서 미리보기' style='max-width:100%; height:320px; object-fit:contain; border-radius:8px; border:1px solid #eee;'><div style='margin-top:8px; color:#888;'>문서 미리보기</div>`;
+            } else {
+                area.innerHTML = '<span style="color:#aaa;">지원되는 문서(PDF, 이미지)만 미리보기가 가능합니다.</span>';
+            }
+        } else if (fileOrUrl && typeof fileOrUrl === 'string') {
+            if (fileOrUrl.endsWith('.pdf')) {
+                area.innerHTML = `<iframe src="${fileOrUrl}" style="width:100%; height:320px; border-radius:8px; border:1px solid #eee;"></iframe><div style='margin-top:8px; color:#888;'>문서 미리보기 (PDF)</div>`;
+            } else if (fileOrUrl.endsWith('.jpg') || fileOrUrl.endsWith('.png') || fileOrUrl.endsWith('.jpeg')) {
+                area.innerHTML = `<img src='${fileOrUrl}' alt='문서 미리보기' style='max-width:100%; height:320px; object-fit:contain; border-radius:8px; border:1px solid #eee;'><div style='margin-top:8px; color:#888;'>문서 미리보기</div>`;
+            } else {
+                area.innerHTML = '<span style="color:#aaa;">지원되는 문서(PDF, 이미지)만 미리보기가 가능합니다.</span>';
+            }
         } else {
-            area.innerHTML = '<span style="color:#aaa;">지원하지 않는 파일 형식입니다.</span>';
+            area.innerHTML = '<span style="color:#aaa;">업로드할 문서를 선택하면 미리보기가 표시됩니다.</span>';
+        }
+    }
+
+    // 문서 파일 업로드 시 미리보기
+    document.getElementById('documentFile').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            updateDocumentPreview(file);
+        } else {
+            updateDocumentPreview(null);
         }
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        renderDocumentForm(documentData);
+        if (typeof renderDocumentForm === 'function' && typeof documentData !== 'undefined') {
+            renderDocumentForm(documentData);
+        }
     });
     </script>
 </body>

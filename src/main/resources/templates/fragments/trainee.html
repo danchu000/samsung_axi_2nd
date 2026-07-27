@@ -35,25 +35,25 @@
                 <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>
                 <ul>
                     <li><a href="/templates/trainee/online-test.html">온라인 시험</a></li>
-                    <li><a href="/templates/trainee/assignments.html">과제</a></li>
+                    <li><a href="/trainee/assignment">과제</a></li>
                 </ul>
             </li>
             <li th:classappend="${active == 'support'} ? 'active_menu'">
-                <span><a href="/templates/trainee/tutoring.html">학습지원</a></span>
+                <span><a href="/trainee/qna/tutoring">학습지원</a></span>
                 <ul>
-                    <li><a href="/templates/trainee/tutoring.html">튜터링</a></li>
-                    <li><a href="/templates/trainee/qna.html">Q&amp;A</a></li>
+                    <li><a href="/trainee/qna/tutoring">튜터링</a></li>
+                    <li><a href="/trainee/qna">Q&amp;A</a></li>
                 </ul>
             </li>
             <li th:classappend="${active == 'notices'} ? 'active_menu'">
-                <span><a href="/templates/trainee/notices.html">공지사항</a></span>
+                <span><a href="/trainee/notice">공지사항</a></span>
             </li>
             <li th:classappend="${active == 'attendance'} ? 'active_menu'">
                 <span><a href="/templates/trainee/attendance.html">출결/이수관리</a></span>
                 <ul>
                     <li><a href="/templates/trainee/attendance.html">출결현황</a></li>
                     <li><a href="/templates/trainee/completion-management.html">이수관리</a></li>
-                    <li><a href="/templates/trainee/surveys.html">설문조사</a></li>
+                    <li><a href="/trainee/survey">설문조사</a></li>
                 </ul>
             </li>
         </ul>

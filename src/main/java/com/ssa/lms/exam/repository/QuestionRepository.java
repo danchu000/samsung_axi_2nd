@@ -63,9 +63,22 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             """)
     List<Object[]> averageAchievement(@Param("questionIds") Collection<Long> questionIds);
 
-    /** 문제 코드 자동 채번용 — 가장 큰 코드 1건. */
-    @Query("select max(q.questionCode) from Question q")
+    /**
+     * 문제 코드 자동 채번용 — 가장 큰 코드 1건.
+     *
+     * <p><b>네이티브 쿼리를 쓰는 이유:</b> Question 에는 {@code @SQLRestriction("is_deleted = false")}
+     * 가 걸려 있어 JPQL 로 조회하면 삭제된 행이 빠진다. 그런데 soft delete 라 DB 에는 그 행이
+     * 그대로 남아 있고 {@code question_code} 유니크 제약도 살아 있다. JPQL 로 max 를 구하면
+     * 삭제된 최대 코드를 다시 발급해 유니크 제약 위반(500)이 난다.</p>
+     *
+     * <p>재현: Q-0004 등록 → 삭제 → 새 문제 등록 시 다시 Q-0004 를 발급하려다 실패.</p>
+     */
+    @Query(value = "select max(question_code) from question", nativeQuery = true)
     Optional<String> findMaxQuestionCode();
+
+    /** 채번 중복 검사도 삭제된 행까지 봐야 한다 (위와 같은 이유). */
+    @Query(value = "select count(*) > 0 from question where question_code = :code", nativeQuery = true)
+    boolean existsByQuestionCodeIncludingDeleted(@Param("code") String code);
 
     /** 사용중인(ACTIVE) 문제만 — 시험 출제 시 후보 조회. */
     List<Question> findByStatusAndDifficulty(Question.QuestionStatus status, Difficulty difficulty);

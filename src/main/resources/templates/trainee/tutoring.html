@@ -1,5 +1,5 @@
     <!DOCTYPE html>
-    <html lang="ko">
+    <html lang="ko" xmlns:th="http://www.thymeleaf.org">
     <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,93 +10,14 @@
     <link rel="stylesheet" href="/static/css/chatbot.css"/>
     <script src="/static/js/chatbot.js" defer></script>
     <link rel="stylesheet" href="/static/css/trainee/tutoring.css" />
-    <script src="/static/js/trainee/tutoring.js" defer></script>
+    <!-- static/js/trainee/tutoring.js 는 mockCourses/mockHistory 더미로 화면을 그리던 스크립트라 제거했다.
+         과정 목록·대화 로그·전송은 모두 서버(TraineeSupportController)가 렌더링한다. -->
     <!-- 공지 전용(추가) -->
     <title>Samsung Academy LXP</title>
     </head>
 <!-- ********************************************************************************************************* -->
 <body>
-    <header>
-        <div class="header-logo">
-            <a href="/templates/trainee/index.html"><img src="/static/img/logo-white.png" alt="logo" style="width: 130px; cursor: pointer;"></a>
-        </div>  
-        <nav class="gnb">
-            <ul>
-
-                <li>
-                    <span><a href="/templates/trainee/my-course.html">나의 과정</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/my-course.html">수강 과정 목록</a></li>
-                        <li><a href="/templates/trainee/continue-learning.html">이어서 학습</a></li>
-                        <!-- <li><a href="/templates/trainee/learning-report.html">학습 리포트</a></li> -->
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/contents.html">학습콘텐츠</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/contents.html">전체 콘텐츠</a></li>
-                        <li><a href="/templates/trainee/coding-setup.html">코딩 환경 설정</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/online-test.html">온라인 시험</a></li>
-                        <li><a href="/templates/trainee/assignments.html">과제</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/tutoring.html">학습지원</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/tutoring.html">튜터링</a></li>
-                        <li><a href="/templates/trainee/qna.html">Q&A</a></li>
-                    </ul>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/ai-assistant.html">AI 헬피 챗봇</a></li>
-                        <li><a href="/templates/trainee/tutoring-qna.html">튜터링/Q&A</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/notices.html">공지사항</a></span>
-                    <!-- <ul>
-                        <li><a href="/templates/trainee/notices.html">공지</a></li>
-                        <li><a href="/templates/trainee/chat.html">채팅</a></li>
-                    </ul> -->
-                </li>
-                <li>
-                    <span><a href="/templates/trainee/attendance.html">출결/이수관리</a></span>
-                    <ul>
-                        <li><a href="/templates/trainee/attendance.html">출결현황</a></li>
-                        <li><a href="/templates/trainee/completion-management.html">이수관리</a></li>
-                        <li><a href="/templates/trainee/surveys.html">설문조사</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <div class="icon-container">
-                <div class="icon-box">
-                    <a href="/templates/trainee/alram.html"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.9342 14.98C18.6358 14.5033 18.4775 13.9524 18.4772 13.39V9.22602C18.4772 7.50822 17.7948 5.86077 16.5801 4.64609C15.3654 3.43142 13.718 2.74902 12.0002 2.74902C10.2824 2.74902 8.63492 3.43142 7.42024 4.64609C6.20557 5.86077 5.52317 7.50822 5.52317 9.22602V13.388C5.52325 13.9511 5.36488 14.5028 5.06617 14.98L3.97817 16.72C3.88357 16.8714 3.8312 17.0453 3.82652 17.2238C3.82183 17.4022 3.865 17.5787 3.95153 17.7348C4.03806 17.8909 4.16481 18.021 4.31861 18.1116C4.47242 18.2022 4.64767 18.25 4.82617 18.25H19.1742C19.3527 18.25 19.5279 18.2022 19.6817 18.1116C19.8355 18.021 19.9623 17.8909 20.0488 17.7348C20.1354 17.5787 20.1785 17.4022 20.1738 17.2238C20.1691 17.0453 20.1168 16.8714 20.0222 16.72L18.9342 14.98Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 21.25H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg></a>
-                </div>
-                <div class="icon-box">
-                    <a href="./my-info.html">
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19.6524 19.405C20.2044 19.29 20.5344 18.712 20.2594 18.218C19.6534 17.131 18.6994 16.175 17.4794 15.447C15.9074 14.509 13.9804 14 12.0004 14C10.0204 14 8.09339 14.508 6.52139 15.447C5.30139 16.175 4.34739 17.131 3.74139 18.218C3.46639 18.712 3.79639 19.29 4.34839 19.405C9.39517 20.4569 14.6046 20.4569 19.6514 19.405" fill="currentColor"/>
-                            <path d="M12 13C14.7614 13 17 10.7614 17 8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8C7 10.7614 9.23858 13 12 13Z" fill="currentColor"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="icon-box">
-                    <a href="/login">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="CurrentColor">
-                            <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <header th:replace="~{fragments/trainee :: header('support')}"></header>
     <!-- 메인 컨텐츠 ********************************************************************************************************* -->
     <main>
         <section class="main-content-top">
@@ -120,41 +41,65 @@
 
                 <!-- 좌측: 선택/히스토리 -->
                 <aside class="tutor-left">
-                <div class="panel">
-                    <h3 class="panel-title">학습 범위 선택</h3>
+                <!-- 튜터링 요청 (방 생성). 첫 메시지는 저장 시 AES-256 으로 암호화된다. -->
+                <form class="panel" method="post" th:action="@{/trainee/qna/tutoring}">
+                    <h3 class="panel-title">튜터링 요청</h3>
+
+                    <div class="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+                    <div class="scope-hint" th:if="${message}" th:text="${message}"></div>
 
                     <div class="field">
                     <label for="courseSelect">과정</label>
-                    <select id="courseSelect">
+                    <select id="courseSelect" name="courseId">
                         <option value="">과정을 선택하세요</option>
+                        <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}">과정명</option>
                     </select>
                     </div>
 
                     <div class="field">
-                    <label for="sessionSelect">차시</label>
-                    <select id="sessionSelect" disabled>
-                        <option value="">차시를 선택하세요</option>
-                    </select>
+                    <label for="roomTitle">제목</label>
+                    <input id="roomTitle" name="title" type="text" maxlength="80" placeholder="예: 3차시 반복문 질문" />
+                    </div>
+
+                    <div class="field">
+                    <label for="firstMessage">첫 질문</label>
+                    <textarea id="firstMessage" name="firstMessage" rows="3" placeholder="궁금한 점을 적어주세요."></textarea>
                     </div>
 
                     <div class="scope-card" id="scopeCard">
-                    <div class="scope-empty">
-                        <span class="dot"></span>
-                        <span>아직 선택된 학습 범위가 없어요.</span>
-                    </div>
-
-                    <div class="scope-filled" hidden>
+                    <div class="scope-filled">
                         <div class="scope-row">
                         <span class="scope-label">선택</span>
-                        <span class="scope-value" id="scopeText">-</span>
+                        <span class="scope-value" id="scopeText"
+                              th:text="${detail != null} ? |${detail.courseName} / ${detail.title}| : '-'">-</span>
                         </div>
-                        <div class="scope-hint" id="scopeHint">선택한 범위를 기반으로 질문해보세요.</div>
+                        <div class="scope-hint" id="scopeHint">요청하면 담당 튜터가 배정됩니다.</div>
                     </div>
                     </div>
+
+                    <button type="submit" class="btn btn-primary" id="btnNewChat" style="width:100%;">튜터링 요청하기</button>
 
                     <div class="notice-box">
                     <strong>안내</strong>
                     <p>튜터링 답변은 학습 참고용이에요. 시험/평가 관련 질문은 제한될 수 있어요.</p>
+                    </div>
+                </form>
+
+                <div class="panel">
+                    <h3 class="panel-title">내 튜터링</h3>
+                    <div id="historyList">
+                        <div th:each="room : ${rooms}" style="margin-bottom:8px;">
+                            <a th:href="@{/trainee/qna/tutoring/{id}(id=${room.id})}"
+                               th:classappend="${detail != null and detail.id == room.id} ? 'active_menu'"
+                               style="display:block; text-decoration:none; color:inherit;">
+                                <span class="status-badge" th:classappend="${room.statusClass}" th:text="${room.statusLabel}">대기</span>
+                                <b th:text="${room.title}">반복문에서 break/continue</b>
+                                <div class="scope-hint" th:text="|${room.courseName} · 메시지 ${room.messageCount}건 · 튜터 ${room.instructorName}|">
+                                    풀스택 웹 개발 · 3차시
+                                </div>
+                            </a>
+                        </div>
+                        <div class="scope-hint" th:if="${#lists.isEmpty(rooms)}">아직 요청한 튜터링이 없어요.</div>
                     </div>
                 </div>
 
@@ -164,21 +109,50 @@
                 <section class="tutor-right">
                 <div class="chat-topbar">
                     <div class="chat-scope" id="chatScope">
-                    <span class="badge">미선택</span>
-                    <span class="chat-scope-text">과정/차시를 선택하면 채팅이 활성화돼요.</span>
+                    <span class="badge status-badge" th:if="${detail != null}"
+                          th:classappend="${detail.statusClass}" th:text="${detail.statusLabel}">진행중</span>
+                    <span class="badge" th:if="${detail == null}">미선택</span>
+                    <span class="chat-scope-text"
+                          th:text="${detail != null} ? |${detail.title} · 튜터 ${detail.instructorName}|
+                                                     : '좌측에서 튜터링을 요청하거나 기존 대화를 선택하세요.'">
+                        과정/차시를 선택하면 채팅이 활성화돼요.
+                    </span>
                     </div>
                 </div>
 
+                <!-- 대화 로그. content 는 DB 에 AES-256 암호문으로 저장되고 CryptoConverter 가 복호화한 평문이다. -->
                 <div class="chat-window" id="chatWindow" aria-live="polite">
-                    <!-- JS로 렌더 -->
+                    <th:block th:if="${detail != null}">
+                    <div class="msg-row" th:each="msg : ${detail.messages}"
+                         th:classappend="${msg.mine} ? 'me' : 'tutor'">
+                        <div class="msg-bubble" th:text="${msg.content}">메시지</div>
+                        <div class="msg-meta" th:text="|${msg.senderName} · ${msg.sentTime}|">
+                            나 · 10:03
+                        </div>
+                    </div>
+                    </th:block>
+                    <div class="chat-help" th:if="${detail == null or #lists.isEmpty(detail.messages)}">
+                        아직 대화가 없습니다.
+                    </div>
                 </div>
 
                 <div class="chat-inputbar">
-                    <div class="input-wrap">
-                    <textarea id="chatInput" class="chat-input" rows="1" placeholder="질문을 입력하세요 (Shift+Enter 줄바꿈)" disabled></textarea>
-                    <button type="button" class="btn btn-primary" id="btnSend" disabled>전송</button>
+                    <!-- 권한정의서(2) 18행: 채팅 메시지 C 권한은 훈련생만. 종료된 방에는 보낼 수 없다. -->
+                    <form class="input-wrap" method="post" th:if="${detail != null and !detail.closed}"
+                          th:action="@{/trainee/qna/tutoring/{id}/messages(id=${detail.id})}">
+                    <textarea id="chatInput" class="chat-input" name="content" rows="1" required
+                              placeholder="질문을 입력하세요"></textarea>
+                    <button type="submit" class="btn btn-primary" id="btnSend">전송</button>
+                    </form>
+                    <div class="input-wrap" th:if="${detail == null or detail.closed}">
+                    <textarea class="chat-input" rows="1" placeholder="질문을 입력하세요" disabled></textarea>
+                    <button type="button" class="btn btn-primary" disabled>전송</button>
                     </div>
-                    <div class="chat-help" id="chatHelp">먼저 과정/차시를 선택하세요.</div>
+                    <div class="chat-help" id="chatHelp"
+                         th:text="${detail == null} ? '먼저 튜터링을 요청하거나 대화를 선택하세요.'
+                                  : (${detail.closed} ? '종료된 튜터링입니다.' : '학습 범위를 기반으로 질문해보세요.')">
+                        먼저 과정/차시를 선택하세요.
+                    </div>
                 </div>
                 </section>
 
@@ -216,18 +190,7 @@
     </main>
 
     <!-- 푸터 ********************************************************************************************************* -->
-<footer class="simple-footer">
-  <div class="footer-inner">
-    <span class="footer-left">
-      © 2026 Samsung Academy LXP
-    </span>
-    <span class="footer-right">
-      <a href="#" class="footer-link">이용약관</a>
-      <span class="footer-dot">·</span>
-      <a href="#" class="footer-link">개인정보처리방침</a>
-    </span>
-  </div>
-</footer>
+<footer th:replace="~{fragments/trainee :: footer}"></footer>
 <style>
     /* ===== simple footer ===== */
 .simple-footer{

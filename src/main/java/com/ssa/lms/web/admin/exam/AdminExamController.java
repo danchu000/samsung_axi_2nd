@@ -113,7 +113,9 @@ public class AdminExamController {
             int added = examService.materializeRules(id);
             redirectAttributes.addFlashAttribute("message",
                     "출제 규칙으로 " + added + "문항을 확정했습니다.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // IllegalState 는 문제은행 3배수 미달 / 응시 기록 있는 시험 수정 시도.
+            // 관리자에게 500 을 보여주면 안 되고, 부족분 안내를 그대로 전달해야 한다.
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/admin/evaluation/exams/" + id + "/edit";

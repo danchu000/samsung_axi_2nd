@@ -325,3 +325,14 @@
     background-color: #ffebee;
     color: #c62828;
 }
+
+/* .btn-small 이 .btn-danger 보다 뒤에 정의되어 배경(white)이 이기면
+   흰 바탕 + 흰 글자가 되어 버튼이 안 보인다 — 조합 사용 시 색을 명시한다 */
+.btn-small.btn-danger {
+    background-color: #ff4d4f;
+    color: #fff;
+    border-color: #ff4d4f;
+}
+.btn-small.btn-danger:hover {
+    background-color: #d9363e;
+}

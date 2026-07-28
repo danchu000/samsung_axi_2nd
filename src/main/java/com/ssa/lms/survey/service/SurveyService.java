@@ -77,6 +77,22 @@ public class SurveyService {
         }
     }
 
+    /**
+     * 서버 페이징 목록.
+     *
+     * <p>설문 검색은 리포지토리가 List 를 돌려주고 서비스에서 응답률을 붙이는 구조라,
+     * 자르는 지점을 서비스에 둔다. 응답률 집계는 잘라낸 뒤의 id 묶음으로만 하므로
+     * 페이지가 커져도 집계 쿼리는 한 번이다.</p>
+     */
+    public org.springframework.data.domain.Page<SurveyListRow> search(
+            SurveySearchCond cond, org.springframework.data.domain.Pageable pageable) {
+        List<SurveyListRow> all = search(cond);
+        int from = (int) Math.min(pageable.getOffset(), all.size());
+        int to = Math.min(from + pageable.getPageSize(), all.size());
+        return new org.springframework.data.domain.PageImpl<>(
+                all.subList(from, to), pageable, all.size());
+    }
+
     public List<SurveyListRow> search(SurveySearchCond cond) {
         List<Survey> surveys = surveyRepository.search(
                 cond.courseId(), cond.statusOrNull(), cond.keywordOrNull());

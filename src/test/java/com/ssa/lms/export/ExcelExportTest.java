@@ -222,6 +222,32 @@ class ExcelExportTest {
         }
     }
 
+    /* ===================== 파일명 (RFC 5987) ===================== */
+
+    @Test
+    @DisplayName("한글 파일명은 RFC5987 로 내리고, ASCII 폴백에 기호만 남으면 download.xlsx 로 접는다")
+    void 파일명_인코딩() {
+        String header = ExcelDownload.attachment("성적_[채점검증] 자동채점 전용 시험", new byte[]{1})
+                .getHeaders().getFirst("Content-Disposition");
+
+        assertThat(header).contains(
+                "filename*=UTF-8''%EC%84%B1%EC%A0%81_%5B%EC%B1%84%EC%A0%90%EA%B2%80%EC%A6%9D%5D");
+        assertThat(header).as("공백은 + 가 아니라 %20 이어야 한다").doesNotContain("+");
+        assertThat(header)
+                .as("한글을 지우면 _[] 만 남는다 — 그런 이름을 폴백으로 내려보내지 않는다")
+                .contains("filename=\"download.xlsx\"");
+
+        // ASCII 가 섞여 있으면 그쪽을 폴백으로 쓴다
+        assertThat(ExcelDownload.attachment("문제은행_2026-07-28", new byte[]{1})
+                .getHeaders().getFirst("Content-Disposition"))
+                .contains("filename=\"_2026-07-28.xlsx\"");
+
+        // 파일명에 못 쓰는 문자는 _ 로 접는다 (설문명·시험명이 그대로 파일명이 된다)
+        assertThat(ExcelDownload.attachment("a/b:c*d?", new byte[]{1})
+                .getHeaders().getFirst("Content-Disposition"))
+                .contains("filename=\"a_b_c_d_.xlsx\"");
+    }
+
     /* ===================== 도우미 ===================== */
 
     private Long createSurveyWithResponse() {

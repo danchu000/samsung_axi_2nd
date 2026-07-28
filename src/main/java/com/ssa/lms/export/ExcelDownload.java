@@ -69,14 +69,21 @@ public final class ExcelDownload {
     }
 
     /**
-     * RFC 5987 을 모르는 클라이언트가 읽을 이름. 한글을 지우고 나면 껍데기만 남는 경우가 많아
-     * 알파벳/숫자가 하나도 없으면 통째로 {@code download.xlsx} 로 대체한다.
+     * RFC 5987 을 모르는 클라이언트가 읽을 이름.
+     *
+     * <p>이름이 거의 다 한글이라 ASCII 만 남기면 껍데기가 된다("성적_[채점검증] 자동채점 전용 시험"
+     * → {@code _[].xlsx}). 확장자를 뺀 <b>본문에</b> 알파벳/숫자가 없으면 통째로
+     * {@code download.xlsx} 로 내린다 — 의미 없는 기호 나열보다 낫다.</p>
      */
     private static String asciiFallback(String fileName) {
-        StringBuilder sb = new StringBuilder(fileName.length());
+        String stem = fileName.endsWith(".xlsx")
+                ? fileName.substring(0, fileName.length() - ".xlsx".length())
+                : fileName;
+
+        StringBuilder sb = new StringBuilder(stem.length());
         boolean meaningful = false;
-        for (int i = 0; i < fileName.length(); i++) {
-            char c = fileName.charAt(i);
+        for (int i = 0; i < stem.length(); i++) {
+            char c = stem.charAt(i);
             if (c > 0x20 && c < 0x7F && c != '"' && c != '\\') {
                 sb.append(c);
                 if (Character.isLetterOrDigit(c)) {
@@ -84,8 +91,6 @@ public final class ExcelDownload {
                 }
             }
         }
-        // ".xlsx" 의 x, l, s 가 letterOrDigit 이라 확장자만 남아도 meaningful 이 된다.
-        String ascii = sb.toString();
-        return meaningful && !".xlsx".equals(ascii) ? ascii : "download.xlsx";
+        return meaningful ? sb + ".xlsx" : "download.xlsx";
     }
 }

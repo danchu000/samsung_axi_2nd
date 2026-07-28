@@ -59,4 +59,19 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             group by r.notification.id
             """)
     List<Object[]> countRecipients(@Param("ids") Collection<Long> ids);
+
+    /**
+     * 발송 시각이 도래한 예약 알림.
+     *
+     * <p>스케줄러가 주기적으로 집어간다. `sendAt <= now` 이면서 아직 SCHEDULED 인 것만.
+     * 발송에 실패해 SCHEDULED 로 남은 건은 다음 주기에 다시 잡히므로 재시도가 된다.</p>
+     */
+    @Query("""
+            select n from Notification n
+            where n.status = :status
+              and n.sendAt <= :now
+            order by n.sendAt asc
+            """)
+    List<Notification> findDueScheduled(@Param("status") Notification.NotificationStatus status,
+                                        @Param("now") LocalDateTime now);
 }

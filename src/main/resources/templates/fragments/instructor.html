@@ -72,8 +72,8 @@
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'att-')} ? 'active_menu'">출결/이수 관리</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'att-status'} ? 'active_menu'">출결현황</li></a>
-                    <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'att-graduate'} ? 'active_menu'">이수 관리</li></a>
+                    <a href="/instructor/attendance"><li th:classappend="${active == 'att-status'} ? 'active_menu'">출결현황</li></a>
+                    <a href="/instructor/graduate"><li th:classappend="${active == 'att-graduate'} ? 'active_menu'">이수 관리</li></a>
                 </ul>
             </li>
             <li onclick="handleMenuClick(this, '/instructor/notice')">

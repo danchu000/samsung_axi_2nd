@@ -36,21 +36,33 @@ public interface ExamTakeRepository extends Repository<Exam, Long> {
     List<Exam> findVisibleByCourses(@Param("courseIds") Collection<Long> courseIds,
                                     @Param("statuses") Collection<Exam.ExamStatus> statuses);
 
-    /** 시험별 확정 문항 수. 0 이면 "규칙만 있고 확정 안 됨" → 응시 진입 불가. */
+    /**
+     * 시험별·세트별 확정 문항 수. 0 이면 "규칙만 있고 확정 안 됨" → 응시 진입 불가.
+     *
+     * <p>세트를 빼고 합계만 세면 세트가 2벌인 시험이 "20문항"으로 보인다 — 실제로 응시자가 푸는 것은
+     * 배정된 한 세트뿐이라 거짓말이 된다. 그래서 세트 단위로 세고 서비스가 대표 세트를 골라 쓴다.</p>
+     *
+     * 반환: [examId(Long), setNo(Integer), count(Long)]
+     */
     @Query("""
-            select eq.exam.id, count(eq.id)
+            select eq.exam.id, eq.setNo, count(eq.id)
             from ExamQuestion eq
             where eq.exam.id in :examIds
-            group by eq.exam.id
+            group by eq.exam.id, eq.setNo
+            order by eq.exam.id, eq.setNo
             """)
     List<Object[]> countExamQuestions(@Param("examIds") Collection<Long> examIds);
 
-    /** 시험별 문항 유형 분포 — 카드의 "객관식 + 주관식" 문구를 만든다. */
+    /**
+     * 시험별·세트별 문항 유형 분포 — 카드의 "객관식 + 주관식" 문구를 만든다.
+     * 반환: [examId(Long), setNo(Integer), questionType, count(Long)]
+     */
     @Query("""
-            select eq.exam.id, eq.question.questionType, count(eq.id)
+            select eq.exam.id, eq.setNo, eq.question.questionType, count(eq.id)
             from ExamQuestion eq
             where eq.exam.id in :examIds
-            group by eq.exam.id, eq.question.questionType
+            group by eq.exam.id, eq.setNo, eq.question.questionType
+            order by eq.exam.id, eq.setNo
             """)
     List<Object[]> countExamQuestionTypes(@Param("examIds") Collection<Long> examIds);
 

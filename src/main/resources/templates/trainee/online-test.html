@@ -12,6 +12,22 @@
 	<meta name="_csrf" th:content="${_csrf.token}" content="">
 	<meta name="_csrf_header" th:content="${_csrf.headerName}" content="">
 	<title>Samsung Academy LXP</title>
+	<style>
+		/* 시험 설정 3종 배지 — 모의 테스트 / 문제 세트 랜덤 / 성적 공개 정책.
+		   online-test.js 의 카드 렌더가 .exam-tags 블록으로 찍는다. */
+		.exam-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px 0; }
+		.exam-tag {
+			display: inline-block;
+			padding: 2px 8px;
+			border-radius: 10px;
+			font-size: 11px;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+		.tag-practice { background: #FFF3E0; color: #EF6C00; }
+		.tag-set { background: #EDE7F6; color: #5E35B1; }
+		.tag-release { background: #ECEFF1; color: #546E7A; font-weight: 500; }
+	</style>
 </head>
 <!-- ********************************************************************************************************* -->
 <body>
@@ -140,6 +156,20 @@
         <div class="detail-row">
           <div class="k">남은시도</div>
           <div class="v" id="dAttempts">-</div>
+        </div>
+        <!-- 문제 세트: 여러 벌이면 시작 시 서버가 그중 하나를 무작위로 배정한다 (ExamTakeRow.setCount) -->
+        <div class="detail-row">
+          <div class="k">문제 세트</div>
+          <div class="v" id="dSetCount">-</div>
+        </div>
+        <!-- 성적 공개 정책: 비공개/채점 후/지정 일시면 제출해도 점수가 보이지 않는다 -->
+        <div class="detail-row">
+          <div class="k">성적 공개</div>
+          <div class="v" id="dResultRelease">-</div>
+        </div>
+        <div class="detail-row">
+          <div class="k">구분</div>
+          <div class="v" id="dPractice">-</div>
         </div>
       </div>
 

@@ -53,6 +53,16 @@ public class ExamAttempt extends BaseEntity {
     @Column(name = "attempt_no", nullable = false)
     private Integer attemptNo;
 
+    /**
+     * 이 응시자에게 배정된 문제 세트 번호 ({@link ExamQuestion#getSetNo()} 와 대응).
+     *
+     * <p>시작 시점에 서버가 무작위로 골라 박는다. 이 값이 있어야 "이 응시자가 어느 세트를 봤는지"를
+     * 3년 뒤에도 재현할 수 있고, 이어하기 때 같은 문항이 다시 나온다.
+     * {@code null} 은 세트 기능 도입 이전 회차라는 뜻이며 이 경우 전체 문항을 본 것으로 취급한다.</p>
+     */
+    @Column(name = "assigned_set_no")
+    private Integer assignedSetNo;
+
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 
@@ -105,13 +115,15 @@ public class ExamAttempt extends BaseEntity {
     private List<Answer> answers = new ArrayList<>();
 
     @Builder
-    public ExamAttempt(Exam exam, User user, Integer attemptNo, LocalDateTime startedAt,
+    public ExamAttempt(Exam exam, User user, Integer attemptNo, Integer assignedSetNo,
+                       LocalDateTime startedAt,
                        LocalDateTime expiresAt, AttemptStatus status,
                        LocalDateTime identityVerifiedAt, String identityVerifyMethod,
                        String ip, String userAgent) {
         this.exam = exam;
         this.user = user;
         this.attemptNo = attemptNo;
+        this.assignedSetNo = assignedSetNo;
         this.startedAt = startedAt;
         this.expiresAt = expiresAt;
         this.status = status;

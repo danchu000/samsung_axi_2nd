@@ -11,6 +11,8 @@ public record ExamQuestionRow(
         String code,
         String title,
         String difficulty,
+        /** 소속 문제 세트 번호. 세트가 1개인 시험은 전부 1 이다. */
+        int setNo,
         int seq,
         int score,
         boolean fromRule
@@ -24,6 +26,7 @@ public record ExamQuestionRow(
                 eq.getQuestion().getQuestionCode(),
                 text.length() <= 40 ? text : text.substring(0, 40) + "…",
                 eq.getQuestion().getDifficulty().name().toLowerCase(),
+                eq.getSetNo() == null ? 1 : eq.getSetNo(),
                 eq.getSeq(),
                 eq.resolveScore(),
                 eq.isFromRule()

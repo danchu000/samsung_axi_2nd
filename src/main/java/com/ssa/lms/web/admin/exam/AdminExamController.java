@@ -5,12 +5,14 @@ import com.ssa.lms.exam.dto.ExamSearchCond;
 import com.ssa.lms.exam.service.ExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -116,6 +118,29 @@ public class AdminExamController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             // IllegalState 는 문제은행 3배수 미달 / 응시 기록 있는 시험 수정 시도.
             // 관리자에게 500 을 보여주면 안 되고, 부족분 안내를 그대로 전달해야 한다.
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/evaluation/exams/" + id + "/edit";
+    }
+
+    /**
+     * 성적 공개 설정만 변경.
+     *
+     * 시험 폼(update)은 응시 기록이 있으면 잠기지만(문항 구성이 갈리면 3년 재현이 깨진다),
+     * 성적 공개 방식은 문항과 무관하고 "채점 끝나면 공개"가 정상 운영이라 잠그면 안 된다.
+     */
+    @PostMapping("/{id}/result-release")
+    public String changeResultRelease(
+            @PathVariable Long id,
+            @RequestParam("resultRelease") String resultRelease,
+            @RequestParam(value = "resultReleaseAt", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime resultReleaseAt,
+            RedirectAttributes redirectAttributes) {
+        try {
+            examService.changeResultRelease(id, resultRelease, resultReleaseAt);
+            redirectAttributes.addFlashAttribute("message",
+                    "성적 공개 설정을 '" + resultRelease + "' 로 변경했습니다.");
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/admin/evaluation/exams/" + id + "/edit";

@@ -6,11 +6,13 @@
  *
  * 서버가 넘겨주는 값 (템플릿의 th:inline 블록):
  *   window._questionPool      : 사용중(ACTIVE) 문제 목록  [{id, code, title, difficulty, categoryL/M/S, tags, score}]
- *   window._selectedQuestions : 이미 편성된 문항 (수정 화면)  [{questionId, code, title, difficulty, seq, score, fromRule}]
+ *   window._selectedQuestions : 이미 편성된 문항 (수정 화면)  [{questionId, code, title, difficulty, setNo, seq, score, fromRule}]
  *   window._savedRules        : 저장된 출제 규칙 (수정 화면)
  *
  * 폼 전송 형태:
  *   questionIds        — 수동 편성 문항 id (여러 개)
+ *   questionSetNos     — 위와 <b>같은 순서로 짝지어지는</b> 세트 번호. 서버 ExamForm.effectiveQuestions()
+ *                        가 index 로 짝을 맞추므로 개수와 순서가 어긋나면 안 된다.
  *   rules[i].categoryL / categoryM / categoryS / tags / totalCount
  *          / difficultyLevel1~3 / difficultyCount1~3
  */
@@ -18,7 +20,7 @@
     'use strict';
 
     var pool = window._questionPool || [];
-    var manualQuestions = [];   // {id, code, title}
+    var manualQuestions = [];   // {id, code, title, setNo}
     var rules = [];             // ExamRuleForm 모양
     var PER_PAGE = 5;
 
@@ -27,7 +29,10 @@
     (window._selectedQuestions || []).forEach(function (q) {
         // 규칙으로 확정된 문항은 수동 목록에 넣지 않는다 (별도 영역에서 보여준다).
         if (!q.fromRule) {
-            manualQuestions.push({ id: String(q.questionId), code: q.code, title: q.title });
+            manualQuestions.push({
+                id: String(q.questionId), code: q.code, title: q.title,
+                setNo: parseInt(q.setNo, 10) || 1
+            });
         }
     });
     (window._savedRules || []).forEach(function (r) {
@@ -137,13 +142,37 @@
         }
     }
 
+    /* ===== 문제 세트 ===== */
+
+    /** 화면에 선언된 세트 개수. 값이 없거나 이상하면 1(= 세트 기능 미사용)로 본다. */
+    function setCount() {
+        var n = parseInt(valueOf('questionSetCount'), 10);
+        return (!n || n < 1) ? 1 : n;
+    }
+
+    /**
+     * 세트 개수를 줄였을 때 남아 있는 유령 세트 번호를 1번으로 접는다.
+     * 서버(ExamForm.effectiveQuestions)도 같은 보정을 하지만, 화면에 안 보이는 값이
+     * 그대로 전송되면 관리자가 왜 그 문항이 1번 세트로 갔는지 알 수 없다.
+     */
+    function clampSetNos() {
+        var max = setCount();
+        manualQuestions.forEach(function (q) {
+            if (!q.setNo || q.setNo < 1 || q.setNo > max) q.setNo = 1;
+        });
+    }
+
     function addManualQuestion(q) {
-        var already = manualQuestions.some(function (m) { return m.id === String(q.id); });
+        // 같은 문제를 다른 세트에 넣는 것은 정상이다 (문제은행이 모자랄 때 실제로 그렇게 된다).
+        // 막아야 하는 것은 "같은 세트에 같은 문제" 뿐 — uk_exam_question(exam_id, set_no, question_id).
+        var already = manualQuestions.some(function (m) {
+            return m.id === String(q.id) && m.setNo === 1;
+        });
         if (already) {
-            alert('이미 추가된 문제입니다.');
+            alert('1번 세트에 이미 추가된 문제입니다. (추가 후 세트를 바꿔 다른 세트에 넣을 수 있습니다)');
             return;
         }
-        manualQuestions.push({ id: String(q.id), code: q.code, title: q.title });
+        manualQuestions.push({ id: String(q.id), code: q.code, title: q.title, setNo: 1 });
         renderManualQuestions();
         syncHiddenInputs();
         document.getElementById('questionModal').style.display = 'none';
@@ -152,17 +181,41 @@
     function renderManualQuestions() {
         var list = document.getElementById('manualQuestionList');
         if (!list) return;
+        clampSetNos();
         list.innerHTML = '';
         if (manualQuestions.length === 0) {
             list.innerHTML = '<div style="color:#888;font-size:14px;">추가된 문제가 없습니다.</div>';
             return;
         }
+        var max = setCount();
         manualQuestions.forEach(function (q, idx) {
             var row = document.createElement('div');
             row.style.cssText = 'background:#f8f9fa;border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;';
             var label = document.createElement('span');
             label.style.fontSize = '15px';
             label.textContent = (idx + 1) + '. [' + q.code + '] ' + q.title;
+
+            var right = document.createElement('span');
+            right.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+            // 세트가 하나뿐이면 선택할 것이 없다 — 셀렉트를 아예 그리지 않는다(기존 화면과 동일).
+            if (max > 1) {
+                var sel = document.createElement('select');
+                sel.className = 'form-select set-select';
+                for (var n = 1; n <= max; n++) {
+                    var opt = document.createElement('option');
+                    opt.value = String(n);
+                    opt.textContent = '세트 ' + n;
+                    if (n === q.setNo) opt.selected = true;
+                    sel.appendChild(opt);
+                }
+                sel.addEventListener('change', function () {
+                    q.setNo = parseInt(sel.value, 10) || 1;
+                    syncHiddenInputs();
+                });
+                right.appendChild(sel);
+            }
+
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'btn btn-gray';
@@ -172,8 +225,10 @@
                 renderManualQuestions();
                 syncHiddenInputs();
             });
+            right.appendChild(btn);
+
             row.appendChild(label);
-            row.appendChild(btn);
+            row.appendChild(right);
             list.appendChild(row);
         });
     }
@@ -286,8 +341,12 @@
         if (!box) return;
         box.innerHTML = '';
 
+        clampSetNos();
+        // questionIds 와 questionSetNos 는 index 로 짝지어진다. 두 배열의 길이·순서가 어긋나면
+        // 서버가 엉뚱한 세트에 문항을 넣으므로 반드시 한 루프에서 같이 만든다.
         manualQuestions.forEach(function (q) {
             box.appendChild(hidden('questionIds', q.id));
+            box.appendChild(hidden('questionSetNos', q.setNo || 1));
         });
 
         rules.forEach(function (rule, i) {
@@ -306,8 +365,16 @@
         updateCounters();
     }
 
+    /**
+     * 문항 수 카운터.
+     *
+     * 규칙은 <b>세트마다</b> 다시 뽑히므로 목표 문항 수는 규칙 합계 × 세트 수다.
+     * 세트를 2벌로 늘렸는데 목표가 그대로면 "규칙 확정" 후 숫자가 두 배로 튀어 보인다.
+     */
     function updateCounters() {
-        var ruleTotal = rules.reduce(function (sum, r) { return sum + (parseInt(r.totalCount, 10) || 0); }, 0);
+        var sets = setCount();
+        var rulePerSet = rules.reduce(function (sum, r) { return sum + (parseInt(r.totalCount, 10) || 0); }, 0);
+        var ruleTotal = rulePerSet * sets;
         var current = manualQuestions.length;
         var confirmedFromRule = (window._selectedQuestions || []).filter(function (q) { return q.fromRule; }).length;
 
@@ -317,9 +384,13 @@
         var warn = document.getElementById('countWarning');
         if (warn) {
             if (ruleTotal > 0 && confirmedFromRule === 0) {
-                warn.textContent = '⚠ 출제 규칙 ' + ruleTotal + '문항이 아직 확정되지 않았습니다.';
+                warn.textContent = '⚠ 출제 규칙 ' + ruleTotal + '문항('
+                    + rulePerSet + '문항 × 세트 ' + sets + ')이 아직 확정되지 않았습니다.';
             } else if (ruleTotal > 0 && confirmedFromRule < ruleTotal) {
-                warn.textContent = '⚠ 규칙 목표 ' + ruleTotal + '문항 중 ' + confirmedFromRule + '문항만 확정됨 (문제은행 부족)';
+                warn.textContent = '⚠ 규칙 목표 ' + ruleTotal + '문항 중 ' + confirmedFromRule
+                    + '문항만 확정됨 (문제은행 부족)';
+            } else if (sets > 1 && current > 0 && current % sets !== 0) {
+                warn.textContent = 'ℹ 수동 편성 문항이 세트별로 고르게 나뉘지 않았습니다. 세트별 문항 수를 확인하세요.';
             } else {
                 warn.textContent = '';
             }
@@ -423,6 +494,31 @@
             };
             retake.addEventListener('change', syncRetake);
             syncRetake();
+        }
+
+        // 세트 개수를 바꾸면 문항별 세트 셀렉트와 목표 문항 수를 다시 그린다
+        var setCountInput = document.getElementById('questionSetCount');
+        if (setCountInput) {
+            setCountInput.addEventListener('input', function () {
+                renderManualQuestions();
+                syncHiddenInputs();
+            });
+        }
+
+        // 모의 테스트는 응시 횟수를 세지 않는다 — 재응시 설정이 의미가 없다는 것을 화면에서도 알린다
+        var practice = document.getElementById('practiceMode');
+        var retakeBox = document.getElementById('retakeAllowed');
+        if (practice && retakeBox) {
+            var syncPractice = function () {
+                var label = document.querySelector('label[for="retakeAllowed"]');
+                if (label) {
+                    label.textContent = practice.checked
+                        ? '재응시 허용 (모의 테스트라 횟수 제한 없음)'
+                        : '재응시 허용';
+                }
+            };
+            practice.addEventListener('change', syncPractice);
+            syncPractice();
         }
 
         // 감독 미사용이면 웹캠 필수도 의미가 없다

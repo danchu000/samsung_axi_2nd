@@ -99,6 +99,25 @@ docker load < lxp-images.tar.gz
 docker compose up -d   # --build 없이
 ```
 
+## 6.5 Windows PC + WSL2 + Docker Desktop 환경 (확정 환경)
+
+서버가 Ubuntu 단독이 아니라 **Windows PC 의 WSL2** 인 경우의 보완 사항.
+배포 명령 자체는 §1 과 동일하다 (WSL2 터미널에서 실행, repo 는 `/mnt/c/...` 가 아닌 WSL 홈(`~/lxp`)에 clone — 성능 문제).
+
+**상시 서비스를 위한 Windows 쪽 설정 (담당자 요청 사항)**
+
+1. **전원**: 절전/최대 절전 끄기 (설정 > 전원 — "안 함"), 덮개 닫아도 계속 실행
+2. **Docker Desktop 자동 시작**: Settings > General > "Start Docker Desktop when you sign in" 켜기
+   + Windows 자동 로그인 설정 (재부팅 후 로그인 전에는 Docker 가 안 뜸)
+   — 컨테이너는 `restart: unless-stopped` 라 Docker 만 뜨면 자동 복구된다
+3. **방화벽**: Windows Defender 방화벽 인바운드 규칙으로 TCP 8080 허용
+   (Docker Desktop 이 포트를 Windows 쪽에 공개하므로 사내 다른 PC 는 `http://<PC IP>:8080` 로 접속)
+4. **고정 IP**: 사내 네트워크에서 이 PC 의 IP 를 고정(DHCP 예약) — IP 가 바뀌면 사용자 접속 주소가 바뀐다
+5. **원격 작업 수단**: 셋 중 하나 — Windows OpenSSH Server 활성화 / 원격데스크톱 / 담당자가 직접 명령 실행
+
+**한계 (초안 운영은 가능, 정식 운영 전 결정 필요)**: Windows 업데이트 자동 재부팅·로그인 세션 의존 등으로
+24/7 안정성이 서버 OS 보다 낮다. 정식 오픈 시 Ubuntu 단독 서버(또는 WSL 없이 Linux 설치) 전환 권장.
+
 ## 7. 이후 과제 (초안 운영 시작 후)
 
 - HTTPS: 사내 인증서 + nginx 리버스 프록시 (내역서 E-4)

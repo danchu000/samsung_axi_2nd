@@ -455,6 +455,20 @@ public class ExamGradingService {
         attempt.applyScore(totals.autoScore(), totals.manualScore(),
                 totals.manualPending() ? null : exam.getPassScore());
 
+        // 연습(사전 모의) 시험은 성적에 반영하지 않는다.
+        //
+        // 응시·제출 경로에서는 이미 Grade 를 만들지 않는데, 관리자가 채점 화면에서
+        // "성적 확정"을 누르면 여기로 들어와 Grade 가 생겨버렸다. 그러면 모의 테스트 점수가
+        // 이수 판정(A 의 CompletionService -> GradeQueryService)에 섞인다.
+        //
+        // 답안 채점 결과(Answer.gradeManual)와 회차 점수(attempt.applyScore)는 위에서 이미
+        // 저장했으므로, 강사가 모의 시험을 채점해 피드백을 주는 것 자체는 그대로 된다.
+        if (exam.isPracticeMode()) {
+            log.info("[채점] 연습 시험이라 성적(Grade) 반영을 건너뛴다. exam={} attempt={}",
+                    exam.getId(), attempt.getId());
+            return attemptDetail(attemptId, graderId, admin, urlPrefix);
+        }
+
         if (grade == null) {
             grade = gradeRepository.save(Grade.builder()
                     .user(attempt.getUser())

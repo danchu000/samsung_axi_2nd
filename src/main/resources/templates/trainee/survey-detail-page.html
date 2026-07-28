@@ -111,6 +111,31 @@
   }
 </style>
 
+<!-- ===== 서버 연동 (개발자 B) — 이 파일은 <html>/<body> 없는 조각이라 문서 끝에 붙인다 ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        var v = /*[[${survey}]]*/ null;
+        if (!v) return;
+        // 화면 JS 가 쓰는 타입명(CHOICE/TEXT/STAR)으로 매핑한다
+        var TYPE = { single: 'CHOICE', multi: 'CHOICE', text: 'TEXT', scale: 'STAR' };
+        window._serverSurveyDetail = {
+            id: v.id, title: v.title, course: v.course, deadline: v.deadline,
+            submitted: v.submitted, answerable: v.answerable,
+            questions: (v.questions || []).map(function (q) {
+                return {
+                    id: q.id, title: q.title, required: q.required,
+                    type: TYPE[q.type] || 'TEXT',
+                    multi: q.type === 'multi',
+                    maxStars: q.maxStars || 5,
+                    options: q.options || []
+                };
+            })
+        };
+    })();
+    /*]]>*/
+</script>
+
 <script>
   // ====== 더미 설문(실제로는 API로 가져오면 됨) ======
   // 서버(Thymeleaf)가 내려준 설문 1건. 기존 더미 맵을 대체한다.
@@ -364,27 +389,3 @@
   }
 </script>
 
-<!-- ===== 서버 연동 (개발자 B) — 이 파일은 <html>/<body> 없는 조각이라 문서 끝에 붙인다 ===== -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    (function () {
-        var v = /*[[${survey}]]*/ null;
-        if (!v) return;
-        // 화면 JS 가 쓰는 타입명(CHOICE/TEXT/STAR)으로 매핑한다
-        var TYPE = { single: 'CHOICE', multi: 'CHOICE', text: 'TEXT', scale: 'STAR' };
-        window._serverSurveyDetail = {
-            id: v.id, title: v.title, course: v.course, deadline: v.deadline,
-            submitted: v.submitted, answerable: v.answerable,
-            questions: (v.questions || []).map(function (q) {
-                return {
-                    id: q.id, title: q.title, required: q.required,
-                    type: TYPE[q.type] || 'TEXT',
-                    multi: q.type === 'multi',
-                    maxStars: q.maxStars || 5,
-                    options: q.options || []
-                };
-            })
-        };
-    })();
-    /*]]>*/
-</script>

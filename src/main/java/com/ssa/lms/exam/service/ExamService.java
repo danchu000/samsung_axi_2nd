@@ -377,6 +377,81 @@ public class ExamService {
      * 2차는 이 세트에 없기만 하면 허용(문제은행이 모자란 경우). 2차까지 해도 모자라면
      * 조용히 덜 뽑는다 — 화면이 "현재 총 문항 수 / 목표"로 부족분을 보여준다.</p>
      */
+    /* ===================== 강사 담당 과정 권한 ===================== */
+
+    /** 시험 생성 — 대상 과정을 맡고 있어야 한다. */
+    public void assertCanCreate(Long courseId, Long viewerId, boolean admin) {
+        ensureCanManageCourse(courseId, viewerId, admin);
+    }
+
+    /** 일괄 처리(비활성화·삭제) — 하나라도 담당이 아니면 전부 거부한다. */
+    public void assertCanManageAll(List<Long> examIds, Long viewerId, boolean admin) {
+        if (admin || examIds == null || examIds.isEmpty()) {
+            return;
+        }
+        for (Exam exam : examRepository.findAllById(examIds)) {
+            ensureCanManage(exam, viewerId, admin);
+        }
+    }
+
+
+    /**
+     * 이 시험을 다룰 수 있는가 — 관리자는 전부, 강사는 담당 과정만.
+     *
+     * <p>권한정의서(1)의 강사 "△(담당 과정 한정)" 규정이다. 채점·모니터링 슬라이스는
+     * 이미 같은 규칙을 적용했는데 시험 생성/목록에만 빠져 있어서, 강사가 URL 만 바꾸면
+     * 남의 과정 시험을 열람·수정할 수 있었다.</p>
+     */
+    private boolean canManage(Exam exam, Long viewerId, boolean admin) {
+        if (admin) {
+            return true;
+        }
+        if (exam.getCourse() == null || viewerId == null) {
+            return false;
+        }
+        return courseQueryService.isInstructorOf(viewerId, exam.getCourse().getId());
+    }
+
+    /** 담당하지 않는 과정이면 403. 시험 단위 진입점이 반드시 거쳐야 한다. */
+    private void ensureCanManage(Exam exam, Long viewerId, boolean admin) {
+        if (!canManage(exam, viewerId, admin)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "담당하지 않는 과정의 시험입니다.");
+        }
+    }
+
+    /** 과정 단위 권한 — 시험 생성 시 대상 과정을 맡고 있는지 본다. */
+    private void ensureCanManageCourse(Long courseId, Long viewerId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        if (courseId == null || viewerId == null
+                || !courseQueryService.isInstructorOf(viewerId, courseId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "담당하지 않는 과정에는 시험을 만들 수 없습니다.");
+        }
+    }
+
+    /** 시험 1건 조회 + 권한 확인. */
+    public Exam requireManageable(Long examId, Long viewerId, boolean admin) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new IllegalArgumentException("시험을 찾을 수 없습니다. id=" + examId));
+        ensureCanManage(exam, viewerId, admin);
+        return exam;
+    }
+
+    /** 목록 필터 — 강사는 담당 과정 시험만 남긴다. */
+    public List<ExamListRow> searchScoped(ExamSearchCond cond, Long viewerId, boolean admin) {
+        List<ExamListRow> rows = search(cond);
+        if (admin) {
+            return rows;
+        }
+        return rows.stream()
+                .filter(r -> r.courseId() != null
+                        && courseQueryService.isInstructorOf(viewerId, r.courseId()))
+                .toList();
+    }
+
     private int pick(Exam exam, ExamQuestionRule rule, Difficulty difficulty, Integer count,
                      int setNo, Set<Long> inSet, Set<Long> usedAnywhere, Map<Integer, Integer> lastSeq) {
         int need = count == null ? 0 : count;

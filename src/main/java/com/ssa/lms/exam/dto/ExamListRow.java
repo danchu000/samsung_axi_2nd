@@ -18,6 +18,8 @@ public record ExamListRow(
         String id,
         String examName,
         String examType,
+        /** 강사 담당 과정 필터링에 쓴다. 화면에는 노출하지 않는다. */
+        Long courseId,
         String courseName,
         String courseCode,
         String instructorName,
@@ -49,6 +51,7 @@ public record ExamListRow(
                 String.valueOf(exam.getId()),
                 exam.getExamName(),
                 ExamForm.typeLabel(exam.getExamType()),
+                exam.getCourse() == null ? null : exam.getCourse().getId(),
                 exam.getCourse() == null ? "-" : exam.getCourse().getCourseName(),
                 exam.getCourse() == null ? "-" : exam.getCourse().getCourseCode(),
                 exam.getInstructor() == null ? "-" : exam.getInstructor().getName(),

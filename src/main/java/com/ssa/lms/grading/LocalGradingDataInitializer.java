@@ -168,6 +168,9 @@ public class LocalGradingDataInitializer {
 
         ExamAttempt attempt = examAttemptRepository.save(ExamAttempt.builder()
                 .exam(exam).user(trainee).attemptNo(1)
+                // 실제 응시(start→assignSet)는 세트를 반드시 박는다. 시드도 같게 맞춘다 —
+                // 안 박으면 훈련생이 이 회차 결과를 열 때 세트 번호 언박싱 NPE 로 500 이 난다.
+                .assignedSetNo(exam.availableSetNos().stream().findFirst().orElse(1))
                 .startedAt(started)
                 .expiresAt(started.plusMinutes(exam.getTimeLimitMin()))
                 .status(AttemptStatus.SUBMITTED)

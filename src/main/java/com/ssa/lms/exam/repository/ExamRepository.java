@@ -4,6 +4,7 @@ import com.ssa.lms.exam.entity.Difficulty;
 import com.ssa.lms.exam.entity.Exam;
 import com.ssa.lms.exam.entity.Question;
 import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -87,4 +88,14 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
                                       @Param("categoryS") String categoryS,
                                       @Param("tag") String tag,
                                       Pageable pageable);
+
+    /** 응시 마감이 구간 안에 드는 공개 시험 — 리마인드 대상 산출용. */
+    @Query("""
+            select e from Exam e
+              join fetch e.course
+            where e.status = com.ssa.lms.exam.entity.Exam$ExamStatus.OPEN
+              and e.windowEnd between :from and :to
+            """)
+    List<Exam> findWindowEndBetween(@Param("from") LocalDateTime from,
+                                    @Param("to") LocalDateTime to);
 }

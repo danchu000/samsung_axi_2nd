@@ -104,6 +104,26 @@ public class NotificationService {
                 .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다. id=" + id));
     }
 
+    /**
+     * 내가 받은 알림 — 훈련생 알림함용.
+     *
+     * <p>{@link #search} 는 관리자용이라 전체를 돌려준다. 훈련생에게 그걸 쓰면
+     * 남의 알림까지 보인다. 그래서 수신자(NotificationRecipient) 기준으로 따로 조회한다.</p>
+     */
+    public List<NotificationListRow> findForRecipient(Long userId, NotificationSearchCond cond,
+                                                      Pageable pageable) {
+        String keyword = cond == null ? null : cond.keywordOrNull();
+        return recipientRepository.findMine(userId, pageable).stream()
+                .filter(r -> keyword == null
+                        || r.getNotification().getTitle().toLowerCase().contains(keyword.toLowerCase()))
+                .map(r -> NotificationListRow.of(
+                        r.getNotification(),
+                        r.getReadAt() == null ? "읽지않음" : "읽음",
+                        1L,
+                        r.getReadAt() == null ? 0L : 1L))
+                .toList();
+    }
+
     @Transactional
     public Long create(NotificationForm form, Long senderId, Role role) {
         assertCanSend(form.toTargetType(), form.getTargetRefId(), senderId, role);

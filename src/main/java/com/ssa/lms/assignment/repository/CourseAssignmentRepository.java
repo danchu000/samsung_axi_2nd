@@ -1,6 +1,7 @@
 package com.ssa.lms.assignment.repository;
 
 import com.ssa.lms.assignment.entity.CourseAssignment;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -91,4 +92,22 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
             group by g.evalRefId
             """)
     List<Object[]> countGraded(@Param("ids") Collection<Long> ids);
+
+    /** 마감이 구간 안에 드는 공개 과제 — 리마인드 대상 산출용. */
+    @Query("""
+            select ca from CourseAssignment ca
+              join fetch ca.assignment
+              join fetch ca.course
+            where ca.status = com.ssa.lms.assignment.entity.CourseAssignment$CourseAssignmentStatus.OPEN
+              and ca.endAt between :from and :to
+            """)
+    List<CourseAssignment> findDueBetween(@Param("from") LocalDateTime from,
+                                          @Param("to") LocalDateTime to);
+
+    /** 이 과제들에 한 번이라도 제출한 사용자 — [courseAssignmentId, userId]. */
+    @Query("""
+            select s.courseAssignment.id, s.user.id from Submission s
+            where s.courseAssignment.id in :ids
+            """)
+    List<Object[]> findSubmittedPairs(@Param("ids") Collection<Long> ids);
 }

@@ -21,8 +21,11 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 기�
 
 ## Git
 
+- **푸시는 반드시 https://github.com/woongscoding/axi_project (사용자 소유) 로만 한다.**
+  `origin` 과 `personal` 둘 다 이 저장소를 가리키도록 설정돼 있으므로 `git push origin main` / `git push personal main` 어느 쪽도 안전하다.
+  **`mina-old` 리모트(mina-2026-ai/samsung-lxp, 과거 협업 저장소)에는 절대 푸시 금지** — 읽기 보관용.
 - 1인 개발이므로 main 직접 커밋 허용. 규모 있는 작업(병렬 세션·실험)은 `feat/*` 브랜치 + worktree(`C:\work\` — OneDrive 밖이라 init 스크립트 불필요).
-- 원격 `personal`(woongscoding/axi_project)이 실제 공유 저장소. 커밋 메시지 한글, 작은 단위 유지.
+- 커밋 메시지 한글, 작은 단위 유지.
 - 배포 기준은 태그로 관리 (`v0.1.0-draft`). 배포 후 서버 갱신: 서버에서 `git pull && docker compose up -d --build`.
 
 ## 반드시 지킬 규칙 (실제 사고에서 나온 것)

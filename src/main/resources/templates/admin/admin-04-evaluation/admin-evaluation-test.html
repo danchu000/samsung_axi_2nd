@@ -350,7 +350,9 @@
                 <div id="testItemsContainer">
                     <div class="test-item" th:each="row, stat : ${rows}" th:attr="data-id=${row.id}">
                         <div><input type="checkbox" class="test-checkbox" name="ids" th:value="${row.id}"></div>
-                        <div class="test-number" th:text="${stat.count}">1</div>
+                        <!-- 서버 페이징이라 번호는 페이지 오프셋을 더해야 2페이지가 1부터 다시 시작하지 않는다 -->
+                        <div class="test-number"
+                             th:text="${page != null ? (page.page - 1) * page.size + stat.count : stat.count}">1</div>
                         <div class="test-name">
                             <span th:text="${row.examName}">시험명</span>
                             <!-- 사전 모의 테스트는 성적에 반영되지 않는다 — 정식 시험과 반드시 구분해서 보여준다 -->
@@ -399,14 +401,33 @@
             </div>
             </form>
 
-            <!-- 페이지네이션 (현재는 서버가 필터링된 전체 행을 내려준다) -->
+            <!--
+              페이지네이션 — 서버가 한 페이지 분량만 내려준다.
+              링크는 server-pagination.js 가 window._serverPage 를 보고 그린다.
+              id(prevPage/nextPage/pageNumbers/currentPageInfo/totalPagesInfo)는 다른 화면과 같은 것을 쓴다.
+            -->
             <div class="pagination">
                 <div class="page-info">
                     <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                    <span class="total-count" th:if="${page != null}"
+                          th:text="'(총 ' + ${page.totalCount} + '건)'">(총 0건)</span>
+                </div>
+                <div class="pagination-controls">
+                    <button type="button" id="prevPage" disabled>이전</button>
+                    <div id="pageNumbers"></div>
+                    <button type="button" id="nextPage">다음</button>
                 </div>
             </div>
         </section>
     </main>
+
+    <!-- 서버 페이징 정보 — server-pagination.js 가 이 값으로 페이지 링크를 그린다 (문제은행과 같은 방식) -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window._serverPage = /*[[${page}]]*/ null;
+        /*]]>*/
+    </script>
+    <script src="/static/js/server-pagination.js" defer></script>
 
     <script>
         // 체크박스 전체선택/해제 — 서버가 th:each 로 그린 행에 그대로 붙는다.

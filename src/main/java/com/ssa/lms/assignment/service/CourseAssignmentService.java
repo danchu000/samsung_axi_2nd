@@ -13,6 +13,9 @@ import com.ssa.lms.assignment.repository.CourseAssignmentRepository;
 import com.ssa.lms.assignment.repository.SubmissionRepository;
 import com.ssa.lms.course.service.CourseQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +61,69 @@ public class CourseAssignmentService {
     public List<CourseAssignmentRow> search(AssignmentSearchCond cond, String gradingUrlPrefix) {
         List<CourseAssignment> found = courseAssignmentRepository.search(
                 cond.courseId(), cond.graderId(), cond.entityStatusOrNull(), cond.keywordOrNull());
+        return applyDerivedStatus(toRows(found, 0, gradingUrlPrefix), cond.derivedStatusOrNull());
+    }
 
+    /**
+     * 목록 조회 — 강사는 담당 과정 과제만, <b>서버 페이징</b>.
+     *
+     * <p><b>강사 제한이 쿼리 조건으로 들어간다.</b> 관리자 과제 목록은 지금까지 아무 제한이 없어
+     * 강사가 들어오면 담당하지 않는 과정의 과제까지 다 보였다(권한정의서의 △ 위반).
+     * 시험 목록과 같은 방식으로 A의 {@link CourseQueryService#findCourseIdsByInstructorId(Long)}
+     * 결과를 SQL 에 내려서 막는다.</p>
+     *
+     * <p><b>화면 상태 필터(waiting/pending/completed)만 예외다.</b> 이 값은 채점 진행률에서
+     * 파생되는 것이라 DB where 로 걸 수가 없다. 그 필터가 걸린 경우에는
+     * (권한 조건은 그대로 쿼리에 건 채로) 대상 전체를 만들어 거른 뒤 <b>메모리에서 잘라낸다</b> —
+     * 그래야 totalCount 가 화면에 실제로 보이는 건수와 맞는다. DB 로 먼저 잘라버리면
+     * "10건 가져와 3건만 남는데 총 16건" 이 되어 페이지 수가 통째로 어긋난다.</p>
+     */
+    public Page<CourseAssignmentRow> searchScoped(AssignmentSearchCond cond, String gradingUrlPrefix,
+                                                  Long viewerId, boolean admin, Pageable pageable) {
+        boolean scoped = !admin;
+        List<Long> courseIds = List.of(-1L);   // scoped=false 일 때 자리만 채우는 더미
+        if (scoped) {
+            courseIds = viewerId == null
+                    ? List.of() : courseQueryService.findCourseIdsByInstructorId(viewerId);
+            if (courseIds.isEmpty()) {
+                // 담당 과정이 없는 강사. 빈 in 절을 DB 에 내리지 않는다.
+                return Page.empty(pageable);
+            }
+        }
+
+        String derivedStatus = cond.derivedStatusOrNull();
+        if (derivedStatus == null) {
+            Page<CourseAssignment> page = courseAssignmentRepository.searchPage(
+                    cond.courseId(), cond.graderId(), cond.entityStatusOrNull(), cond.keywordOrNull(),
+                    scoped, courseIds, pageable);
+            List<CourseAssignmentRow> rows = toRows(
+                    page.getContent(), (int) pageable.getOffset(), gradingUrlPrefix);
+            return new PageImpl<>(rows, pageable, page.getTotalElements());
+        }
+
+        List<CourseAssignment> all = courseAssignmentRepository.searchPage(
+                cond.courseId(), cond.graderId(), cond.entityStatusOrNull(), cond.keywordOrNull(),
+                scoped, courseIds, Pageable.unpaged(pageable.getSort())).getContent();
+        List<CourseAssignmentRow> filtered =
+                applyDerivedStatus(toRows(all, 0, gradingUrlPrefix), derivedStatus);
+
+        int from = Math.min((int) pageable.getOffset(), filtered.size());
+        int to = Math.min(from + pageable.getPageSize(), filtered.size());
+        // 잘라낸 뒤 번호를 다시 매긴다 — 2페이지가 1번부터 시작하면 안 된다.
+        List<CourseAssignmentRow> pageRows = renumber(filtered.subList(from, to), from);
+        return new PageImpl<>(pageRows, pageable, filtered.size());
+    }
+
+    /* ===== 목록 행 조립 ===== */
+
+    /**
+     * 엔티티 → 화면 행. 제출/채점 인원은 id 묶음으로 한 번씩만 집계하고(N+1 회피),
+     * 수강생 수는 과정별로 캐시해 같은 과정이 여러 번 나와도 A쪽 조회를 한 번만 한다.
+     *
+     * @param startNumber 이 묶음의 첫 행 앞에 몇 건이 있는지 (서버 페이징 오프셋)
+     */
+    private List<CourseAssignmentRow> toRows(List<CourseAssignment> found, int startNumber,
+                                             String gradingUrlPrefix) {
         List<Long> ids = found.stream().map(CourseAssignment::getId).toList();
         Map<Long, Long> submitted = toCountMap(
                 ids.isEmpty() ? List.of() : courseAssignmentRepository.countSubmittedUsers(ids));
@@ -67,38 +132,45 @@ public class CourseAssignmentService {
         Map<Long, Long> enrolledByCourse = new HashMap<>();
 
         List<CourseAssignmentRow> rows = new ArrayList<>();
-        int number = 0;
+        int number = startNumber;
         for (CourseAssignment ca : found) {
             Long courseId = ca.getCourse().getId();
             long enrolled = enrolledByCourse.computeIfAbsent(courseId,
                     id -> (long) courseQueryService.findUserIdsByCourseId(id).size());
-            CourseAssignmentRow row = CourseAssignmentRow.of(
+            rows.add(CourseAssignmentRow.of(
                     ca, ++number,
                     submitted.getOrDefault(ca.getId(), 0L),
                     graded.getOrDefault(ca.getId(), 0L),
                     enrolled,
-                    gradingUrlPrefix);
-            rows.add(row);
+                    gradingUrlPrefix));
         }
+        return rows;
+    }
 
-        // 화면 상태(waiting/pending/completed)는 채점 진행률에서 파생되는 값이라
-        // DB where 로 못 건다. 행을 만든 뒤에 걸러낸다.
-        String statusFilter = cond.derivedStatusOrNull();
+    /**
+     * 화면 상태(waiting/pending/completed) 필터.
+     * 채점 진행률에서 파생되는 값이라 DB where 로 못 건다 — 행을 만든 뒤에 걸러낸다.
+     */
+    private List<CourseAssignmentRow> applyDerivedStatus(List<CourseAssignmentRow> rows,
+                                                         String statusFilter) {
         if (statusFilter == null) {
             return rows;
         }
-        List<CourseAssignmentRow> filtered = new ArrayList<>();
-        int renumber = 0;
+        return renumber(rows.stream().filter(r -> r.status().equals(statusFilter)).toList(), 0);
+    }
+
+    /** 번호만 {@code startNumber + 1} 부터 다시 매긴 복사본. */
+    private List<CourseAssignmentRow> renumber(List<CourseAssignmentRow> rows, int startNumber) {
+        List<CourseAssignmentRow> result = new ArrayList<>(rows.size());
+        int n = startNumber;
         for (CourseAssignmentRow row : rows) {
-            if (row.status().equals(statusFilter)) {
-                filtered.add(new CourseAssignmentRow(
-                        row.id(), ++renumber, row.courseName(), row.courseId(), row.title(),
-                        row.instructor(), row.evalType(), row.startDate(), row.startTime(),
-                        row.endDate(), row.endTime(), row.submitted(), row.notSubmitted(),
-                        row.status(), row.address()));
-            }
+            result.add(new CourseAssignmentRow(
+                    row.id(), ++n, row.courseName(), row.courseId(), row.title(),
+                    row.instructor(), row.evalType(), row.startDate(), row.startTime(),
+                    row.endDate(), row.endTime(), row.submitted(), row.notSubmitted(),
+                    row.status(), row.address()));
         }
-        return filtered;
+        return result;
     }
 
     /**

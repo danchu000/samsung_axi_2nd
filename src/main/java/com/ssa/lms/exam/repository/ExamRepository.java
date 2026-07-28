@@ -3,6 +3,7 @@ package com.ssa.lms.exam.repository;
 import com.ssa.lms.exam.entity.Difficulty;
 import com.ssa.lms.exam.entity.Exam;
 import com.ssa.lms.exam.entity.Question;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,6 +41,49 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
                       @Param("statuses") Collection<Exam.ExamStatus> statuses,
                       @Param("instructor") String instructor,
                       @Param("keyword") String keyword);
+
+    /**
+     * 시험 목록 검색 — <b>서버 페이징 + 강사 담당 과정 제한</b> 버전.
+     *
+     * <p><b>왜 courseIds 조건이 쿼리 안에 있어야 하나:</b> 예전에는 전체를 조회한 뒤 자바에서
+     * 담당 과정만 남겼다. 그 상태로 페이징을 붙이면 "10건 가져와 3건만 남는데 총 16건"이 되어
+     * 페이지 수·건수가 전부 틀어진다. 조건을 DB 로 내려야 {@code Page.totalElements} 가 맞는다.
+     * 동시에 <b>권한 필터가 쿼리에 박혀</b> 있으니 페이징 파라미터를 어떻게 조작해도
+     * 담당 아닌 과정이 새어 나올 수 없다.</p>
+     *
+     * @param scoped    true 면 {@code courseIds} 로 제한한다 (강사). 관리자는 false.
+     * @param courseIds 담당 과정 id. <b>절대 비어 있으면 안 된다</b> — JPQL 의 in 절에 빈 컬렉션을
+     *                  넘기면 DB 별로 동작이 갈린다. 담당 과정이 없는 강사는 서비스가 아예
+     *                  빈 페이지를 돌려주므로 이 메서드까지 오지 않는다.
+     *                  {@code scoped=false} 일 때도 자리를 채우려면 더미 값을 넣어야 한다.
+     */
+    @Query(value = """
+            select distinct e from Exam e
+              left join fetch e.course c
+              left join fetch e.instructor i
+            where (:courseId is null or c.id = :courseId)
+              and e.status in :statuses
+              and (:scoped = false or c.id in :courseIds)
+              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+            """,
+            countQuery = """
+            select count(distinct e) from Exam e
+              left join e.course c
+              left join e.instructor i
+            where (:courseId is null or c.id = :courseId)
+              and e.status in :statuses
+              and (:scoped = false or c.id in :courseIds)
+              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+            """)
+    Page<Exam> searchPage(@Param("courseId") Long courseId,
+                          @Param("statuses") Collection<Exam.ExamStatus> statuses,
+                          @Param("instructor") String instructor,
+                          @Param("keyword") String keyword,
+                          @Param("scoped") boolean scoped,
+                          @Param("courseIds") Collection<Long> courseIds,
+                          Pageable pageable);
 
     /**
      * 시험별 편성 문항 수. 목록에서 행마다 세면 N+1 이라 id 묶음으로 한 번에 집계한다.

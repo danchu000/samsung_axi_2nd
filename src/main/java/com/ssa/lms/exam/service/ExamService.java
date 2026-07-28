@@ -13,6 +13,7 @@ import com.ssa.lms.exam.repository.QuestionRepository;
 import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -440,16 +441,48 @@ public class ExamService {
         return exam;
     }
 
-    /** 목록 필터 — 강사는 담당 과정 시험만 남긴다. */
-    public List<ExamListRow> searchScoped(ExamSearchCond cond, Long viewerId, boolean admin) {
-        List<ExamListRow> rows = search(cond);
-        if (admin) {
-            return rows;
+    /**
+     * 목록 조회 — 강사는 담당 과정 시험만, <b>서버 페이징</b>.
+     *
+     * <p><b>예전 구현의 문제:</b> 전체를 조회해 {@code ExamListRow} 로 만든 뒤 자바에서
+     * {@code isInstructorOf} 로 걸러냈다. 조회 후 필터라서 페이징을 붙일 수 없었다 —
+     * 10건을 가져와 3건만 남는데 총 건수는 16으로 나오는 식으로 전부 어긋난다.
+     * (덤으로 행마다 {@code isInstructorOf} 가 나가는 N+1 이기도 했다.)</p>
+     *
+     * <p>A가 제공한 {@link CourseQueryService#findCourseIdsByInstructorId(Long)} 로
+     * 담당 과정 id 를 한 번에 받아 <b>쿼리 조건으로 내렸다.</b> 권한 필터가 SQL 안에 있으니
+     * page/size 를 어떻게 넘겨도 담당 아닌 과정이 새어 나올 수 없고, 총 건수도 맞는다.</p>
+     *
+     * @param admin true 면 전체. false(강사)면 담당 과정으로 제한한다.
+     */
+    public Page<ExamListRow> searchScoped(ExamSearchCond cond, Long viewerId, boolean admin,
+                                          Pageable pageable) {
+        List<Exam.ExamStatus> statuses = cond.statusesOrNull();
+        if (statuses == null) {
+            statuses = List.of(Exam.ExamStatus.values());
         }
-        return rows.stream()
-                .filter(r -> r.courseId() != null
-                        && courseQueryService.isInstructorOf(viewerId, r.courseId()))
-                .toList();
+
+        boolean scoped = !admin;
+        List<Long> courseIds = List.of(-1L);   // scoped=false 일 때 자리만 채우는 더미
+        if (scoped) {
+            courseIds = viewerId == null
+                    ? List.of() : courseQueryService.findCourseIdsByInstructorId(viewerId);
+            if (courseIds.isEmpty()) {
+                // 담당 과정이 하나도 없는 강사. 빈 in 절을 DB 에 내리면 동작이 갈리므로 여기서 끊는다.
+                return Page.empty(pageable);
+            }
+        }
+
+        Page<Exam> page = examRepository.searchPage(
+                cond.getCourseId(), statuses, cond.instructorOrNull(), cond.keywordOrNull(),
+                scoped, courseIds, pageable);
+
+        List<Long> ids = page.getContent().stream().map(Exam::getId).toList();
+        Map<Long, Long> counts = ids.isEmpty()
+                ? Map.of()
+                : toCountMap(examRepository.countQuestions(ids));
+
+        return page.map(e -> ExamListRow.of(e, counts.getOrDefault(e.getId(), 0L)));
     }
 
     private int pick(Exam exam, ExamQuestionRule rule, Difficulty difficulty, Integer count,

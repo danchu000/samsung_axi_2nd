@@ -7,8 +7,15 @@ import com.ssa.lms.assignment.dto.CourseAssignmentRow;
 import com.ssa.lms.assignment.repository.AssignmentLookupRepository;
 import com.ssa.lms.assignment.service.AssignmentService;
 import com.ssa.lms.assignment.service.CourseAssignmentService;
+import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.user.entity.Role;
+import com.ssa.lms.web.PageView;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -35,21 +42,39 @@ public class AdminAssignmentController {
     static final String FORM_VIEW = "admin/admin-04-evaluation/admin-evaluation-assignment-add";
     static final String GRADING_URL_PREFIX = "/admin/evaluation/assignments/";
 
+    /** 문제은행·시험 목록과 같은 값. 화면 페이지네이션 DOM 이 10건 기준이다. */
+    private static final int PAGE_SIZE = 10;
+
     private final CourseAssignmentService courseAssignmentService;
     private final AssignmentService assignmentService;
     private final AssignmentLookupRepository lookupRepository;
 
-    /** 배정된 과제 목록. 행 렌더링·페이징은 기존 assignments.js 가 클라이언트에서 담당한다. */
+    /**
+     * 배정된 과제 목록. 행 렌더링은 기존 assignments.js 가 담당하고,
+     * <b>페이징은 서버가</b> 한다 (문제은행·시험 목록과 같은 방식).
+     *
+     * <p><b>강사는 담당 과정 과제만 본다.</b> 이 화면은 SecurityConfig 에서
+     * ADMIN·INSTRUCTOR 모두에게 열려 있는데 지금까지 아무 제한이 없어서 강사가 들어오면
+     * 담당하지 않는 과정의 과제까지 전부 보였다. 권한정의서의 △(담당 과정 한정) 위반이라
+     * 서버 페이징으로 바꾸면서 같이 막았다. 제한은 쿼리 조건이라 page 조작으로 못 뚫는다.</p>
+     */
     @GetMapping
-    public String list(@RequestParam(required = false) Long courseId,
+    public String list(@AuthenticationPrincipal LoginUser loginUser,
+                       @RequestParam(required = false) Long courseId,
                        @RequestParam(required = false) String status,
                        @RequestParam(required = false) Long graderId,
                        @RequestParam(required = false) String keyword,
+                       @RequestParam(defaultValue = "1") int page,
                        Model model) {
         AssignmentSearchCond cond = new AssignmentSearchCond(courseId, status, graderId, keyword);
-        List<CourseAssignmentRow> rows = courseAssignmentService.search(cond, GRADING_URL_PREFIX);
+        Page<CourseAssignmentRow> result = courseAssignmentService.searchScoped(
+                cond, GRADING_URL_PREFIX,
+                loginUser == null ? null : loginUser.getId(), isAdmin(loginUser),
+                PageRequest.of(Math.max(page - 1, 0), PAGE_SIZE,
+                        Sort.by(Sort.Direction.DESC, "startAt").and(Sort.by(Sort.Direction.DESC, "id"))));
 
-        model.addAttribute("rows", rows);
+        model.addAttribute("rows", result.getContent());
+        model.addAttribute("page", PageView.of(result));
         model.addAttribute("cond", cond);
         model.addAttribute("courseOptions", lookupRepository.findCourseOptions());
         model.addAttribute("instructorOptions", lookupRepository.findInstructorOptions());
@@ -156,6 +181,11 @@ public class AdminAssignmentController {
     }
 
     /* ===== 내부 ===== */
+
+    /** 관리자 여부 — 강사는 담당 과정으로 제한된다. */
+    private static boolean isAdmin(LoginUser loginUser) {
+        return loginUser != null && loginUser.getRole() == Role.ADMIN;
+    }
 
     private void addFormReferences(Model model) {
         model.addAttribute("courseOptions", lookupRepository.findCourseOptions());

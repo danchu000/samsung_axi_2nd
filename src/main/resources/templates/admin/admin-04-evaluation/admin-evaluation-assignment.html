@@ -116,6 +116,8 @@
             <div class="pagination">
                 <div class="page-info">
                     <span id="currentPageInfo">1</span> / <span id="totalPagesInfo">1</span> 페이지
+                    <span class="total-count" th:if="${page != null}"
+                          th:text="'(총 ' + ${page.totalCount} + '건)'">(총 0건)</span>
                 </div>
                 <div class="pagination-controls">
                     <button id="prevPage" onclick="changePage(-1)" disabled>이전</button>
@@ -137,12 +139,15 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         window._serverAssignmentRows = /*[[${rows}]]*/ [];
+        // 서버 페이징 정보 — server-pagination.js 가 이 값으로 페이지 링크를 그린다 (문제은행과 같은 방식)
+        window._serverPage = /*[[${page}]]*/ null;
         window._assignmentBulkUrls = {
             close:  /*[[@{/admin/evaluation/assignments/close}]]*/ '',
             remove: /*[[@{/admin/evaluation/assignments/delete}]]*/ ''
         };
         /*]]>*/
     </script>
+    <script src="/static/js/server-pagination.js" defer></script>
 
     <div th:if="${message}" class="toast-message" th:text="${message}"
          style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>

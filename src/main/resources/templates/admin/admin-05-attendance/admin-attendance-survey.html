@@ -373,6 +373,7 @@
                             <th>이탈위험도</th>
                             <th>마감일</th>
                             <th>상세보기</th>
+                            <th>결과</th>
                         </tr>
                     </thead>
                     <tbody id="surveyTableBody">
@@ -497,6 +498,8 @@
                         <td>${row.risk}</td>
                         <td>${deadlineDisplay}</td>
                         <td><button class="btn btn-secondary" type="button" ${row.id == null ? 'disabled title="데모 행"' : ''} onclick="location.href='/admin/survey/${row.id}/edit'">상세보기</button></td>
+                        <!-- 결과 리포트(문항별 집계) xlsx 다운로드. 강사는 담당 과정만 — 서버가 막는다. -->
+                        <td><button class="btn btn-gray" type="button" ${row.id == null ? 'disabled title="데모 행"' : ''} onclick="location.href='/admin/survey/${row.id}/report.xlsx'">결과 다운로드</button></td>
                     </tr>
                 `;
             });

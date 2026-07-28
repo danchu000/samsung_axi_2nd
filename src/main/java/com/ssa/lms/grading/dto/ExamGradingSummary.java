@@ -30,6 +30,9 @@ public record ExamGradingSummary(
         /** 로그인한 사용자가 이 시험을 채점할 수 있는지 (강사는 담당 과정만). */
         boolean canGrade,
         String gradesUrl,
+        /** 기본 다운로드 — xlsx. */
+        String excelUrl,
+        /** 엑셀이 없는 환경/타 시스템 반입용 대체 형식. */
         String csvUrl
 ) {
 }

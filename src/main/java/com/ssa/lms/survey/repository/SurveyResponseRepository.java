@@ -37,4 +37,11 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
             group by r.survey.id
             """)
     List<Object[]> countBySurveyIds(@Param("surveyIds") Collection<Long> surveyIds);
+
+    /** 이 설문들에 응답한 사용자 — [surveyId, userId]. */
+    @Query("""
+            select r.survey.id, r.user.id from SurveyResponse r
+            where r.survey.id in :surveyIds and r.user is not null
+            """)
+    List<Object[]> findRespondedPairs(@Param("surveyIds") Collection<Long> surveyIds);
 }

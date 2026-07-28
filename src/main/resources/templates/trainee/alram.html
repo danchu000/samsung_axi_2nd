@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -699,7 +699,8 @@
 
   <script>
     // ===== Dummy data (원하면 API로 교체 가능) =====
-    const feedbackData = [
+    // 서버(Thymeleaf)가 내려준 알림이 있으면 그것을 쓰고, 없으면 아래 더미로 동작
+    const feedbackData = window._serverAlarms || [
       {
         id: "fb_001",
         type: "warn",                // info | rec | warn
@@ -1151,5 +1152,26 @@
     }
     init();
   </script>
+
+<!-- ===== 서버 연동 (개발자 B) ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 화면 JS 가 기대하는 필드명으로 매핑한다 (DTO 필드명과 다름)
+    window._serverAlarms = (/*[[${rows}]]*/ []).map(function (r) {
+        var t = r.importance === '긴급' ? 'warn' : (r.importance === '높음' ? 'rec' : 'info');
+        return {
+            id: String(r.id),
+            type: t,
+            title: r.title,
+            message: r.content,
+            createdAt: r.date,
+            authorRole: '시스템',
+            authorName: r.author,
+            related: [],
+            read: r.readStatus === '읽음'
+        };
+    });
+    /*]]>*/
+</script>
 </body>
 </html>

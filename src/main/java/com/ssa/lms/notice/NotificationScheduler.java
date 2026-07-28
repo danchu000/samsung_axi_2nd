@@ -1,6 +1,8 @@
 package com.ssa.lms.notice;
 
+import com.ssa.lms.notice.entity.ReminderLog;
 import com.ssa.lms.notice.service.NotificationService;
+import com.ssa.lms.notice.service.ReminderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,10 +32,15 @@ import java.time.LocalDateTime;
 public class NotificationScheduler {
 
     private final NotificationService notificationService;
+    private final ReminderService reminderService;
 
     /** 테스트·로컬에서 끌 수 있게 스위치를 둔다. 기본 활성. */
     @Value("${lms.scheduler.notification.enabled:true}")
     private boolean enabled;
+
+    /** 리마인드는 별도로 끌 수 있게 한다 — 시드 데이터로 대량 발송되는 걸 막을 때 쓴다. */
+    @Value("${lms.scheduler.reminder.enabled:true}")
+    private boolean reminderEnabled;
 
     @Scheduled(fixedDelayString = "${lms.scheduler.notification.interval-ms:60000}")
     public void dispatchScheduledNotifications() {
@@ -48,6 +55,34 @@ public class NotificationScheduler {
         } catch (RuntimeException e) {
             // 스케줄러 스레드에서 예외가 새면 이후 주기가 통째로 멈춘다. 반드시 삼킨다.
             log.error("예약 알림 발송 중 오류", e);
+        }
+    }
+
+    /**
+     * 미제출·미응시·미응답자 리마인드.
+     *
+     * <p>주기를 1시간으로 잡은 이유: 마감 24시간 전/1시간 전을 잡아내는 데 이 정도면 충분하고,
+     * {@code ReminderService} 가 "마감이 [now+lead, now+lead+1시간)" 구간인 것만 고르도록
+     * 되어 있어 주기와 구간 폭이 맞아야 빠짐없이 잡힌다. 주기를 늘리면 그 사이 마감분을 놓친다.</p>
+     *
+     * <p>중복 발송은 {@code ReminderLog} 가 막는다.</p>
+     */
+    @Scheduled(fixedDelayString = "${lms.scheduler.reminder.interval-ms:3600000}")
+    public void sendReminders() {
+        if (!reminderEnabled) {
+            return;
+        }
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            int total = 0;
+            for (ReminderLog.ReminderStage stage : ReminderLog.ReminderStage.values()) {
+                total += reminderService.remindDue(now, stage);
+            }
+            if (total > 0) {
+                log.info("리마인드 알림 {}건 발송", total);
+            }
+        } catch (RuntimeException e) {
+            log.error("리마인드 발송 중 오류", e);
         }
     }
 }

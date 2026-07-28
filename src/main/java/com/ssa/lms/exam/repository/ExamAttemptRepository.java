@@ -49,4 +49,11 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempt, Long> 
             select a from ExamAttempt a join fetch a.exam where a.id = :id
             """)
     Optional<ExamAttempt> findWithExam(@Param("id") Long id);
+
+    /** 이 시험들에 한 번이라도 응시한 사용자 — [examId, userId]. */
+    @Query("""
+            select a.exam.id, a.user.id from ExamAttempt a
+            where a.exam.id in :examIds
+            """)
+    List<Object[]> findAttemptedPairs(@Param("examIds") Collection<Long> examIds);
 }

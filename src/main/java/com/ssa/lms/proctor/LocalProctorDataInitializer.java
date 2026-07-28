@@ -208,6 +208,7 @@ public class LocalProctorDataInitializer {
                             .email(loginId + "@ssa.local")
                             .phone(String.format("010-4000-%04d", seq))
                             .birthDate("2000-01-0" + Math.min(seq, 9))
+                            .profileImageUrl("/static/img/avatars/" + loginId + ".svg")
                             .privacyConsentAt(LocalDateTime.now())
                             .thirdPartyConsentAt(LocalDateTime.now())
                             .build()));

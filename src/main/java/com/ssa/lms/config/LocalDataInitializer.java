@@ -53,6 +53,7 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .loginId("admin").password(passwordEncoder.encode("1234"))
                 .name("관리자").role(Role.ADMIN).status(UserStatus.ACTIVE)
                 .email("admin@ssa.local").phone("010-0000-0000").birthDate("1990-01-01")
+                .profileImageUrl("/static/img/avatars/admin.svg")
                 .privacyConsentAt(LocalDateTime.now()).thirdPartyConsentAt(LocalDateTime.now())
                 .build());
 
@@ -60,6 +61,7 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .loginId("instructor1").password(passwordEncoder.encode("1234"))
                 .name("김강사").role(Role.INSTRUCTOR).status(UserStatus.ACTIVE)
                 .email("instructor1@ssa.local").phone("010-1111-1111").birthDate("1985-03-15")
+                .profileImageUrl("/static/img/avatars/instructor1.svg")
                 .privacyConsentAt(LocalDateTime.now()).thirdPartyConsentAt(LocalDateTime.now())
                 .build());
 
@@ -67,6 +69,7 @@ public class LocalDataInitializer implements CommandLineRunner {
                 .loginId("trainee1").password(passwordEncoder.encode("1234"))
                 .name("이훈련").role(Role.TRAINEE).status(UserStatus.ACTIVE)
                 .email("trainee1@ssa.local").phone("010-2222-2222").birthDate("1999-07-07")
+                .profileImageUrl("/static/img/avatars/trainee1.svg")
                 .privacyConsentAt(LocalDateTime.now()).thirdPartyConsentAt(LocalDateTime.now())
                 .build());
 

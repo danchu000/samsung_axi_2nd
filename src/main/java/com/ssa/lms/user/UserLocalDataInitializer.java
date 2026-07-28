@@ -44,6 +44,7 @@ public class UserLocalDataInitializer implements CommandLineRunner {
                 .loginId("trainee_pending").password(passwordEncoder.encode("1234"))
                 .name("박훈련").role(Role.TRAINEE).status(UserStatus.PENDING)
                 .email("trainee.pending@ssa.local").phone("010-3333-3333").birthDate("2000-05-05")
+                .profileImageUrl("/static/img/avatars/trainee_pending.svg")
                 .privacyConsentAt(now).thirdPartyConsentAt(now)
                 .build());
 
@@ -51,6 +52,7 @@ public class UserLocalDataInitializer implements CommandLineRunner {
                 .loginId("instructor_pending").password(passwordEncoder.encode("1234"))
                 .name("최강사").role(Role.INSTRUCTOR).status(UserStatus.PENDING)
                 .email("instructor.pending@ssa.local").phone("010-4444-4444").birthDate("1988-09-09")
+                .profileImageUrl("/static/img/avatars/instructor_pending.svg")
                 .privacyConsentAt(now).thirdPartyConsentAt(now)
                 .build());
 

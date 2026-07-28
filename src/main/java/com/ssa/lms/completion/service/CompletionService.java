@@ -141,6 +141,22 @@ public class CompletionService {
                 .map(CompletionView::of).toList();
     }
 
+    /** 수강생 본인 이수 현황 행 뷰(훈련생 이수관리 화면). */
+    public List<CompletionView> viewsByTrainee(Long traineeId) {
+        return completionRepository.findByTraineeId(traineeId).stream()
+                .map(CompletionView::of).toList();
+    }
+
+    /**
+     * 이수 정보가 해당 수강생 본인의 것인지 — 훈련생 이수증 다운로드 권한 경계.
+     * 존재하지 않거나 남의 것이면 false(호출부에서 404 처리해 존재 여부 노출을 막는다).
+     */
+    public boolean isOwnedByTrainee(Long completionId, Long traineeId) {
+        return completionRepository.findById(completionId)
+                .map(c -> c.getTrainee().getId().equals(traineeId))
+                .orElse(false);
+    }
+
     public Completion get(Long completionId) {
         return completionRepository.findById(completionId)
                 .orElseThrow(() -> new IllegalArgumentException("이수 정보를 찾을 수 없습니다: " + completionId));

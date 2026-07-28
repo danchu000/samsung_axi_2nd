@@ -4,6 +4,8 @@ import com.ssa.lms.attendance.entity.Attendance;
 import com.ssa.lms.attendance.entity.AttendanceStatus;
 import com.ssa.lms.attendance.repository.AccessLogQueryRepository;
 import com.ssa.lms.attendance.repository.AttendanceRepository;
+import com.ssa.lms.attendance.web.AttendanceMatrixView;
+import com.ssa.lms.attendance.web.TraineeAttendanceView;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.Session;
 import com.ssa.lms.course.repository.CourseRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -112,6 +115,26 @@ public class AttendanceService {
     /** 과정의 모든 출결 행(현황 화면 매트릭스 구성용). */
     public List<Attendance> findByCourse(Long courseId) {
         return attendanceRepository.findByCourseId(courseId);
+    }
+
+    /**
+     * 과정 출결현황 매트릭스(수강생×차시) 뷰 — 관리자/강사 화면 공용.
+     * 강사 권한(담당 과정 한정) 검증은 호출부(컨트롤러)에서 수행한다.
+     */
+    public AttendanceMatrixView matrixOf(Long courseId) {
+        List<Session> sessions = sessionRepository
+                .findBySubjectCourseIdOrderBySubjectOrderNoAscSeqAsc(courseId).stream()
+                .filter(s -> s.getLessonDate() != null)
+                .toList();
+        List<User> trainees = userRepository.findAllById(courseQueryService.findUserIdsByCourseId(courseId)).stream()
+                .sorted(Comparator.comparing(User::getName))
+                .toList();
+        return AttendanceMatrixView.of(trainees, sessions, findByCourse(courseId));
+    }
+
+    /** 수강생 본인의 출결 현황(과정별 그룹핑 뷰). 훈련생 출결현황 화면 전용. */
+    public List<TraineeAttendanceView> traineeAttendance(Long traineeId) {
+        return TraineeAttendanceView.group(attendanceRepository.findByTraineeId(traineeId));
     }
 
     /** 과정에서 수강생별 출석률 맵(수강생 id → %). */

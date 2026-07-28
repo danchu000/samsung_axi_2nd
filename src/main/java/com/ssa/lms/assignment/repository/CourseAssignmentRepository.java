@@ -34,9 +34,9 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
               and (:graderId is null or g.id = :graderId)
               and (:status is null or ca.status = :status)
               and (:keyword is null
-                   or lower(a.title) like lower(concat('%', :keyword, '%'))
-                   or lower(c.courseName) like lower(concat('%', :keyword, '%'))
-                   or lower(g.name) like lower(concat('%', :keyword, '%')))
+                   or lower(a.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(c.courseName) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(g.name) like lower(concat('%', cast(:keyword as string), '%')))
             order by ca.startAt desc, ca.id desc
             """)
     List<CourseAssignment> search(@Param("courseId") Long courseId,

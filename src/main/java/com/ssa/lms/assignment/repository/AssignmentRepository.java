@@ -24,7 +24,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
      */
     @Query("""
             select a from Assignment a
-            where (:keyword is null or lower(a.title) like lower(concat('%', :keyword, '%')))
+            where (:keyword is null or lower(a.title) like lower(concat('%', cast(:keyword as string), '%')))
               and (:difficulty is null or a.difficulty = :difficulty)
               and (:category is null or a.category = :category)
               and (:status is null or a.status = :status)

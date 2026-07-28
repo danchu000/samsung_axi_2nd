@@ -1,0 +1,42 @@
+# 온프레미스(Ubuntu) 배포 구성: PostgreSQL + LXP 앱
+# 사용법: .env 작성(.env.example 참고) 후  docker compose up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LMS_DB_NAME:-lms}
+      POSTGRES_USER: ${LMS_DB_USER:-lms}
+      POSTGRES_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD 를 .env 에 설정하세요}
+    volumes:
+      - lxp-dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LMS_DB_USER:-lms} -d ${LMS_DB_NAME:-lms}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${LMS_HTTP_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      LMS_DB_HOST: db
+      LMS_DB_NAME: ${LMS_DB_NAME:-lms}
+      LMS_DB_USER: ${LMS_DB_USER:-lms}
+      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD:?}
+      # AES-256 개인정보 암호화 키 — 분실 시 기존 데이터 복호화 불가, 반드시 백업
+      LMS_CRYPTO_SECRET: ${LMS_CRYPTO_SECRET:?LMS_CRYPTO_SECRET 를 .env 에 설정하세요}
+      # 미지정 시 첫 기동 때 무작위 생성되어 로그에 1회 출력됨
+      LMS_ADMIN_INIT_PASSWORD: ${LMS_ADMIN_INIT_PASSWORD:-}
+    volumes:
+      - lxp-uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  lxp-dbdata:
+  lxp-uploads:

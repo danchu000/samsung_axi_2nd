@@ -1,0 +1,14 @@
+# 빌드에 불필요한 것 전부 제외 — src/, gradle 관련만 이미지 빌드에 들어간다
+.git
+.gradle
+build
+uploads
+docs
+templates
+*.hwp
+*.xlsx
+*.pdf
+*.md
+.env
+.env.*
+!.env.example

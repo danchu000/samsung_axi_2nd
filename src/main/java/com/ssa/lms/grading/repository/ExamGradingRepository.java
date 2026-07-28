@@ -34,8 +34,8 @@ public interface ExamGradingRepository extends Repository<ExamAttempt, Long> {
               left join fetch e.instructor i
             where e.status in :statuses
               and (:courseId is null or c.id = :courseId)
-              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
-              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+              and (:instructor is null or lower(i.name) like lower(concat('%', cast(:instructor as string), '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', cast(:keyword as string), '%')))
             order by e.id desc
             """)
     List<Exam> findExams(@Param("courseId") Long courseId,

@@ -26,8 +26,8 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
     @Query("""
             select q from Qna q
             where (:keyword is null
-                   or lower(q.title) like lower(concat('%', :keyword, '%'))
-                   or lower(q.user.name) like lower(concat('%', :keyword, '%')))
+                   or lower(q.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(q.user.name) like lower(concat('%', cast(:keyword as string), '%')))
               and (:status is null or q.status = :status)
               and (:category is null or q.category = :category)
               and (:courseId is null or q.course.id = :courseId)
@@ -60,7 +60,7 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             left join fetch q.course
             left join fetch q.session
             where q.user.id = :userId
-              and (:keyword is null or lower(q.title) like lower(concat('%', :keyword, '%')))
+              and (:keyword is null or lower(q.title) like lower(concat('%', cast(:keyword as string), '%')))
             order by q.createdAt desc
             """)
     List<Qna> findByUserId(@Param("userId") Long userId, @Param("keyword") String keyword);

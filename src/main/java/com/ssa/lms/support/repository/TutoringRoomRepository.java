@@ -23,8 +23,8 @@ public interface TutoringRoomRepository extends JpaRepository<TutoringRoom, Long
     @Query("""
             select r from TutoringRoom r
             where (:keyword is null
-                   or lower(r.title) like lower(concat('%', :keyword, '%'))
-                   or lower(r.trainee.name) like lower(concat('%', :keyword, '%')))
+                   or lower(r.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(r.trainee.name) like lower(concat('%', cast(:keyword as string), '%')))
               and (:status is null or r.status = :status)
               and (:courseId is null or r.course.id = :courseId)
               and (:instructorId is null or r.instructor.id = :instructorId)

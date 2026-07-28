@@ -22,20 +22,20 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             select n from Notification n
             join fetch n.sender s
             where (:priority is null or n.priority = :priority)
-              and (:from is null or n.sendAt >= :from)
-              and (:to is null or n.sendAt < :to)
+              and (cast(:from as timestamp) is null or n.sendAt >= :from)
+              and (cast(:to as timestamp) is null or n.sendAt < :to)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%')))
             """,
             countQuery = """
             select count(n) from Notification n
             where (:priority is null or n.priority = :priority)
-              and (:from is null or n.sendAt >= :from)
-              and (:to is null or n.sendAt < :to)
+              and (cast(:from as timestamp) is null or n.sendAt >= :from)
+              and (cast(:to as timestamp) is null or n.sendAt < :to)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%')))
             """)
     Page<Notification> search(@Param("priority") Notification.Priority priority,
                               @Param("from") LocalDateTime from,

@@ -24,7 +24,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
             left join fetch s.session
             where (:courseId is null or s.course.id = :courseId)
               and (:status is null or s.status = :status)
-              and (:keyword is null or lower(s.title) like lower(concat('%', :keyword, '%')))
+              and (:keyword is null or lower(s.title) like lower(concat('%', cast(:keyword as string), '%')))
             order by s.endAt asc, s.id asc
             """)
     List<Survey> search(@Param("courseId") Long courseId,

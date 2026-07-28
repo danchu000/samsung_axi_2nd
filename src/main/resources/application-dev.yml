@@ -2,6 +2,7 @@
 # 사전 준비: CREATE DATABASE lms; (owner는 접속 계정으로)
 spring:
   datasource:
+    # 주의: stringtype=unspecified 금지 (enum 파라미터 is null 판정이 깨짐 — prod yml 주석 참고)
     url: jdbc:postgresql://localhost:5432/lms
     driver-class-name: org.postgresql.Driver
     username: ${LMS_DB_USER:lms}

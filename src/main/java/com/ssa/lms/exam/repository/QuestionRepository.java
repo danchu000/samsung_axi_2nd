@@ -25,7 +25,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      */
     @Query("""
             select q from Question q
-            where (:keyword is null or lower(q.questionText) like lower(concat('%', :keyword, '%')))
+            where (:keyword is null or lower(q.questionText) like lower(concat('%', cast(:keyword as string), '%')))
               and (:difficulty is null or q.difficulty = :difficulty)
               and (:categoryL is null or q.categoryL = :categoryL)
               and (:status is null or q.status = :status)

@@ -28,22 +28,22 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             left join fetch n.course co
             join fetch n.author a
             where (:categoryId is null or c.id = :categoryId)
-              and (:from is null or n.createdAt >= :from)
-              and (:to is null or n.createdAt < :to)
+              and (cast(:from as timestamp) is null or n.createdAt >= :from)
+              and (cast(:to as timestamp) is null or n.createdAt < :to)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%'))
-                   or lower(a.name) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(a.name) like lower(concat('%', cast(:keyword as string), '%')))
             """,
             countQuery = """
             select count(n) from Notice n
             where (:categoryId is null or n.category.id = :categoryId)
-              and (:from is null or n.createdAt >= :from)
-              and (:to is null or n.createdAt < :to)
+              and (cast(:from as timestamp) is null or n.createdAt >= :from)
+              and (cast(:to as timestamp) is null or n.createdAt < :to)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%'))
-                   or lower(n.author.name) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.author.name) like lower(concat('%', cast(:keyword as string), '%')))
             """)
     Page<Notice> search(@Param("categoryId") Long categoryId,
                         @Param("from") LocalDateTime from,
@@ -63,16 +63,16 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             where n.publishedAt is not null and n.publishedAt <= :now
               and (n.course is null or n.course.id in :courseIds)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%')))
             """,
             countQuery = """
             select count(n) from Notice n
             where n.publishedAt is not null and n.publishedAt <= :now
               and (n.course is null or n.course.id in :courseIds)
               and (:keyword is null
-                   or lower(n.title) like lower(concat('%', :keyword, '%'))
-                   or lower(n.content) like lower(concat('%', :keyword, '%')))
+                   or lower(n.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(n.content) like lower(concat('%', cast(:keyword as string), '%')))
             """)
     Page<Notice> searchPublished(@Param("now") LocalDateTime now,
                                  @Param("courseIds") java.util.Collection<Long> courseIds,

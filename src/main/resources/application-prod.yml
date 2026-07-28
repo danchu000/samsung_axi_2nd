@@ -1,0 +1,39 @@
+# prod: 온프레미스(Ubuntu) Docker 배포용 — docker-compose.yml 과 세트
+# 모든 비밀값은 환경변수로 주입한다 (.env — 저장소에 커밋 금지)
+spring:
+  datasource:
+    # 주의: stringtype=unspecified 를 붙이지 말 것 — enum 파라미터가 무타입이 되어
+    # "(:param is null or ...)" 판정이 깨진다. null 문자열 파라미터의 bytea 추론 문제는
+    # 리포지토리 JPQL 의 cast(:param as string) 으로 해결함 (2026-07-28 배포 리허설).
+    url: jdbc:postgresql://${LMS_DB_HOST:db}:${LMS_DB_PORT:5432}/${LMS_DB_NAME:lms}
+    driver-class-name: org.postgresql.Driver
+    username: ${LMS_DB_USER:lms}
+    password: ${LMS_DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      # 초기 구축 단계라 update 사용. 스키마 안정화 후 validate + 마이그레이션 도구(Flyway) 전환 예정
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+
+  # soft delete 와 공존하는 부분 유니크 인덱스 (PostgreSQL 전용) — dev 프로필과 동일
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/postgresql/partial-unique-indexes.sql
+
+  thymeleaf:
+    cache: true   # 공통 설정(개발용 false) 재정의
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn   # 공통 설정(debug) 재정의 — 운영 로그 오염 방지
+
+lms:
+  content:
+    upload-dir: ${LMS_UPLOAD_DIR:/data/uploads/content}
+  # 빈 DB 첫 기동 시 초기 관리자(admin) 비밀번호 — 미지정이면 무작위 생성 후 로그 1회 출력
+  admin:
+    init-password: ${LMS_ADMIN_INIT_PASSWORD:}

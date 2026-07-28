@@ -32,8 +32,8 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
               left join fetch e.instructor i
             where (:courseId is null or c.id = :courseId)
               and e.status in :statuses
-              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
-              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+              and (:instructor is null or lower(i.name) like lower(concat('%', cast(:instructor as string), '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', cast(:keyword as string), '%')))
             order by e.id desc
             """)
     List<Exam> search(@Param("courseId") Long courseId,
@@ -78,7 +78,7 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
               and (:categoryL is null or q.categoryL = :categoryL)
               and (:categoryM is null or q.categoryM = :categoryM)
               and (:categoryS is null or q.categoryS = :categoryS)
-              and (:tag is null or lower(q.tags) like lower(concat('%', :tag, '%')))
+              and (:tag is null or lower(q.tags) like lower(concat('%', cast(:tag as string), '%')))
             order by q.id asc
             """)
     List<Question> findRuleCandidates(@Param("status") Question.QuestionStatus status,

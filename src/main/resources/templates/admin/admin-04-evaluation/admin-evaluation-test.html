@@ -254,6 +254,19 @@
             color: #666;
         }
 
+        /* 시험 운영 설정 배지 — 모의 테스트 / 문제 세트 / 성적 공개 */
+        .exam-tag {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .tag-practice { background: #FFF3E0; color: #EF6C00; }
+        .tag-set { background: #EDE7F6; color: #5E35B1; }
+        .tag-release { background: #ECEFF1; color: #546E7A; font-weight: 500; }
+
     </style>
 </head><body data-user-role="admin">
     <!-- 상단 헤더 -->
@@ -338,14 +351,24 @@
                     <div class="test-item" th:each="row, stat : ${rows}" th:attr="data-id=${row.id}">
                         <div><input type="checkbox" class="test-checkbox" name="ids" th:value="${row.id}"></div>
                         <div class="test-number" th:text="${stat.count}">1</div>
-                        <div class="test-name" th:text="${row.examName}">시험명</div>
+                        <div class="test-name">
+                            <span th:text="${row.examName}">시험명</span>
+                            <!-- 사전 모의 테스트는 성적에 반영되지 않는다 — 정식 시험과 반드시 구분해서 보여준다 -->
+                            <span class="exam-tag tag-practice" th:if="${row.practiceMode}">모의</span>
+                        </div>
                         <div class="test-course eclipse" style="display:flex;flex-direction:column;gap:2px;">
                             <span class="course-name" th:text="${row.courseName}">과정명</span>
                             <span class="course-id" th:text="${row.windowStart} + ' ~ ' + ${row.windowEnd}">응시기간</span>
                         </div>
                         <div class="instructor-name" th:text="${row.instructorName}">강사명</div>
                         <div class="test-time-info" th:text="${row.timeLimitMin} + '분'">60분</div>
-                        <div class="submission-info" th:text="${row.questionCount} + '문항'">0문항</div>
+                        <div class="submission-info">
+                            <span th:text="${row.questionCount} + '문항'">0문항</span>
+                            <!-- 세트가 여러 벌이면 위 문항 수는 전 세트 합계다. 응시자는 그중 한 세트만 푼다. -->
+                            <span class="exam-tag tag-set" th:if="${row.questionSetCount > 1}"
+                                  th:text="'세트 ' + ${row.questionSetCount} + '개'">세트</span>
+                            <span class="exam-tag tag-release" th:text="${row.resultReleaseText}">즉시 공개</span>
+                        </div>
                         <div class="test-status" style="display:flex;flex-direction:column;gap:4px;align-items:center;">
                             <span class="status-badge"
                                   th:classappend="${row.statusGroup == 'active'} ? 'status-active' : 'status-closed'"

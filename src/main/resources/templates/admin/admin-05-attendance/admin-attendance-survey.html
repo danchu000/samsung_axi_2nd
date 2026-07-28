@@ -722,5 +722,13 @@
 
     <div th:if="${message}" th:text="${message}"
          style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
+
+<!-- ===== 서버 페이징 (개발자 B) ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window._serverPage = /*[[${page}]]*/ null;
+    /*]]>*/
+</script>
+<script src="/static/js/server-pagination.js" defer></script>
 </body>
 </html>

@@ -14,14 +14,24 @@ public record AttemptResultView(
         /** 만료로 서버가 자동 제출했는지 — 응시자에게 반드시 알려야 한다. */
         boolean autoSubmitted,
         String submittedAt,
+        /** 성적 비공개면 null — 화면에 점수를 아예 내려보내지 않는다. */
         Integer autoScore,
         Integer totalScore,
-        int examTotalScore,
-        int passScore,
+        /** 비공개면 null. 원시 타입이면 0 으로 내려가 "0점"처럼 보이므로 래퍼를 쓴다. */
+        Integer examTotalScore,
+        Integer passScore,
         Boolean passed,
         /** 수동 채점 대기 문항이 있으면 true — 이 경우 합격 여부는 아직 확정이 아니다. */
         boolean manualPending,
         int answeredCount,
-        int questionCount
+        int questionCount,
+        /** 이 응시자에게 결과를 보여줘도 되는지. Exam 의 성적 공개 설정으로 판정한다. */
+        boolean resultVisible,
+        /** 비공개일 때 화면에 띄울 안내 문구. 공개면 null. */
+        String hiddenMessage,
+        /** 연습(사전 모의) 시험이면 true — 성적에 반영되지 않는다. */
+        boolean practiceMode,
+        /** 배정된 문제 세트 번호. */
+        int assignedSetNo
 ) {
 }

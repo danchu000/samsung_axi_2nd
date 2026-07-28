@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -37,6 +38,11 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class ExamService {
 
+    /**
+     * 세트 개수 상한. 세트마다 규칙 전체를 다시 뽑으므로 무제한으로 두면 문제은행 조회가 폭주한다.
+     * 실무상 3~5벌이면 충분하다.
+     */
+    public static final int MAX_QUESTION_SETS = 10;
 
     private final ExamRepository examRepository;
     private final ExamRefRepository examRefRepository;
@@ -154,6 +160,7 @@ public class ExamService {
                 .totalScore(form.getTotalScore())
                 .passScore(form.getPassScore())
                 .randomOrder(form.isRandomOrder())
+                .questionSetCount(form.getQuestionSetCount())
                 .retakeAllowed(form.isRetakeAllowed())
                 .maxAttempts(resolveMaxAttempts(form))
                 .windowStart(form.getWindowStart())
@@ -163,11 +170,14 @@ public class ExamService {
                 .requireWebcam(form.isRequireWebcam())
                 .blockTabSwitch(form.isBlockTabSwitch())
                 .blockCopyPaste(form.isBlockCopyPaste())
+                .resultRelease(form.toResultRelease())
+                .resultReleaseAt(form.getResultReleaseAt())
+                .practiceMode(form.isPracticeMode())
                 .note(form.getNote())
                 .status(form.toStatus())
                 .build();
 
-        applyManualQuestions(exam, form.effectiveQuestionIds(), 0);
+        applyManualQuestions(exam, form.effectiveQuestions());
         applyRules(exam, form.effectiveRules());
 
         return examRepository.save(exam).getId();
@@ -184,9 +194,12 @@ public class ExamService {
                 course(form.getCourseId()), subject(form.getSubjectId()), session(form.getSessionId()),
                 user(form.getInstructorId()), form.getTimeLimitMin(), form.getAutoScore(),
                 form.getManualScore(), form.getTotalScore(), form.getPassScore(), form.isRandomOrder(),
+                form.getQuestionSetCount(),
                 form.isRetakeAllowed(), resolveMaxAttempts(form), form.getWindowStart(), form.getWindowEnd(),
                 form.isRequireIdentityVerification(), form.isProctorEnabled(), form.isRequireWebcam(),
-                form.isBlockTabSwitch(), form.isBlockCopyPaste(), form.getNote(), form.toStatus());
+                form.isBlockTabSwitch(), form.isBlockCopyPaste(),
+                form.toResultRelease(), form.getResultReleaseAt(), form.isPracticeMode(),
+                form.getNote(), form.toStatus());
 
         // 문항·규칙은 통째로 교체한다. clear() 하고 바로 add() 하면 Hibernate 가 orphan DELETE 보다
         // INSERT 를 먼저 내보내 uk_exam_question(exam_id, question_id) /
@@ -196,7 +209,7 @@ public class ExamService {
         exam.clearQuestionRules();
         examRepository.flush();
 
-        applyManualQuestions(exam, form.effectiveQuestionIds(), 0);
+        applyManualQuestions(exam, form.effectiveQuestions());
         applyRules(exam, form.effectiveRules());
         // 규칙으로 확정됐던 문항은 여기서 함께 지워진다. 수정 후에는 "규칙으로 문항 확정"을 다시 눌러야
         // 실제 출제 문항이 생긴다 — 규칙이 바뀌었는데 옛 문항이 남는 쪽이 더 위험하다.
@@ -208,7 +221,11 @@ public class ExamService {
      * 규칙만 저장돼 있으면 응시 시점마다 문항이 달라져 재현이 불가능하다.
      * 확정된 문항은 ExamQuestion(fromRule=true)으로 내려간다.
      *
-     * @return 새로 확정된 문항 수
+     * <p><b>세트가 여러 개면 같은 규칙으로 세트 수만큼 뽑는다.</b> 세트끼리는 되도록 겹치지 않게
+     * (문제은행에 여유가 있으면 완전히 다른 문항으로) 뽑고, 후보가 모자라면 그때만 재사용한다.
+     * 세트를 나눠 놓고 전부 같은 문항이 들어가면 랜덤 배정이 의미가 없기 때문이다.</p>
+     *
+     * @return 새로 확정된 문항 수 (모든 세트 합계)
      */
     @Transactional
     public int materializeRules(Long examId) {
@@ -226,27 +243,59 @@ public class ExamService {
         exam.removeRuleQuestions();
         examRepository.flush();
 
-        Set<Long> already = new LinkedHashSet<>();
-        int seq = 0;
+        int setCount = exam.getQuestionSetCount() == null ? 1 : Math.max(1, exam.getQuestionSetCount());
+
+        // 세트별로 "이미 그 세트에 들어간 문제" 와 "어느 세트에든 이미 쓰인 문제" 를 따로 센다.
+        // 앞의 것은 유니크 제약(=금지)이고, 뒤의 것은 겹침 회피(=선호)라 성격이 다르다.
+        Map<Integer, Set<Long>> usedInSet = new HashMap<>();
+        Map<Integer, Integer> lastSeq = new HashMap<>();
+        Set<Long> usedAnywhere = new LinkedHashSet<>();
         for (ExamQuestion eq : exam.getExamQuestions()) {
-            already.add(eq.getQuestion().getId());
-            seq = Math.max(seq, eq.getSeq());
+            int setNo = eq.getSetNo() == null ? 1 : eq.getSetNo();
+            usedInSet.computeIfAbsent(setNo, k -> new LinkedHashSet<>()).add(eq.getQuestion().getId());
+            usedAnywhere.add(eq.getQuestion().getId());
+            lastSeq.merge(setNo, eq.getSeq(), Math::max);
         }
 
         int added = 0;
-        for (ExamQuestionRule rule : exam.getQuestionRules()) {
-            List<ExamQuestionRuleDifficulty> difficulties = rule.getDifficulties();
-            if (difficulties.isEmpty()) {
-                // 난이도 지정 없이 총 문항수만 있는 규칙
-                added += pick(exam, rule, null, rule.getTotalCount(), already, seq + added);
-            } else {
-                for (ExamQuestionRuleDifficulty d : difficulties) {
-                    added += pick(exam, rule, d.getDifficulty(), d.getQuestionCount(),
-                            already, seq + added);
+        for (int setNo = 1; setNo <= setCount; setNo++) {
+            Set<Long> inSet = usedInSet.computeIfAbsent(setNo, k -> new LinkedHashSet<>());
+            for (ExamQuestionRule rule : exam.getQuestionRules()) {
+                List<ExamQuestionRuleDifficulty> difficulties = rule.getDifficulties();
+                if (difficulties.isEmpty()) {
+                    // 난이도 지정 없이 총 문항수만 있는 규칙
+                    added += pick(exam, rule, null, rule.getTotalCount(),
+                            setNo, inSet, usedAnywhere, lastSeq);
+                } else {
+                    for (ExamQuestionRuleDifficulty d : difficulties) {
+                        added += pick(exam, rule, d.getDifficulty(), d.getQuestionCount(),
+                                setNo, inSet, usedAnywhere, lastSeq);
+                    }
                 }
             }
         }
         return added;
+    }
+
+    /**
+     * 성적 공개 방식만 변경.
+     *
+     * <p>{@link #update(Long, ExamForm)} 은 {@link #ensureNotAttempted(Long)} 로 잠긴다 — 편성 문항을
+     * 통째로 갈아끼우기 때문에 응시 기록이 있으면 3년 재현이 깨지기 때문이다. 하지만 성적 공개 방식은
+     * 문항 구성과 아무 상관이 없고, 오히려 <b>시험이 끝난 뒤에</b> 공개로 돌리는 것이 정상 운영이다
+     * ("채점 끝나면 공개"). 잠금을 그대로 두면 잘못 잡힌 비공개 설정을 영영 못 고친다.
+     * 그래서 정책 두 필드만 건드리는 좁은 경로를 따로 뒀다 — 컬렉션은 손대지 않는다.</p>
+     */
+    @Transactional
+    public void changeResultRelease(Long id, String resultRelease, LocalDateTime resultReleaseAt) {
+        Exam exam = getOrThrow(id);
+        ExamForm form = new ExamForm();
+        form.setResultRelease(resultRelease);
+        Exam.ResultRelease mode = form.toResultRelease();
+        if (mode == Exam.ResultRelease.SCHEDULED && resultReleaseAt == null) {
+            throw new IllegalArgumentException("성적 공개를 '지정 일시'로 하려면 공개 일시를 입력해야 합니다.");
+        }
+        exam.changeResultRelease(mode, resultReleaseAt);
     }
 
     /** 선택 비활성화 — 화면의 "선택 비활성화". 상태를 종료(CLOSED)로 내린다. */
@@ -303,53 +352,158 @@ public class ExamService {
                 && !form.getWindowEnd().isAfter(form.getWindowStart())) {
             throw new IllegalArgumentException("응시 종료일시는 시작일시보다 뒤여야 합니다.");
         }
-        if (form.isRetakeAllowed() && nvl(form.getMaxAttempts()) < 2) {
+        if (form.isRetakeAllowed() && !form.isPracticeMode() && nvl(form.getMaxAttempts()) < 2) {
             throw new IllegalArgumentException("재응시를 허용하면 최대 응시 횟수는 2회 이상이어야 합니다.");
+        }
+        int setCount = nvl(form.getQuestionSetCount());
+        if (setCount < 1) {
+            throw new IllegalArgumentException("문제 세트는 1개 이상이어야 합니다.");
+        }
+        if (setCount > MAX_QUESTION_SETS) {
+            throw new IllegalArgumentException(
+                    "문제 세트는 최대 " + MAX_QUESTION_SETS + "개까지 만들 수 있습니다. (입력: " + setCount + ")");
+        }
+        if (form.toResultRelease() == Exam.ResultRelease.SCHEDULED && form.getResultReleaseAt() == null) {
+            throw new IllegalArgumentException("성적 공개를 '지정 일시'로 하려면 공개 일시를 입력해야 합니다.");
         }
     }
 
     /* ===== 내부 ===== */
 
+    /**
+     * 규칙 한 줄로 한 세트에 문항을 채운다.
+     *
+     * <p>후보를 두 번 훑는다. 1차는 아직 어느 세트에도 안 쓰인 문제만(세트끼리 겹치지 않게),
+     * 2차는 이 세트에 없기만 하면 허용(문제은행이 모자란 경우). 2차까지 해도 모자라면
+     * 조용히 덜 뽑는다 — 화면이 "현재 총 문항 수 / 목표"로 부족분을 보여준다.</p>
+     */
+    /* ===================== 강사 담당 과정 권한 ===================== */
+
+    /** 시험 생성 — 대상 과정을 맡고 있어야 한다. */
+    public void assertCanCreate(Long courseId, Long viewerId, boolean admin) {
+        ensureCanManageCourse(courseId, viewerId, admin);
+    }
+
+    /** 일괄 처리(비활성화·삭제) — 하나라도 담당이 아니면 전부 거부한다. */
+    public void assertCanManageAll(List<Long> examIds, Long viewerId, boolean admin) {
+        if (admin || examIds == null || examIds.isEmpty()) {
+            return;
+        }
+        for (Exam exam : examRepository.findAllById(examIds)) {
+            ensureCanManage(exam, viewerId, admin);
+        }
+    }
+
+
+    /**
+     * 이 시험을 다룰 수 있는가 — 관리자는 전부, 강사는 담당 과정만.
+     *
+     * <p>권한정의서(1)의 강사 "△(담당 과정 한정)" 규정이다. 채점·모니터링 슬라이스는
+     * 이미 같은 규칙을 적용했는데 시험 생성/목록에만 빠져 있어서, 강사가 URL 만 바꾸면
+     * 남의 과정 시험을 열람·수정할 수 있었다.</p>
+     */
+    private boolean canManage(Exam exam, Long viewerId, boolean admin) {
+        if (admin) {
+            return true;
+        }
+        if (exam.getCourse() == null || viewerId == null) {
+            return false;
+        }
+        return courseQueryService.isInstructorOf(viewerId, exam.getCourse().getId());
+    }
+
+    /** 담당하지 않는 과정이면 403. 시험 단위 진입점이 반드시 거쳐야 한다. */
+    private void ensureCanManage(Exam exam, Long viewerId, boolean admin) {
+        if (!canManage(exam, viewerId, admin)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "담당하지 않는 과정의 시험입니다.");
+        }
+    }
+
+    /** 과정 단위 권한 — 시험 생성 시 대상 과정을 맡고 있는지 본다. */
+    private void ensureCanManageCourse(Long courseId, Long viewerId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        if (courseId == null || viewerId == null
+                || !courseQueryService.isInstructorOf(viewerId, courseId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "담당하지 않는 과정에는 시험을 만들 수 없습니다.");
+        }
+    }
+
+    /** 시험 1건 조회 + 권한 확인. */
+    public Exam requireManageable(Long examId, Long viewerId, boolean admin) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new IllegalArgumentException("시험을 찾을 수 없습니다. id=" + examId));
+        ensureCanManage(exam, viewerId, admin);
+        return exam;
+    }
+
+    /** 목록 필터 — 강사는 담당 과정 시험만 남긴다. */
+    public List<ExamListRow> searchScoped(ExamSearchCond cond, Long viewerId, boolean admin) {
+        List<ExamListRow> rows = search(cond);
+        if (admin) {
+            return rows;
+        }
+        return rows.stream()
+                .filter(r -> r.courseId() != null
+                        && courseQueryService.isInstructorOf(viewerId, r.courseId()))
+                .toList();
+    }
+
     private int pick(Exam exam, ExamQuestionRule rule, Difficulty difficulty, Integer count,
-                     Set<Long> already, int startSeq) {
+                     int setNo, Set<Long> inSet, Set<Long> usedAnywhere, Map<Integer, Integer> lastSeq) {
         int need = count == null ? 0 : count;
         if (need <= 0) {
             return 0;
         }
-        // 이미 편성된 문제를 걸러야 하므로 넉넉히 받아 온 뒤 잘라 쓴다.
-        Pageable limit = PageRequest.of(0, need + already.size() + 10);
+        // 이미 쓰인 문제를 걸러야 하므로 넉넉히 받아 온 뒤 잘라 쓴다.
+        Pageable limit = PageRequest.of(0, need + usedAnywhere.size() + 10);
         List<Question> candidates = examRepository.findRuleCandidates(
                 Question.QuestionStatus.ACTIVE, difficulty,
                 rule.getCategoryL(), rule.getCategoryM(), rule.getCategoryS(), rule.getTags(), limit);
 
-        int seq = startSeq;
         int added = 0;
-        for (Question q : candidates) {
+        for (boolean allowReuse : new boolean[]{false, true}) {
+            for (Question q : candidates) {
+                if (added >= need) {
+                    break;
+                }
+                if (inSet.contains(q.getId())) {
+                    continue;                       // 같은 세트 중복 — 유니크 제약 위반이라 절대 안 된다
+                }
+                if (!allowReuse && usedAnywhere.contains(q.getId())) {
+                    continue;                       // 다른 세트와 겹침 — 1차에서는 피한다
+                }
+                int seq = lastSeq.merge(setNo, 1, Integer::sum);
+                exam.addExamQuestion(ExamQuestion.builder()
+                        .question(q)
+                        .setNo(setNo)
+                        .seq(seq)
+                        .fromRule(true)
+                        .build());
+                inSet.add(q.getId());
+                usedAnywhere.add(q.getId());
+                added++;
+            }
             if (added >= need) {
                 break;
             }
-            if (!already.add(q.getId())) {
-                continue;
-            }
-            exam.addExamQuestion(ExamQuestion.builder()
-                    .question(q)
-                    .seq(++seq)
-                    .fromRule(true)
-                    .build());
-            added++;
         }
-        // 후보가 모자라면 조용히 덜 뽑는다. 화면이 "현재 총 문항 수 / 목표"로 부족분을 보여준다.
         return added;
     }
 
-    private void applyManualQuestions(Exam exam, List<Long> questionIds, int startSeq) {
-        int seq = startSeq;
-        for (Long questionId : questionIds) {
-            Question question = questionRepository.findById(questionId)
-                    .orElseThrow(() -> new IllegalArgumentException("문제를 찾을 수 없습니다. id=" + questionId));
+    private void applyManualQuestions(Exam exam, List<ExamForm.QuestionSlot> slots) {
+        Map<Integer, Integer> seqBySet = new HashMap<>();
+        for (ExamForm.QuestionSlot slot : slots) {
+            Question question = questionRepository.findById(slot.questionId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "문제를 찾을 수 없습니다. id=" + slot.questionId()));
             exam.addExamQuestion(ExamQuestion.builder()
                     .question(question)
-                    .seq(++seq)
+                    .setNo(slot.setNo())
+                    .seq(seqBySet.merge(slot.setNo(), 1, Integer::sum))
                     .fromRule(false)
                     .build());
         }

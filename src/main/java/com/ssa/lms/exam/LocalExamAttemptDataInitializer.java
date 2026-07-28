@@ -156,6 +156,34 @@ public class LocalExamAttemptDataInitializer {
                         Exam.ExamStatus.SCHEDULED),
                 List.of(mc)));
 
+        // ===== 시험 설정 3종 검증용 =====
+
+        // 7) 문제 세트 2벌 — 세트마다 다른 문항. 응시 시작 시 서버가 무작위로 하나를 배정한다.
+        //    배정이 실제로 갈리는지 보려면 표본이 여럿 필요해서 재응시를 넉넉히 열어 뒀다.
+        Exam twoSets = settingsExam("[응시검증] 문제세트 2벌 시험", course, instructor,
+                30, 15, 8, true, 10, 2, Exam.ResultRelease.IMMEDIATE, false,
+                "문제 세트가 2벌입니다. 응시 시작 시 한 세트가 무작위로 배정됩니다.");
+        // 세트 1: 객관식 Q-0001 / 세트 2: 주관식 Q-2001 — 어느 세트를 받았는지 문항만 봐도 구분된다
+        twoSets.addExamQuestion(ExamQuestion.builder().question(mc).setNo(1).seq(1).fromRule(false).build());
+        twoSets.addExamQuestion(ExamQuestion.builder().question(caseSensitive).setNo(2).seq(1).fromRule(false).build());
+        exams.add(twoSets);
+
+        // 8) 성적 비공개 — 제출해도 응시자에게 점수·합격 여부가 내려가면 안 된다.
+        //    관리자·강사 채점 화면은 이 설정과 무관하게 점수를 본다.
+        exams.add(withQuestions(
+                settingsExam("[응시검증] 성적 비공개 시험", course, instructor,
+                        30, 5, 3, true, 5, 1, Exam.ResultRelease.HIDDEN, false,
+                        "이 시험은 성적을 공개하지 않습니다."),
+                List.of(mc)));
+
+        // 9) 사전 모의 테스트 — 성적 미반영 + 응시 횟수 무제한.
+        //    retakeAllowed=false / maxAttempts=1 인데도 반복 응시가 돼야 한다 (practiceMode 가 우선한다).
+        exams.add(withQuestions(
+                settingsExam("[응시검증] 사전 모의 테스트", course, instructor,
+                        30, 5, 3, false, 1, 1, Exam.ResultRelease.IMMEDIATE, true,
+                        "응시 환경 적응용 모의 테스트입니다. 성적에 반영되지 않습니다."),
+                List.of(mc)));
+
         examRepository.saveAll(exams);
         log.info("[local] 응시 검증용 시험 {}건 생성", exams.size());
     }
@@ -240,6 +268,41 @@ public class LocalExamAttemptDataInitializer {
                 .blockTabSwitch(blockTabSwitch).blockCopyPaste(blockCopyPaste)
                 .note(note)
                 .status(status)
+                .build();
+    }
+
+    /**
+     * 시험 설정 3종(문제 세트 / 성적 공개 / 사전 모의 테스트) 검증용 시험.
+     *
+     * <p>위 {@link #exam} 헬퍼는 부정행위·본인인증 플래그를 받는 응시 검증용이라 세트·공개·연습
+     * 세 값을 넣을 자리가 없다. 파라미터를 더 늘리면 호출부가 읽히지 않아 헬퍼를 따로 뒀다.
+     * 본인인증·감독은 전부 끈다 — 여기서 보려는 것은 설정 3종의 동작뿐이라 인증 모달이 끼면
+     * 검증 절차만 길어진다.</p>
+     */
+    private Exam settingsExam(String name, Course course, User instructor,
+                              int timeLimitMin, int totalScore, int passScore,
+                              boolean retakeAllowed, int maxAttempts,
+                              int questionSetCount, Exam.ResultRelease resultRelease,
+                              boolean practiceMode, String note) {
+        return Exam.builder()
+                .examName(name)
+                .examType(Exam.ExamType.UNIT)
+                .course(course)
+                .instructor(instructor)
+                .timeLimitMin(timeLimitMin)
+                .autoScore(totalScore).manualScore(0)
+                .totalScore(totalScore).passScore(passScore)
+                .randomOrder(false)
+                .questionSetCount(questionSetCount)
+                .retakeAllowed(retakeAllowed).maxAttempts(maxAttempts)
+                .windowStart(now().minusHours(1)).windowEnd(now().plusDays(7))
+                .requireIdentityVerification(false)
+                .proctorEnabled(false).requireWebcam(false)
+                .blockTabSwitch(false).blockCopyPaste(false)
+                .resultRelease(resultRelease)
+                .practiceMode(practiceMode)
+                .note(note)
+                .status(Exam.ExamStatus.OPEN)
                 .build();
     }
 

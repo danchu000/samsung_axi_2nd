@@ -134,6 +134,11 @@
   const dType = document.getElementById('dType');
   const dRetake = document.getElementById('dRetake');
   const dAttempts = document.getElementById('dAttempts');
+  // 시험 설정 3종 (서버 ExamTakeRow: setCount / resultReleaseText / practiceMode).
+  // 정적 미리보기 더미에는 없는 필드라 전부 null 안전하게 다룬다.
+  const dSetCount = document.getElementById('dSetCount');
+  const dResultRelease = document.getElementById('dResultRelease');
+  const dPractice = document.getElementById('dPractice');
   const dNote = document.getElementById('dNote');
   const btnPrimaryAction = document.getElementById('btnPrimaryAction');
 
@@ -297,7 +302,22 @@
       const action = actionForExam(ex);
 
       const attemptsLeft = Math.max(0, ex.attemptsTotal - ex.attemptsUsed);
-      const attemptsText = `${attemptsLeft}/${ex.attemptsTotal}`;
+      // 모의 테스트는 응시 횟수 제한이 없다 (서버 ExamAttemptService.start 가 횟수를 세지 않는다).
+      const attemptsText = ex.practiceMode ? '무제한' : `${attemptsLeft}/${ex.attemptsTotal}`;
+
+      // 시험 설정 3종 표시 — 정식/모의 구분, 문제 세트 수, 성적 공개 정책
+      const practiceTag = ex.practiceMode
+        ? '<span class="exam-tag tag-practice">모의 테스트</span>'
+        : '';
+      const setTag = (Number(ex.setCount) || 1) > 1
+        ? `<span class="exam-tag tag-set">문제세트 ${Number(ex.setCount)}종 랜덤</span>`
+        : '';
+      const releaseTag = ex.resultReleaseText
+        ? `<span class="exam-tag tag-release">성적 ${escapeText(ex.resultReleaseText)}</span>`
+        : '';
+      const tagRow = (practiceTag || setTag || releaseTag)
+        ? `<div class="exam-tags">${practiceTag}${setTag}${releaseTag}</div>`
+        : '';
 
       // Determine button class by action label
       let btnClass = 'btn-primary';
@@ -313,6 +333,7 @@
           </div>
 
           <div class="card-title">${escapeText(ex.name)}</div>
+          ${tagRow}
 
           <div class="meta">
             <span><span class="dim">과정</span> ${escapeText(ex.courseName)}</span>
@@ -388,7 +409,22 @@
     dRetake.textContent = ex.retakePolicy;
 
     const attemptsLeft = Math.max(0, ex.attemptsTotal - ex.attemptsUsed);
-    dAttempts.textContent = `${attemptsLeft}/${ex.attemptsTotal}`;
+    // 모의 테스트는 횟수를 세지 않으므로 "남은시도" 를 숫자로 보여주면 거짓말이 된다.
+    dAttempts.textContent = ex.practiceMode ? '무제한 (모의 테스트)' : `${attemptsLeft}/${ex.attemptsTotal}`;
+
+    if (dSetCount) {
+      const sets = Number(ex.setCount) || 1;
+      dSetCount.textContent = sets > 1
+        ? `${sets}개 — 응시 시작 시 한 세트가 무작위로 배정됩니다`
+        : '1개 (전원 동일 문항)';
+    }
+    if (dResultRelease) dResultRelease.textContent = ex.resultReleaseText || '즉시 공개';
+    if (dPractice) {
+      dPractice.textContent = ex.practiceMode
+        ? '사전 모의 테스트 — 성적에 반영되지 않습니다'
+        : '정식 시험 — 성적에 반영됩니다';
+    }
+
     dNote.textContent = ex.note || '-';
 
     const action = actionForExam(ex);

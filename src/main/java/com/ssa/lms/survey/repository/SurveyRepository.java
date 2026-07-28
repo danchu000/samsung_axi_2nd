@@ -2,6 +2,7 @@ package com.ssa.lms.survey.repository;
 
 import com.ssa.lms.survey.entity.Survey;
 import com.ssa.lms.survey.entity.SurveyQuestion;
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -80,4 +81,13 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
             group by q.survey.id
             """)
     List<Object[]> countQuestions(@Param("surveyIds") Collection<Long> surveyIds);
+
+    /** 마감이 구간 안에 드는 진행중 설문 — 리마인드 대상 산출용. */
+    @Query("""
+            select s from Survey s
+            where s.status = com.ssa.lms.survey.entity.Survey$SurveyStatus.ONGOING
+              and s.endAt between :from and :to
+            """)
+    List<Survey> findEndingBetween(@Param("from") LocalDateTime from,
+                                   @Param("to") LocalDateTime to);
 }

@@ -96,6 +96,19 @@ public class Exam extends BaseEntity {
     @Column(name = "random_order", nullable = false)
     private boolean randomOrder;
 
+    /**
+     * 문제 세트 개수 (앨리스 항목: "문제 세트를 여러 개 제작하여 응시자에게 랜덤으로 배정").
+     *
+     * <p>1 이면 세트가 하나뿐이라 전원 동일 문항 — 세트 기능이 들어오기 전과 완전히 같은 동작이다.
+     * 2 이상이면 {@link ExamQuestion#getSetNo()} 로 문항이 세트별로 나뉘고, 응시 시작 시점에
+     * {@code ExamAttempt.assignedSetNo} 로 그중 하나가 무작위 배정된다.</p>
+     *
+     * <p>실제로 편성된 세트 번호는 {@link #availableSetNos()} 가 진실이다. 이 값은
+     * "관리자가 선언한 목표 세트 수"이고 규칙 확정(materializeRules)이 몇 벌을 뽑을지 결정한다.</p>
+     */
+    @Column(name = "question_set_count", nullable = false)
+    private Integer questionSetCount;
+
     /** 재응시 허용 여부. */
     @Column(name = "retake_allowed", nullable = false)
     private boolean retakeAllowed;
@@ -135,6 +148,29 @@ public class Exam extends BaseEntity {
     @Column(name = "block_copy_paste", nullable = false)
     private boolean blockCopyPaste;
 
+    /**
+     * 성적 공개 방식 (앨리스 항목: "성적 공개 여부를 설정할 수 있습니다").
+     *
+     * <p>응시자에게만 적용된다. 관리자·강사는 채점 화면에서 언제나 점수를 본다.</p>
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result_release", length = 20, nullable = false)
+    private ResultRelease resultRelease;
+
+    /** {@link ResultRelease#SCHEDULED} 일 때의 공개 시각. 다른 방식에서는 무시된다. */
+    @Column(name = "result_release_at")
+    private LocalDateTime resultReleaseAt;
+
+    /**
+     * 사전 모의 테스트 여부 (앨리스 항목: "사전 모의 테스트를 제공하여 응시 환경에 미리 적응").
+     *
+     * <p>true 면 성적에 반영되지 않고(= Grade 를 만들지 않는다) 응시 횟수 제한도 걸리지 않는다.
+     * 본인인증·부정행위 감지는 그대로 동작한다 — 응시 환경 적응이 목적이라 끄면 의미가 없다.
+     * 다만 위반해도 자동 무효 처리는 하지 않는다(무효 처리는 감독관의 수동 조치 뿐이다).</p>
+     */
+    @Column(name = "practice_mode", nullable = false)
+    private boolean practiceMode;
+
     /** 응시 안내 문구. online-test.js 의 note. */
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
@@ -144,7 +180,7 @@ public class Exam extends BaseEntity {
     private ExamStatus status;
 
     @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("seq ASC")
+    @OrderBy("setNo ASC, seq ASC")
     private List<ExamQuestion> examQuestions = new ArrayList<>();
 
     @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -153,10 +189,11 @@ public class Exam extends BaseEntity {
     @Builder
     public Exam(String examName, ExamType examType, Course course, Subject subject, Session session,
                 User instructor, Integer timeLimitMin, Integer autoScore, Integer manualScore,
-                Integer totalScore, Integer passScore, boolean randomOrder, boolean retakeAllowed,
-                Integer maxAttempts, LocalDateTime windowStart, LocalDateTime windowEnd,
+                Integer totalScore, Integer passScore, boolean randomOrder, Integer questionSetCount,
+                boolean retakeAllowed, Integer maxAttempts, LocalDateTime windowStart, LocalDateTime windowEnd,
                 boolean requireIdentityVerification, boolean proctorEnabled, boolean requireWebcam,
-                boolean blockTabSwitch, boolean blockCopyPaste, String note, ExamStatus status) {
+                boolean blockTabSwitch, boolean blockCopyPaste, ResultRelease resultRelease,
+                LocalDateTime resultReleaseAt, boolean practiceMode, String note, ExamStatus status) {
         this.examName = examName;
         this.examType = examType;
         this.course = course;
@@ -169,6 +206,9 @@ public class Exam extends BaseEntity {
         this.totalScore = totalScore;
         this.passScore = passScore;
         this.randomOrder = randomOrder;
+        // 세트 수와 성적 공개 방식은 기본값을 여기서 박는다 — 기존 시드/테스트가 값을 넘기지 않아도
+        // NOT NULL 컬럼이 비지 않고, 세트 1개 = 기존 동작(하위호환)이 된다.
+        this.questionSetCount = normalizeSetCount(questionSetCount);
         this.retakeAllowed = retakeAllowed;
         this.maxAttempts = maxAttempts;
         this.windowStart = windowStart;
@@ -178,6 +218,9 @@ public class Exam extends BaseEntity {
         this.requireWebcam = requireWebcam;
         this.blockTabSwitch = blockTabSwitch;
         this.blockCopyPaste = blockCopyPaste;
+        this.resultRelease = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        this.resultReleaseAt = resultReleaseAt;
+        this.practiceMode = practiceMode;
         this.note = note;
         this.status = status;
     }
@@ -186,10 +229,11 @@ public class Exam extends BaseEntity {
     public void update(String examName, ExamType examType, Course course, Subject subject,
                        Session session, User instructor, Integer timeLimitMin, Integer autoScore,
                        Integer manualScore, Integer totalScore, Integer passScore, boolean randomOrder,
-                       boolean retakeAllowed, Integer maxAttempts, LocalDateTime windowStart,
-                       LocalDateTime windowEnd, boolean requireIdentityVerification,
-                       boolean proctorEnabled, boolean requireWebcam, boolean blockTabSwitch,
-                       boolean blockCopyPaste, String note, ExamStatus status) {
+                       Integer questionSetCount, boolean retakeAllowed, Integer maxAttempts,
+                       LocalDateTime windowStart, LocalDateTime windowEnd,
+                       boolean requireIdentityVerification, boolean proctorEnabled, boolean requireWebcam,
+                       boolean blockTabSwitch, boolean blockCopyPaste, ResultRelease resultRelease,
+                       LocalDateTime resultReleaseAt, boolean practiceMode, String note, ExamStatus status) {
         this.examName = examName;
         this.examType = examType;
         this.course = course;
@@ -202,6 +246,7 @@ public class Exam extends BaseEntity {
         this.totalScore = totalScore;
         this.passScore = passScore;
         this.randomOrder = randomOrder;
+        this.questionSetCount = normalizeSetCount(questionSetCount);
         this.retakeAllowed = retakeAllowed;
         this.maxAttempts = maxAttempts;
         this.windowStart = windowStart;
@@ -211,12 +256,29 @@ public class Exam extends BaseEntity {
         this.requireWebcam = requireWebcam;
         this.blockTabSwitch = blockTabSwitch;
         this.blockCopyPaste = blockCopyPaste;
+        this.resultRelease = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        this.resultReleaseAt = resultReleaseAt;
+        this.practiceMode = practiceMode;
         this.note = note;
         this.status = status;
     }
 
+    private static Integer normalizeSetCount(Integer value) {
+        return (value == null || value < 1) ? 1 : value;
+    }
+
     public void changeStatus(ExamStatus status) {
         this.status = status;
+    }
+
+    /**
+     * 성적 공개 방식만 교체. 문항·규칙 컬렉션은 건드리지 않는다.
+     * 응시 기록이 있어 {@code update()} 가 잠긴 시험도 이 경로로는 공개 설정을 바꿀 수 있다
+     * (채점이 끝난 뒤 공개로 돌리는 것이 정상 운영이라 잠그면 안 된다).
+     */
+    public void changeResultRelease(ResultRelease resultRelease, LocalDateTime resultReleaseAt) {
+        this.resultRelease = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        this.resultReleaseAt = resultReleaseAt;
     }
 
     /**
@@ -251,6 +313,100 @@ public class Exam extends BaseEntity {
     /** 지금 응시 가능한 기간인지. 상태와 별개로 기간만 판정한다. */
     public boolean isWithinWindow(LocalDateTime at) {
         return !at.isBefore(windowStart) && !at.isAfter(windowEnd);
+    }
+
+    /* ===================== 문제 세트 ===================== */
+
+    /**
+     * 실제로 편성된 세트 번호 (오름차순, 중복 제거).
+     *
+     * <p>{@link #questionSetCount} 는 "선언한 목표"일 뿐이라 배정은 반드시 이 값으로 한다.
+     * 규칙 확정 전이거나 문제은행이 모자라 일부 세트가 비어 있을 수 있기 때문이다.
+     * 컬렉션이 초기화된 상태(fetch join)에서 불러야 한다.</p>
+     */
+    public List<Integer> availableSetNos() {
+        return examQuestions.stream()
+                .map(ExamQuestion::getSetNo)
+                .map(no -> no == null ? 1 : no)
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    /**
+     * 특정 세트의 편성 문항.
+     *
+     * @param setNo 세트 번호. {@code null} 이면 세트 개념 도입 이전 응시 회차이므로 전체를 돌려준다(하위호환).
+     */
+    public List<ExamQuestion> questionsOfSet(Integer setNo) {
+        if (setNo == null) {
+            return List.copyOf(examQuestions);
+        }
+        return examQuestions.stream()
+                .filter(eq -> setNo.equals(eq.getSetNo() == null ? 1 : eq.getSetNo()))
+                .toList();
+    }
+
+    /* ===================== 성적 공개 ===================== */
+
+    /**
+     * 응시자에게 점수·정답·해설을 보여도 되는지.
+     *
+     * <p>관리자·강사 화면은 이 판정을 거치지 않는다 — 채점을 해야 하므로 항상 보인다.</p>
+     *
+     * @param manualPending 수동 채점이 남아 있는지. {@link ResultRelease#AFTER_GRADING} 판정에만 쓴다.
+     */
+    public boolean isResultVisibleToTrainee(LocalDateTime at, boolean manualPending) {
+        ResultRelease mode = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        return switch (mode) {
+            case IMMEDIATE -> true;
+            case AFTER_GRADING -> !manualPending;
+            case SCHEDULED -> resultReleaseAt != null && !at.isBefore(resultReleaseAt);
+            case HIDDEN -> false;
+        };
+    }
+
+    /** 결과가 가려졌을 때 응시자에게 보여줄 안내 문구. */
+    public String resultHiddenMessage() {
+        ResultRelease mode = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        return switch (mode) {
+            case AFTER_GRADING -> "채점 결과는 채점 완료 후 확인할 수 있습니다.";
+            case SCHEDULED -> resultReleaseAt == null
+                    ? "채점 결과는 공개 후 확인할 수 있습니다."
+                    : "채점 결과는 공개 후 확인할 수 있습니다. (공개 예정 "
+                            + resultReleaseAt.toLocalDate() + " " + resultReleaseAt.toLocalTime() + ")";
+            case HIDDEN -> "이 시험은 성적을 공개하지 않습니다.";
+            case IMMEDIATE -> "채점 결과는 공개 후 확인할 수 있습니다.";
+        };
+    }
+
+    /** 화면 표시용 성적 공개 방식 문구. */
+    public String resultReleaseText() {
+        ResultRelease mode = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        return switch (mode) {
+            case IMMEDIATE -> "즉시 공개";
+            case AFTER_GRADING -> "채점 완료 후 공개";
+            case SCHEDULED -> resultReleaseAt == null
+                    ? "지정 일시 공개"
+                    : resultReleaseAt.toLocalDate() + " " + resultReleaseAt.toLocalTime() + " 공개";
+            case HIDDEN -> "비공개";
+        };
+    }
+
+    /**
+     * 성적 공개 방식.
+     *
+     * <p>{@code IMMEDIATE} 가 기본값이다 — 세 옵션이 들어오기 전 동작(제출 직후 점수 노출)과 같다.</p>
+     */
+    public enum ResultRelease {
+        /** 제출 즉시 공개. */
+        IMMEDIATE,
+        /** 수동 채점이 모두 끝난 뒤 공개. */
+        AFTER_GRADING,
+        /** {@link Exam#getResultReleaseAt()} 이후 공개. */
+        SCHEDULED,
+        /** 응시자에게 공개하지 않음. */
+        HIDDEN
     }
 
     /** 화면 값: 단위시험 / 중간고사 / 기말고사 */

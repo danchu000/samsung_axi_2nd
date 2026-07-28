@@ -1,16 +1,20 @@
 package com.ssa.lms.web.admin.exam;
 
+import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.exam.dto.ExamForm;
 import com.ssa.lms.exam.dto.ExamSearchCond;
 import com.ssa.lms.exam.service.ExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -35,8 +39,11 @@ public class AdminExamController {
 
     /** 시험 목록. 필터는 서버에서 처리하고 화면은 th:each 로 그린다. */
     @GetMapping
-    public String list(@ModelAttribute("cond") ExamSearchCond cond, Model model) {
-        model.addAttribute("rows", examService.search(cond));
+    public String list(@AuthenticationPrincipal LoginUser loginUser,
+                       @ModelAttribute("cond") ExamSearchCond cond, Model model) {
+        // 강사는 담당 과정 시험만 — 권한정의서(1) "△(담당 과정 한정)"
+        model.addAttribute("rows", examService.searchScoped(
+                cond, loginUser.getId(), isAdmin(loginUser)));
         model.addAttribute("courseOptions", examService.courseOptions());
         model.addAttribute("instructorOptions", examService.instructorOptions());
         return LIST_VIEW;
@@ -52,7 +59,8 @@ public class AdminExamController {
 
     /** 등록. */
     @PostMapping
-    public String create(@Valid @ModelAttribute("form") ExamForm form,
+    public String create(@AuthenticationPrincipal LoginUser loginUser,
+                         @Valid @ModelAttribute("form") ExamForm form,
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
@@ -74,7 +82,9 @@ public class AdminExamController {
 
     /** 수정 폼. */
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@AuthenticationPrincipal LoginUser loginUser,
+                           @PathVariable Long id, Model model) {
+        examService.requireManageable(id, loginUser.getId(), isAdmin(loginUser));
         ExamForm form = examService.loadForm(id);
         model.addAttribute("form", form);
         model.addAttribute("examQuestions", examService.loadExamQuestions(id));
@@ -85,7 +95,8 @@ public class AdminExamController {
 
     /** 수정. */
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id,
+    public String update(@AuthenticationPrincipal LoginUser loginUser,
+                             @PathVariable Long id,
                          @Valid @ModelAttribute("form") ExamForm form,
                          BindingResult bindingResult,
                          Model model,
@@ -94,7 +105,8 @@ public class AdminExamController {
             return renderEditWithErrors(id, form, model);
         }
         try {
-            examService.update(id, form);
+            examService.requireManageable(id, loginUser.getId(), isAdmin(loginUser));
+        examService.update(id, form);
             redirectAttributes.addFlashAttribute("message", "시험을 수정했습니다.");
             return "redirect:/admin/evaluation/exams/" + id + "/edit";
         } catch (IllegalArgumentException e) {
@@ -108,8 +120,10 @@ public class AdminExamController {
      * 규칙만 저장된 상태로는 응시 문항이 재현되지 않으므로, 이 시점에 ExamQuestion(fromRule=true)으로 내린다.
      */
     @PostMapping("/{id}/materialize")
-    public String materialize(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String materialize(@AuthenticationPrincipal LoginUser loginUser,
+                             @PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
+            examService.requireManageable(id, loginUser.getId(), isAdmin(loginUser));
             int added = examService.materializeRules(id);
             redirectAttributes.addFlashAttribute("message",
                     "출제 규칙으로 " + added + "문항을 확정했습니다.");
@@ -121,10 +135,36 @@ public class AdminExamController {
         return "redirect:/admin/evaluation/exams/" + id + "/edit";
     }
 
+    /**
+     * 성적 공개 설정만 변경.
+     *
+     * 시험 폼(update)은 응시 기록이 있으면 잠기지만(문항 구성이 갈리면 3년 재현이 깨진다),
+     * 성적 공개 방식은 문항과 무관하고 "채점 끝나면 공개"가 정상 운영이라 잠그면 안 된다.
+     */
+    @PostMapping("/{id}/result-release")
+    public String changeResultRelease(@AuthenticationPrincipal LoginUser loginUser,
+            @PathVariable Long id,
+            @RequestParam("resultRelease") String resultRelease,
+            @RequestParam(value = "resultReleaseAt", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime resultReleaseAt,
+            RedirectAttributes redirectAttributes) {
+        try {
+            examService.requireManageable(id, loginUser.getId(), isAdmin(loginUser));
+        examService.changeResultRelease(id, resultRelease, resultReleaseAt);
+            redirectAttributes.addFlashAttribute("message",
+                    "성적 공개 설정을 '" + resultRelease + "' 로 변경했습니다.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/evaluation/exams/" + id + "/edit";
+    }
+
     /** 선택 비활성화 (상태를 종료로 내린다). */
     @PostMapping("/deactivate")
-    public String deactivate(@RequestParam("ids") List<Long> ids,
+    public String deactivate(@AuthenticationPrincipal LoginUser loginUser,
+                             @RequestParam("ids") List<Long> ids,
                              RedirectAttributes redirectAttributes) {
+        examService.assertCanManageAll(ids, loginUser.getId(), isAdmin(loginUser));
         examService.deactivate(ids);
         redirectAttributes.addFlashAttribute("message", ids.size() + "건을 비활성화했습니다.");
         return "redirect:/admin/evaluation/exams";
@@ -132,8 +172,10 @@ public class AdminExamController {
 
     /** 선택 삭제 (soft delete). */
     @PostMapping("/delete")
-    public String delete(@RequestParam("ids") List<Long> ids,
+    public String delete(@AuthenticationPrincipal LoginUser loginUser,
+                             @RequestParam("ids") List<Long> ids,
                          RedirectAttributes redirectAttributes) {
+        examService.assertCanManageAll(ids, loginUser.getId(), isAdmin(loginUser));
         examService.delete(ids);
         redirectAttributes.addFlashAttribute("message", ids.size() + "건을 삭제했습니다.");
         return "redirect:/admin/evaluation/exams";
@@ -155,5 +197,9 @@ public class AdminExamController {
         model.addAttribute("sessionOptions", examService.sessionOptions(courseId));
         model.addAttribute("instructorOptions", examService.instructorOptions());
         model.addAttribute("questionPool", examService.questionPool());
+    }
+    /** 관리자 여부 — 강사는 담당 과정으로 제한된다. */
+    private static boolean isAdmin(LoginUser loginUser) {
+        return loginUser != null && loginUser.getRole() == com.ssa.lms.user.entity.Role.ADMIN;
     }
 }

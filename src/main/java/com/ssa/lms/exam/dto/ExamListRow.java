@@ -18,6 +18,8 @@ public record ExamListRow(
         String id,
         String examName,
         String examType,
+        /** 강사 담당 과정 필터링에 쓴다. 화면에는 노출하지 않는다. */
+        Long courseId,
         String courseName,
         String courseCode,
         String instructorName,
@@ -33,7 +35,13 @@ public record ExamListRow(
         String statusGroup,
         /** 내역서 요건 노출 — 본인인증 강제 여부. */
         boolean requireIdentityVerification,
-        boolean proctorEnabled
+        boolean proctorEnabled,
+        /** 문제 세트 개수. 1 이면 전원 동일 세트. */
+        int questionSetCount,
+        /** 성적 공개 방식 문구 (즉시 공개 / 채점 완료 후 공개 / ... / 비공개). */
+        String resultReleaseText,
+        /** 사전 모의 테스트 여부 — 목록에서 정식 시험과 구분 표시한다. */
+        boolean practiceMode
 ) {
 
     private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
@@ -43,6 +51,7 @@ public record ExamListRow(
                 String.valueOf(exam.getId()),
                 exam.getExamName(),
                 ExamForm.typeLabel(exam.getExamType()),
+                exam.getCourse() == null ? null : exam.getCourse().getId(),
                 exam.getCourse() == null ? "-" : exam.getCourse().getCourseName(),
                 exam.getCourse() == null ? "-" : exam.getCourse().getCourseCode(),
                 exam.getInstructor() == null ? "-" : exam.getInstructor().getName(),
@@ -55,7 +64,10 @@ public record ExamListRow(
                 ExamForm.statusLabel(exam.getStatus()),
                 groupOf(exam.getStatus()),
                 exam.isRequireIdentityVerification(),
-                exam.isProctorEnabled()
+                exam.isProctorEnabled(),
+                exam.getQuestionSetCount() == null ? 1 : exam.getQuestionSetCount(),
+                exam.resultReleaseText(),
+                exam.isPracticeMode()
         );
     }
 

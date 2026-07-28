@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+    <title>접근 권한 안내 - Samsung Academy LXP</title>
+    <style>
+        .denied-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .denied-card { max-width: 520px; width: 100%; background: #fff; border: 1px solid #e5e7eb;
+                       border-radius: 12px; padding: 40px 36px; text-align: center; }
+        .denied-icon { width: 56px; height: 56px; margin: 0 auto 20px; border-radius: 50%;
+                       background: #FDECEA; display: flex; align-items: center; justify-content: center;
+                       font-size: 28px; color: #D32F2F; }
+        .denied-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #111827; }
+        .denied-reason { font-size: 15px; color: #374151; line-height: 1.6; margin-bottom: 24px; }
+        .denied-guide { background: #F9FAFB; border-radius: 8px; padding: 18px 20px; text-align: left;
+                        font-size: 14px; color: #4B5563; line-height: 1.8; margin-bottom: 28px; }
+        .denied-guide strong { color: #111827; }
+        .denied-actions { display: flex; gap: 10px; justify-content: center; }
+    </style>
+</head>
+<body>
+<div class="denied-wrap">
+    <div class="denied-card">
+        <div class="denied-icon">!</div>
+
+        <h1 class="denied-title">이 화면에 접근할 권한이 없습니다</h1>
+
+        <!-- 서비스가 던진 사유를 그대로 보여준다. 없으면 일반 문구. -->
+        <p class="denied-reason"
+           th:text="${reason} ?: '요청하신 페이지를 볼 수 있는 권한이 계정에 없습니다.'">
+            담당하지 않는 과정의 시험입니다.
+        </p>
+
+        <div class="denied-guide">
+            <!-- 강사: 담당 과정으로 지정받으면 해결된다 -->
+            <span th:if="${role} == 'INSTRUCTOR'">
+                <strong>권한을 받으려면</strong><br>
+                해당 과정의 <strong>담당 강사로 지정</strong>되어야 합니다.<br>
+                운영 관리자에게 <strong>과정 담당자 지정</strong>을 요청하세요.<br>
+                (관리자 화면 → 과정/운영 관리 → 해당 과정 → 담당 강사 추가)
+            </span>
+            <!-- 훈련생: 권한 문제가 아니라 "남의 것"에 접근한 경우가 대부분이다 -->
+            <span th:if="${role} == 'TRAINEE'">
+                <strong>확인해 주세요</strong><br>
+                본인에게 배정된 항목만 열람할 수 있습니다.<br>
+                링크를 잘못 눌렀거나 만료된 주소일 수 있으니, 목록에서 다시 선택해 주세요.<br>
+                계속 같은 화면이 나오면 담당 강사에게 문의하세요.
+            </span>
+            <!-- 관리자인데 막힌 경우는 설정 문제다 -->
+            <span th:if="${role} == 'ADMIN'">
+                <strong>확인해 주세요</strong><br>
+                관리자 계정인데 접근이 막혔다면 <strong>계정 권한 설정</strong>을 확인해야 합니다.<br>
+                시스템 담당자에게 문의하세요.
+            </span>
+            <span th:if="${role} == null">
+                <strong>로그인이 필요합니다</strong><br>
+                세션이 만료되었을 수 있습니다. 다시 로그인해 주세요.
+            </span>
+        </div>
+
+        <div class="denied-actions">
+            <button type="button" class="btn btn-gray" onclick="history.back()">이전으로</button>
+            <a class="btn btn-primary" th:href="${homeUrl}" href="/">내 홈으로</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

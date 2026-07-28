@@ -19,11 +19,19 @@ import java.util.List;
 @RequestMapping("/admin/survey")
 @RequiredArgsConstructor
 public class AdminSurveyController {
+
+    private static final int PAGE_SIZE = 10;
     private final SurveyService surveyService;
 
     @GetMapping
-    public String list(@ModelAttribute("cond") SurveySearchCond cond, Model model) {
-        model.addAttribute("rows", surveyService.search(cond));
+    public String list(@ModelAttribute("cond") SurveySearchCond cond,
+                       @RequestParam(name = "page", defaultValue = "1") int page,
+                       Model model) {
+        org.springframework.data.domain.Page<com.ssa.lms.survey.dto.SurveyListRow> result =
+                surveyService.search(cond, org.springframework.data.domain.PageRequest.of(
+                        Math.max(page - 1, 0), PAGE_SIZE));
+        model.addAttribute("rows", result.getContent());
+        model.addAttribute("page", com.ssa.lms.web.PageView.of(result));
         return "admin/admin-05-attendance/admin-attendance-survey";
     }
 
@@ -56,8 +64,14 @@ public class AdminSurveyController {
     public String update(@PathVariable Long id, @Valid @ModelAttribute("form") SurveyForm form, Model model,
                          BindingResult errors, RedirectAttributes redirect) {
         if (errors.hasErrors()) { model.addAttribute("courses", surveyService.courseOptions()); return "admin/admin-05-attendance/admin-attendance-survey-add"; }
-        surveyService.update(id, form);
-        redirect.addFlashAttribute("message", "설문을 수정했습니다.");
+        try {
+            surveyService.update(id, form);
+            redirect.addFlashAttribute("message", "설문을 수정했습니다.");
+        } catch (IllegalStateException e) {
+            // 응답이 있는 설문의 문항 변경 시도 — 관리자에게 500 대신 사유를 알려준다
+            redirect.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/survey/" + id + "/edit";
+        }
         return "redirect:/admin/survey";
     }
 

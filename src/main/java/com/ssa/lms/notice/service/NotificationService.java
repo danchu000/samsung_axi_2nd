@@ -13,6 +13,7 @@ import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import java.util.Set;
  *
  * 대상자 산출은 A의 CourseQueryService 계약만 호출한다 (a-requests.md P0-4).
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -100,6 +102,26 @@ public class NotificationService {
     public Notification getOrThrow(Long id) {
         return notificationRepository.findWithSenderById(id)
                 .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다. id=" + id));
+    }
+
+    /**
+     * 내가 받은 알림 — 훈련생 알림함용.
+     *
+     * <p>{@link #search} 는 관리자용이라 전체를 돌려준다. 훈련생에게 그걸 쓰면
+     * 남의 알림까지 보인다. 그래서 수신자(NotificationRecipient) 기준으로 따로 조회한다.</p>
+     */
+    public List<NotificationListRow> findForRecipient(Long userId, NotificationSearchCond cond,
+                                                      Pageable pageable) {
+        String keyword = cond == null ? null : cond.keywordOrNull();
+        return recipientRepository.findMine(userId, pageable).stream()
+                .filter(r -> keyword == null
+                        || r.getNotification().getTitle().toLowerCase().contains(keyword.toLowerCase()))
+                .map(r -> NotificationListRow.of(
+                        r.getNotification(),
+                        r.getReadAt() == null ? "읽지않음" : "읽음",
+                        1L,
+                        r.getReadAt() == null ? 0L : 1L))
+                .toList();
     }
 
     @Transactional
@@ -174,6 +196,35 @@ public class NotificationService {
     /* ===== 내부 ===== */
 
     /** 수신 대상자를 행으로 펼친다. 이미 만들어진 수신자는 건너뛴다. */
+    /**
+     * 예약 발송 처리 — 스케줄러가 호출한다.
+     *
+     * <p>지금까지 {@code sendAt} 은 저장만 되고 시각이 도래해도 아무 일이 없었다.
+     * 화면에서 "예약"으로 저장한 알림이 영영 나가지 않는 상태였다.</p>
+     *
+     * <p>한 건 실패가 나머지를 막지 않도록 알림마다 독립적으로 처리한다.
+     * 실패한 건은 SCHEDULED 로 남아 다음 주기에 다시 시도된다.</p>
+     *
+     * @return 실제로 발송된 건수
+     */
+    @Transactional
+    public int dispatchDue(LocalDateTime now) {
+        List<Notification> due = notificationRepository.findDueScheduled(
+                Notification.NotificationStatus.SCHEDULED, now);
+        int sent = 0;
+        for (Notification n : due) {
+            try {
+                fanOut(n);
+                n.markSent();
+                sent++;
+            } catch (RuntimeException e) {
+                // 이 건만 건너뛴다. 상태를 SCHEDULED 로 두어 다음 주기에 재시도된다.
+                log.warn("예약 알림 발송 실패 — id={}, 사유={}", n.getId(), e.getMessage());
+            }
+        }
+        return sent;
+    }
+
     private void fanOut(Notification notification) {
         List<Long> targetUserIds = resolveTargets(notification);
         if (targetUserIds.isEmpty()) {

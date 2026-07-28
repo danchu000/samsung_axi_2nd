@@ -20,6 +20,7 @@ import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -201,7 +202,10 @@ public class TutoringService {
             throw new IllegalStateException("종료된 튜터링 방에는 메시지를 보낼 수 없습니다.");
         }
         if (!isParticipant(room, senderId)) {
-            throw new IllegalStateException(
+            // 당사자 아닌 사용자(특히 관리자는 권한정의서(2) 18행 R 전용)의 전송 시도는 '인가 실패'다.
+            // raw IllegalStateException 으로 던지면 어떤 advice 도 안 잡아 whitelabel 500 이 됐다 —
+            // getOrThrow 열람 경로가 AccessDeniedException(→403 안내화면)을 쓰는 것과 같게 맞춘다.
+            throw new AccessDeniedException(
                     "이 튜터링 방의 대화 당사자만 메시지를 보낼 수 있습니다. (관리자는 열람만 가능)");
         }
 

@@ -110,8 +110,14 @@ public class TraineeSupportController {
 
     @PostMapping("/tutoring/{id}/messages")
     public String sendMessage(@PathVariable Long id, @AuthenticationPrincipal LoginUser loginUser,
-                              @RequestParam String content) {
-        tutoringService.sendMessage(id, loginUser.getId(), content);
+                              @RequestParam String content, RedirectAttributes ra) {
+        // 업무규칙 위반(종료된 방)은 flash 안내로 되돌린다 — raw IllegalStateException 을 그냥 두면 500 이 된다.
+        // 비당사자 전송은 서비스가 AccessDeniedException 을 던지므로 여기서 잡지 않고 AccessDeniedAdvice(403) 로 흘린다.
+        try {
+            tutoringService.sendMessage(id, loginUser.getId(), content);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/trainee/qna/tutoring/" + id;
     }
 

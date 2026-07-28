@@ -11,6 +11,16 @@
     <script src="/static/js/dashboard.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
+
+    <!-- ===== 서버 데이터 주입 =====
+         InstructorDashboardView(com.ssa.lms.dashboard.dto)를 그대로 내려받는다.
+         dashboard.js 는 defer 라 문서 파싱이 끝난 뒤 실행되므로, 이 인라인 스크립트가 먼저 돌고
+         dashboard.js 의 `window._serverInstructorDashboard || 빈값` 이 이 값을 집는다.
+         (기존 렌더 함수 renderCourseList / renderTodayEvalList / ... 는 손대지 않는다) -->
+    <script th:inline="javascript">
+        window._serverInstructorDashboard = /*[[${dashboard}]]*/ null;
+    </script>
+
     <script>
                 // 과정별 상위 20%/하위 30% 학습시간 비교 데이터 생성 함수
                 function generateTopBottomCodingData(courseCount = 3, studentsPerCourse = 30) {
@@ -743,7 +753,7 @@
             </div>
             <div class="kpi-sub">채점이 필요한 과제가 있어요</div>
             <div class="kpi-actions">
-              <button class="btn btn-primary" type="button" onclick="location.href='/templates/instructor/assignment.html'">채점하기</button>
+              <button class="btn btn-primary" type="button" onclick="location.href='/instructor/assignments'">채점하기</button>
             </div>
           </div>
 
@@ -754,7 +764,7 @@
             </div>
             <div class="kpi-sub">시험 채점 대기 항목이 있어요</div>
             <div class="kpi-actions">
-              <button class="btn btn-primary" type="button" onclick="location.href='/templates/instructor/result.html'">채점하기</button>
+              <button class="btn btn-primary" type="button" onclick="location.href='/instructor/grading'">채점하기</button>
             </div>
           </div>
 
@@ -765,7 +775,7 @@
             </div>
             <div class="kpi-sub">튜터링/QnA 답변이 필요해요</div>
             <div class="kpi-actions">
-              <button class="btn btn-primary" type="button" onclick="location.href='/templates/instructor/tutoring.html'">응답하기</button>
+              <button class="btn btn-primary" type="button" onclick="location.href='/admin/support/tutoring'">응답하기</button>
             </div>
           </div>
 
@@ -776,7 +786,7 @@
             </div>
             <div class="kpi-sub">실시간 모니터링/녹화 확인</div>
             <div class="kpi-actions">
-              <button class="btn btn-primary" type="button" onclick="location.href='/templates/instructor/proctor/exams.html'">모니터링</button>
+              <button class="btn btn-primary" type="button" onclick="location.href='/instructor/proctor/exams'">모니터링</button>
             </div>
           </div>
         </div>
@@ -789,7 +799,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>📚 담당 과정 요약</h3>
-                <button class="btn btn-gray" type="button" onclick="location.href='/templates/instructor/courses.html'">전체보기</button>
+                <button class="btn btn-gray" type="button" onclick="location.href='/admin/courses'">전체보기</button>
               </div>
               <div class="panel-body">
                 <div class="list" id="courseList">
@@ -802,7 +812,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>🧪 오늘의 평가 업무</h3>
-                <button class="btn btn-gray" type="button" onclick="location.href='/templates/instructor/result.html'">채점목록</button>
+                <button class="btn btn-gray" type="button" onclick="location.href='/instructor/grading'">채점목록</button>
               </div>
               <div class="panel-body">
                 <div class="list" id="todayEvalList">
@@ -818,7 +828,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>💬 응답현황 (튜터링/QnA)</h3>
-                <button class="btn btn-gray" type="button" onclick="location.href='/templates/instructor/tutoring.html'">전체보기</button>
+                <button class="btn btn-gray" type="button" onclick="location.href='/admin/support/tutoring'">전체보기</button>
               </div>
               <div class="panel-body">
                 <div class="list" id="supportList">
@@ -831,7 +841,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>🎥 시험 감독 / 모니터링</h3>
-                <button class="btn btn-gray" type="button" onclick="location.href='/templates/instructor/proctor/exams.html'">전체보기</button>
+                <button class="btn btn-gray" type="button" onclick="location.href='/instructor/proctor/exams'">전체보기</button>
               </div>
               <div class="panel-body">
                 <div class="list" id="proctorList">
@@ -879,7 +889,7 @@
         <div class="panel">
           <div class="panel-header">
             <h3>📌 공지 / 알림</h3>
-            <button class="btn btn-gray" type="button" onclick="location.href='/templates/admin/admin-07-notice/admin-notice.html'">전체보기</button>
+            <button class="btn btn-gray" type="button" onclick="location.href='/instructor/notice'">전체보기</button>
           </div>
           <div class="panel-body">
             <div class="note-list" id="noticeList">

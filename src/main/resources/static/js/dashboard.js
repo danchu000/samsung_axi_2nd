@@ -1,81 +1,27 @@
 
-// ===== Dummy data (Thymeleaf 변환 대비) =====
-const dashboardData = {
-userName: "김민수",
-today: "2026.01.25 (월)",
+// ===== 서버 데이터 (com.ssa.lms.dashboard.service.InstructorDashboardService) =====
+// templates/instructor/index.html 의 인라인 <script th:inline="javascript"> 가
+// window._serverInstructorDashboard 를 먼저 채운다 (이 파일은 defer 라 그 뒤에 실행된다).
+//
+// 폴백은 "빈 대시보드"다. 예전 더미 숫자를 남겨두면 서버 조회가 실패했을 때
+// 가짜 담당 과정/채점 건수가 사실처럼 보이므로, 값이 없으면 없다고 보여준다.
+const EMPTY_DASHBOARD = {
+userName: "-",
+today: "-",
 kpi: {
-    pendingAssignments: 3,
-    pendingExams: 1,
-    pendingSupport: 5,
-    proctoringExams: 1
+    pendingAssignments: "-",
+    pendingExams: "-",
+    pendingSupport: "-",
+    proctoringExams: "-"
 },
-courses: [
-    {
-    id: "COURSE-2024-001",
-    name: "풀스택 웹 개발 (React & Node.js)",
-    status: "진행중",
-    progress: "12/20",
-    todaySession: "오늘 차시: 8차시 (React Hooks)",
-    missingCompletion: "미이수: 3명"
-    },
-    {
-    id: "COURSE-2024-005",
-    name: "데이터 사이언스 기초",
-    status: "진행중",
-    progress: "5/15",
-    todaySession: "다음 차시: Pandas 실습",
-    missingCompletion: "미이수: 1명"
-    }
-],
-todayEvals: [
-    {
-    kind: "시험",
-    title: "JavaScript 중간평가",
-    meta: "미채점 4명 · 종료 18:00",
-    actionText: "채점하기",
-    href: "/templates/instructor/result.html"
-    },
-    {
-    kind: "과제",
-    title: "React 프로젝트 1차",
-    meta: "미채점 3명 · 마감 지남",
-    actionText: "채점하기",
-    href: "/templates/instructor/result.html"
-    }
-],
-supports: [
-    {
-    category: "튜터링",
-    title: "useEffect 질문",
-    meta: "미응답 · 02:13",
-    href: "/templates/instructor/tutoring.html"
-    },
-    {
-    category: "QnA",
-    title: "과제 제출 오류",
-    meta: "진행중 · 05:42",
-    href: "/templates/instructor/tutoring.html"
-    },
-    {
-    category: "튜터링",
-    title: "출결 기준 문의",
-    meta: "미응답 · 01:08",
-    href: "/templates/instructor/tutoring.html"
-    }
-],
-proctors: [
-    {
-    title: "풀스택 웹 개발 - 중간평가",
-    meta: "현재 응시자 12명 · 이상행위 1건",
-    monitorHref: "/templates/instructor/proctor/exams/12",
-    recordingsHref: "/templates/instructor/proctor/exams/12/recordings"
-    }
-],
-notices: [
-    { title: "평가 운영 정책 변경 안내", href: "/templates/admin/admin-07-notice/admin-notice-detail.html" },
-    { title: "출결 기준 업데이트", href: "/templates/admin/admin-07-notice/admin-notice-detail.html" }
-]
+courses: [],
+todayEvals: [],
+supports: [],
+proctors: [],
+notices: []
 };
+
+const dashboardData = window._serverInstructorDashboard || EMPTY_DASHBOARD;
 
 // ===== Render helpers =====
 function setText(id, text) {
@@ -83,9 +29,17 @@ const el = document.getElementById(id);
 if (el) el.textContent = text;
 }
 
+// 목록이 0건이면(신규 강사 계정 등) 빈 패널 대신 안내 문구를 남긴다.
+// 그냥 비워두면 렌더 실패와 구분이 안 된다.
+function renderEmpty(wrap, message) {
+wrap.innerHTML = `<div class="list-item"><div class="item-left"><div class="item-meta">${message}</div></div></div>`;
+}
+
 function renderCourseList() {
 const wrap = document.getElementById("courseList");
+if (!wrap) return;
 wrap.innerHTML = "";
+if (!dashboardData.courses.length) { renderEmpty(wrap, "담당하는 과정이 없습니다."); return; }
 
 dashboardData.courses.forEach(c => {
     const card = document.createElement("div");
@@ -100,9 +54,9 @@ dashboardData.courses.forEach(c => {
         <div>${c.missingCompletion}</div>
     </div>
     <div class="course-actions">
-        <button class="btn btn-secondary" type="button" onclick="location.href='/admin/admin-05-attendance/admin-attendance'">출결</button>
-        <button class="btn btn-secondary" type="button" onclick="location.href='/admin/admin-05-attendance/admin-attendance-graduate'">이수</button>
-        <button class="btn btn-gray" type="button" onclick="location.href='/admin/admin-03-courses/admin-courses-edu'">과정</button>
+        <button class="btn btn-secondary" type="button" onclick="location.href='/admin/attendance'">출결</button>
+        <button class="btn btn-secondary" type="button" onclick="location.href='${c.href}'">이수</button>
+        <button class="btn btn-gray" type="button" onclick="location.href='/admin/courses'">과정</button>
     </div>
     `;
     wrap.appendChild(card);
@@ -111,7 +65,9 @@ dashboardData.courses.forEach(c => {
 
 function renderTodayEvalList() {
 const wrap = document.getElementById("todayEvalList");
+if (!wrap) return;
 wrap.innerHTML = "";
+if (!dashboardData.todayEvals.length) { renderEmpty(wrap, "채점 대기 중인 시험/과제가 없습니다."); return; }
 
 dashboardData.todayEvals.forEach(e => {
     const item = document.createElement("div");
@@ -131,7 +87,9 @@ dashboardData.todayEvals.forEach(e => {
 
 function renderSupportList() {
 const wrap = document.getElementById("supportList");
+if (!wrap) return;
 wrap.innerHTML = "";
+if (!dashboardData.supports.length) { renderEmpty(wrap, "응답이 필요한 문의가 없습니다."); return; }
 
 dashboardData.supports.forEach(s => {
     const item = document.createElement("div");
@@ -151,7 +109,9 @@ dashboardData.supports.forEach(s => {
 
 function renderProctorList() {
 const wrap = document.getElementById("proctorList");
+if (!wrap) return;
 wrap.innerHTML = "";
+if (!dashboardData.proctors.length) { renderEmpty(wrap, "현재 응시가 진행 중인 시험이 없습니다."); return; }
 
 dashboardData.proctors.forEach(p => {
     const item = document.createElement("div");
@@ -172,7 +132,12 @@ dashboardData.proctors.forEach(p => {
 
 function renderNoticeList() {
 const wrap = document.getElementById("noticeList");
+if (!wrap) return;
 wrap.innerHTML = "";
+if (!dashboardData.notices.length) {
+    wrap.innerHTML = `<div class="note-item"><div class="note-title">등록된 공지가 없습니다.</div></div>`;
+    return;
+}
 dashboardData.notices.forEach(n => {
     const item = document.createElement("div");
     item.className = "note-item";

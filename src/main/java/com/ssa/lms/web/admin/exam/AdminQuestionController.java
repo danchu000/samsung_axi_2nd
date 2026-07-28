@@ -3,6 +3,10 @@ package com.ssa.lms.web.admin.exam;
 import com.ssa.lms.exam.dto.QuestionForm;
 import com.ssa.lms.exam.dto.QuestionListRow;
 import com.ssa.lms.exam.dto.QuestionSearchCond;
+import com.ssa.lms.web.PageView;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import com.ssa.lms.exam.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminQuestionController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final QuestionService questionService;
 
     /**
@@ -37,10 +43,19 @@ public class AdminQuestionController {
      * 서버는 필터링된 행을 통째로 내려주고 화면이 window._serverContentRows 로 넘긴다.
      */
     @GetMapping
-    public String list(@ModelAttribute("cond") QuestionSearchCond cond, Model model) {
+    public String list(@ModelAttribute("cond") QuestionSearchCond cond,
+                       @RequestParam(defaultValue = "1") int page,
+                       Model model) {
+        // 서버 페이징 — 예전에는 전체 행을 내려주고 pagination.js 가 숨겼다 보였다 했다.
+        // 문제은행은 수천 건까지 늘 수 있어 한 페이지 분량만 내린다.
+        Page<QuestionListRow> result = questionService.search(
+                cond, PageRequest.of(Math.max(page - 1, 0), PAGE_SIZE,
+                        Sort.by(Sort.Direction.DESC, "id")));
+
         // rows 는 A의 콘텐츠(영상·문서·강의) 목록과 병합되는 지점이다.
         // A의 Content 가 들어오면 같은 QuestionListRow 모양으로 만들어 여기에 합치면 된다.
-        model.addAttribute("rows", questionService.searchAll(cond));
+        model.addAttribute("rows", result.getContent());
+        model.addAttribute("page", PageView.of(result));
         return "admin/admin-04-evaluation/admin-evaluation-question-bank";
     }
 

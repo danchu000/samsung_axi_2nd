@@ -542,5 +542,13 @@
     }
     });
     </script>
+
+<!-- ===== 서버 페이징 (개발자 B) ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window._serverPage = /*[[${page}]]*/ null;
+    /*]]>*/
+</script>
+<script src="/static/js/server-pagination.js" defer></script>
 </body>
 </html>

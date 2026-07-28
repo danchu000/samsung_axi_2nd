@@ -19,11 +19,19 @@ import java.util.List;
 @RequestMapping("/admin/survey")
 @RequiredArgsConstructor
 public class AdminSurveyController {
+
+    private static final int PAGE_SIZE = 10;
     private final SurveyService surveyService;
 
     @GetMapping
-    public String list(@ModelAttribute("cond") SurveySearchCond cond, Model model) {
-        model.addAttribute("rows", surveyService.search(cond));
+    public String list(@ModelAttribute("cond") SurveySearchCond cond,
+                       @RequestParam(name = "page", defaultValue = "1") int page,
+                       Model model) {
+        org.springframework.data.domain.Page<com.ssa.lms.survey.dto.SurveyListRow> result =
+                surveyService.search(cond, org.springframework.data.domain.PageRequest.of(
+                        Math.max(page - 1, 0), PAGE_SIZE));
+        model.addAttribute("rows", result.getContent());
+        model.addAttribute("page", com.ssa.lms.web.PageView.of(result));
         return "admin/admin-05-attendance/admin-attendance-survey";
     }
 

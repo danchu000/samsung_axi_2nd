@@ -177,6 +177,8 @@
             // {id} 자리표시자는 contents.js 가 치환한다 (@{} 로는 표현할 수 없어 리터럴로 둔다)
             edit: '/admin/evaluation/questions/{id}/edit'
         };
+        // 서버 페이징 정보 — server-pagination.js 가 이 값으로 페이지 링크를 그린다
+        window._serverPage = /*[[${page}]]*/ null;
         window._questionBulkUrls = {
             deactivate: /*[[@{/admin/evaluation/questions/deactivate}]]*/ '',
             remove:     /*[[@{/admin/evaluation/questions/delete}]]*/ ''
@@ -184,6 +186,7 @@
         /*]]>*/
     </script>
     <script src="/static/js/question-bank-bulk.js" defer></script>
+    <script src="/static/js/server-pagination.js" defer></script>
 
     <div th:if="${message}" class="toast-message" th:text="${message}"
          style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>

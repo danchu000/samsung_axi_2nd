@@ -35,6 +35,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminSupportController {
 
+    private static final int PAGE_SIZE = 10;
+
     private static final String VIEW_LIST = "admin/admin-06-support/admin-support-tutoring";
     private static final String VIEW_QNA_DETAIL = "admin/admin-06-support/admin-support-qna";
     private static final String VIEW_TUTORING_DETAIL = "admin/admin-06-support/tutoring-detail";
@@ -49,8 +51,9 @@ public class AdminSupportController {
     public String qnaList(@ModelAttribute QnaSearchCond cond,
                           @RequestParam(required = false) String roomKeyword,
                           @RequestParam(required = false) String roomStatus,
+                          @RequestParam(name = "page", defaultValue = "1") int page,
                           Model model) {
-        fillList(model, cond, roomKeyword, roomStatus);
+        fillList(model, cond, roomKeyword, roomStatus, page);
         model.addAttribute("activeTab", "qna");
         return VIEW_LIST;
     }
@@ -59,8 +62,9 @@ public class AdminSupportController {
     public String tutoringList(@ModelAttribute QnaSearchCond cond,
                                @RequestParam(required = false) String roomKeyword,
                                @RequestParam(required = false) String roomStatus,
+                               @RequestParam(name = "page", defaultValue = "1") int page,
                                Model model) {
-        fillList(model, cond, roomKeyword, roomStatus);
+        fillList(model, cond, roomKeyword, roomStatus, page);
         model.addAttribute("activeTab", "tutoring");
         return VIEW_LIST;
     }
@@ -70,8 +74,14 @@ public class AdminSupportController {
      * Q&amp;A 필터는 {@link QnaSearchCond}(keyword/status), 튜터링 필터는 roomKeyword/roomStatus 로
      * 파라미터 이름을 분리했다 — 원본 화면의 필터 행이 탭마다 따로 있기 때문.
      */
-    private void fillList(Model model, QnaSearchCond cond, String roomKeyword, String roomStatus) {
-        model.addAttribute("rows", qnaService.searchAll(cond));
+    private void fillList(Model model, QnaSearchCond cond, String roomKeyword, String roomStatus,
+                          int page) {
+        // 서버 페이징 — 예전에는 전체 Q&A 를 내려주고 JS 가 잘랐다
+        org.springframework.data.domain.Page<com.ssa.lms.support.dto.QnaListRow> qnaPage =
+                qnaService.search(cond, org.springframework.data.domain.PageRequest.of(
+                        Math.max(page - 1, 0), PAGE_SIZE));
+        model.addAttribute("rows", qnaPage.getContent());
+        model.addAttribute("page", com.ssa.lms.web.PageView.of(qnaPage));
         model.addAttribute("qnaStats", qnaService.stats());
         model.addAttribute("rooms", tutoringService.searchAll(roomKeyword, roomStatus, null, null));
         model.addAttribute("tutoringStats", tutoringService.stats());

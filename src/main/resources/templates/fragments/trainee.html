@@ -10,14 +10,15 @@
   header() 의 active 키 (상단 GNB 대분류):
     my-course | contents | test | support | notices | attendance
 
-  링크는 아직 정적 HTML 경로(/templates/...)를 유지한다. 컨트롤러 전환 시 이 파일만 수정.
+  구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28). 아직 컨트롤러가 없는 화면
+  (출결현황/이수관리/알림/내 정보)만 정적 경로가 남아 있다 — 구현 시 이 파일만 수정.
 -->
 <body>
 
 <!-- ===== 상단 GNB 헤더 ===== -->
 <header th:fragment="header(active)">
     <div class="header-logo">
-        <a href="/templates/trainee/index.html"><img src="/static/img/logo-white.png" alt="logo" style="width: 130px; cursor: pointer;"></a>
+        <a href="/trainee"><img src="/static/img/logo-white.png" alt="logo" style="width: 130px; cursor: pointer;"></a>
     </div>
     <nav class="gnb">
         <ul>
@@ -32,9 +33,9 @@
                 <span><a href="/trainee/contents">학습콘텐츠</a></span>
             </li>
             <li th:classappend="${active == 'test'} ? 'active_menu'">
-                <span><a href="/templates/trainee/online-test.html">시험/과제</a></span>
+                <span><a href="/trainee/exam">시험/과제</a></span>
                 <ul>
-                    <li><a href="/templates/trainee/online-test.html">온라인 시험</a></li>
+                    <li><a href="/trainee/exam">온라인 시험</a></li>
                     <li><a href="/trainee/assignment">과제</a></li>
                 </ul>
             </li>

@@ -12,7 +12,8 @@
     | eval-assignment | eval-exam | eval-monitoring
     | att-status | att-graduate | notices | tutoring
 
-  링크는 아직 정적 HTML 경로(/templates/...)를 유지한다. 컨트롤러 전환 시 이 파일만 수정.
+  구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28). 아직 컨트롤러가 없는 화면
+  (훈련생/과정·일정/출결·이수/튜터링/알림/내 정보)만 정적 경로가 남아 있다 — 구현 시 이 파일만 수정.
 -->
 <body>
 
@@ -35,7 +36,7 @@
 
     <nav class="menu">
         <ul>
-            <li onclick="handleMenuClick(this, 'index.html')">
+            <li onclick="handleMenuClick(this, '/instructor')">
                 <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'dashboard'} ? 'active_menu'">대시보드</span>
             </li>
@@ -56,14 +57,14 @@
                     <a href="/templates/instructor/scheduler.html"><li th:classappend="${active == 'scheduler'} ? 'active_menu'">일정 관리</li></a>
                 </ul>
             </li>
-            <li onclick="handleMenuClick(this, 'assignment.html')">
+            <li onclick="handleMenuClick(this, '/instructor/assignments')">
                 <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'eval-')} ? 'active_menu'">평가</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
                     <a href="/instructor/assignments"><li th:classappend="${active == 'eval-assignment'} ? 'active_menu'">과제 채점</li></a>
-                    <a href="/templates/instructor/result.html"><li th:classappend="${active == 'eval-exam'} ? 'active_menu'">시험 채점</li></a>
-                    <a href="/templates/instructor/proctor/exams.html"><li th:classappend="${active == 'eval-monitoring'} ? 'active_menu'">평가 모니터링</li></a>
+                    <a href="/instructor/grading"><li th:classappend="${active == 'eval-exam'} ? 'active_menu'">시험 채점</li></a>
+                    <a href="/instructor/proctor/exams"><li th:classappend="${active == 'eval-monitoring'} ? 'active_menu'">평가 모니터링</li></a>
                 </ul>
             </li>
             <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
@@ -75,7 +76,7 @@
                     <a href="/templates/instructor/graduate.html"><li th:classappend="${active == 'att-graduate'} ? 'active_menu'">이수 관리</li></a>
                 </ul>
             </li>
-            <li onclick="handleMenuClick(this, 'notices.html')">
+            <li onclick="handleMenuClick(this, '/instructor/notice')">
                 <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'notices' or active == 'tutoring'} ? 'active_menu'">소통</span>
                 <span class="chev" aria-hidden="true">▾</span>

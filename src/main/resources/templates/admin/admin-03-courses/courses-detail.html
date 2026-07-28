@@ -117,11 +117,12 @@
                     <!-- 차시 목록 -->
                     <div style="margin-top:8px;">
                         <p th:if="${subject.sessions.isEmpty()}" class="empty-hint" style="padding-left:12px;">차시가 없습니다.</p>
-                        <div class="session-row" th:each="session : ${subject.sessions}">
-                            <span th:text="|${session.seq}차시 · ${session.name}|">차시</span>
-                            <span th:if="${session.lessonDate}" th:text="| · ${session.lessonDate}|"></span>
-                            <span th:if="${session.learningMinutes}" th:text="| · ${session.learningMinutes}분|"></span>
-                            <form class="inline-form" th:action="@{/admin/courses/{cid}/sessions/{sid}/delete(cid=${course.id},sid=${session.id})}" method="post">
+                        <!-- 'session' 은 Thymeleaf 3.1 예약어 — 루프 변수로 쓰면 렌더 중 예외로 응답이 잘린다 -->
+                        <div class="session-row" th:each="lesson : ${subject.sessions}">
+                            <span th:text="|${lesson.seq}차시 · ${lesson.name}|">차시</span>
+                            <span th:if="${lesson.lessonDate}" th:text="| · ${lesson.lessonDate}|"></span>
+                            <span th:if="${lesson.learningMinutes}" th:text="| · ${lesson.learningMinutes}분|"></span>
+                            <form class="inline-form" th:action="@{/admin/courses/{cid}/sessions/{sid}/delete(cid=${course.id},sid=${lesson.id})}" method="post">
                                 <button type="submit" class="btn btn-gray" style="padding:2px 8px; font-size:12px;">삭제</button>
                             </form>
                         </div>

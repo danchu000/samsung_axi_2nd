@@ -13,9 +13,9 @@
     | att-status | att-graduate | att-survey | support-tutoring | support-response
     | notice | alarm
 
-  B 도메인(평가/학습지원/공지알림/설문)은 컨트롤러 URL 로 전환 완료.
-  A 도메인(대시보드/사용자/과정/출결·이수)과 미구현분(시험채점/모니터링)은 정적 경로 유지.
-  각 도메인이 컨트롤러로 전환될 때 이 파일에서만 URL 을 바꾸면 전 페이지에 반영된다.
+  A·B 도메인 모두 컨트롤러 URL 로 전환 완료 (2026-07-28).
+  아직 컨트롤러가 없는 화면(관리자 관리 / 일정 관리 / 내 정보)은 "준비 중" alert 처리 —
+  해당 슬라이스가 구현될 때 이 파일에서만 URL 로 바꾸면 전 페이지에 반영된다.
 -->
 <body>
 
@@ -24,7 +24,7 @@
     <h1 th:text="${title}">페이지 제목</h1>
     <div class="icon-container">
         <div class="icon-box" onclick="location.href='/admin/notice/alarms'"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></div>
-        <div class="icon-box" onclick="location.href='/templates/admin/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
+        <div class="icon-box" onclick="alert('준비 중인 기능입니다.')" title="준비 중"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
         <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
     </div>
 </header>
@@ -38,7 +38,7 @@
 
     <nav class="menu">
         <ul>
-            <li data-page="/templates/admin/index.html" onclick="handleMenuClick(this, '/templates/admin/index.html')">
+            <li data-page="/admin" onclick="handleMenuClick(this, '/admin')">
                 <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'dashboard'} ? 'active_menu'">대시보드</span>
             </li>
@@ -49,19 +49,19 @@
                     <li class="submenu" th:classappend="${active == 'user-approval'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/pending'">가입 승인</li>
                     <li class="submenu" th:classappend="${active == 'user-trainee'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/trainees'">훈련생 관리</li>
                     <li class="submenu" th:classappend="${active == 'user-instructor'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/users/instructors'">강사 관리</li>
-                    <li class="submenu" th:classappend="${active == 'user-admin'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-02-user/admin-user.html'">관리자 관리</li>
+                    <li class="submenu" th:classappend="${active == 'user-admin'} ? 'active_menu'" onclick="event.stopPropagation(); alert('준비 중인 기능입니다.')">관리자 관리</li>
                 </ul>
             </li>
             <li data-page="/admin/evaluation/questions" onclick="handleMenuClick(this, '/admin/evaluation/questions')">
                 <img src="/static/icons/03-description.svg" alt="evaluation icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'contents'} ? 'active_menu'">콘텐츠 관리</span>
             </li>
-            <li data-page="/templates/admin/admin-03-courses/admin-course-edu.html" onclick="handleMenuClick(this, '/templates/admin/admin-03-courses/admin-courses-edu.html')">
+            <li data-page="/admin/courses" onclick="handleMenuClick(this, '/admin/courses')">
                 <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'courses' or active == 'schedule'} ? 'active_menu'">과정/운영 관리</span>
                 <ul>
                     <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses'">과정 관리</li>
-                    <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-03-courses/admin-courses-schedule.html'">일정 관리</li>
+                    <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); alert('준비 중인 기능입니다.')">일정 관리</li>
                 </ul>
             </li>
             <li data-page="/admin/evaluation/assignments" onclick="handleMenuClick(this, '/admin/evaluation/assignments')">
@@ -70,11 +70,11 @@
                 <ul>
                     <li class="submenu" th:classappend="${active == 'eval-exam'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/exams'">시험 관리</li>
                     <li class="submenu" th:classappend="${active == 'eval-assignment'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/assignments'">과제 채점</li>
-                    <li class="submenu" th:classappend="${active == 'eval-grading'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-result.html'">시험 채점</li>
-                    <li class="submenu" th:classappend="${active == 'eval-monitoring'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/templates/admin/admin-04-evaluation/admin-evaluation-monitoring.html'">평가 모니터링</li>
+                    <li class="submenu" th:classappend="${active == 'eval-grading'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/grading'">시험 채점</li>
+                    <li class="submenu" th:classappend="${active == 'eval-monitoring'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/monitoring'">평가 모니터링</li>
                 </ul>
             </li>
-            <li data-page="/templates/admin/admin-05-attendance/admin-attendance.html" onclick="handleMenuClick(this, '/templates/admin/admin-05-attendance/admin-attendance.html')">
+            <li data-page="/admin/attendance" onclick="handleMenuClick(this, '/admin/attendance')">
                 <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'att-')} ? 'active_menu'">출결/이수 관리</span>
                 <ul>

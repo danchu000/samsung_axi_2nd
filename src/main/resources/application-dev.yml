@@ -20,3 +20,9 @@ spring:
     init:
       mode: always
       schema-locations: classpath:db/postgresql/partial-unique-indexes.sql
+
+# 빈 DB 첫 기동 시 초기 관리자(admin) 비밀번호 — 미지정이면 무작위 생성 후 로그에 1회 출력
+# (AdminAccountInitializer, b-audit-reply.md §3-3(6))
+lms:
+  admin:
+    init-password: ${LMS_ADMIN_INIT_PASSWORD:}

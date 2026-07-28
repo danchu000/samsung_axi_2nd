@@ -42,6 +42,14 @@ dependencies {
     // 이수증 PDF 발급 (HTML → PDF, 한글 폰트 임베드) — P2-B(출결/이수) 전용. B 알림: a-requests.md
     implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
 
+    // 엑셀(xlsx) 다운로드 — 시험결과·설문리포트·대시보드·출결부 (b-audit-reply.md §3-3(4) A 합의로 추가)
+    implementation 'org.apache.poi:poi-ooxml:5.4.1'
+
+    // 메일 발송 — 미참여자 독려·학습 리포트 메일 (B 예약 알림 스케줄러용, A 합의로 추가).
+    // 주의: spring.mail.host 미설정 프로필에선 JavaMailSender 빈이 생성되지 않으므로
+    // 주입부는 ObjectProvider 로 받을 것 (local/H2 부팅이 메일 서버 없이도 깨지지 않도록).
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -1,6 +1,7 @@
 package com.ssa.lms.web.admin.grading;
 
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.export.ExcelDownload;
 import com.ssa.lms.grading.dto.AttemptGradingDetail;
 import com.ssa.lms.grading.dto.ManualScoreRequest;
 import com.ssa.lms.grading.service.ExamGradingService;
@@ -132,10 +133,23 @@ public class AdminGradingController {
     /* ===================== 다운로드 ===================== */
 
     /**
-     * 성적 목록 다운로드.
+     * 성적 목록 다운로드 — 기본 형식 xlsx.
      *
-     * <p><b>xlsx 가 아니라 CSV 다.</b> Apache POI 가 build.gradle 에 없고 build.gradle 은 공동 소유라
-     * 이 슬라이스에서 의존성을 추가할 수 없다. 엑셀에서 바로 열리도록 UTF-8 BOM 을 붙인다.</p>
+     * <p>시트 "성적" + "정정이력" 두 장. 권한(강사는 담당 과정만)은 서비스가 본다.</p>
+     */
+    @GetMapping("/exams/{examId}/grades.xlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> gradesExcel(@PathVariable Long examId,
+                                              @AuthenticationPrincipal LoginUser loginUser) {
+        byte[] body = examGradingService.gradeExcel(examId, loginUser.getId(), isAdmin(loginUser));
+        return ExcelDownload.attachment("성적_" + examGradingService.examName(examId), body);
+    }
+
+    /**
+     * 성적 목록 CSV — 대체 형식.
+     *
+     * <p>엑셀이 설치되지 않은 환경이나 다른 시스템에 반입할 때를 위해 남겨 둔다.
+     * 엑셀에서 바로 열리도록 UTF-8 BOM 을 붙인다.</p>
      */
     @GetMapping("/exams/{examId}/grades.csv")
     @ResponseBody

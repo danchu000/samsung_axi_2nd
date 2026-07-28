@@ -4,6 +4,7 @@ import com.ssa.lms.course.service.CourseQueryService;
 import com.ssa.lms.exam.entity.*;
 import com.ssa.lms.exam.entity.ExamAttempt.AttemptStatus;
 import com.ssa.lms.exam.repository.AnswerRepository;
+import com.ssa.lms.export.ExcelWriter;
 import com.ssa.lms.grading.dto.*;
 import com.ssa.lms.grading.entity.Grade;
 import com.ssa.lms.grading.entity.GradeHistory;
@@ -205,6 +206,7 @@ public class ExamGradingService {
                 manualTotal,
                 canGrade,
                 urlPrefix + "/exams/" + examId + "/grades",
+                urlPrefix + "/exams/" + examId + "/grades.xlsx",
                 urlPrefix + "/exams/" + examId + "/grades.csv");
     }
 
@@ -575,12 +577,60 @@ public class ExamGradingService {
         return rows;
     }
 
+    /** 성적 시트 헤더. {@link GradeListRow} 필드 순서와 맞춰 둔다. */
+    private static final String[] GRADE_HEADERS = {
+            "번호", "이름", "아이디", "자동채점", "수동채점", "총점",
+            "합격여부", "상태", "채점자", "채점일시", "확정자", "확정일시", "정정이력"};
+
+    private static final String[] HISTORY_HEADERS = {
+            "성적ID", "이름", "변경일시", "변경자", "점수변경", "합격여부", "사유"};
+
+    /**
+     * 성적 목록 엑셀(xlsx) — 기본 다운로드 형식.
+     *
+     * <p>시트 두 장이다. "성적"은 화면 표와 같은 내용이고, "정정이력"은 확정 후 점수를 바꾼
+     * 기록이다(내역서 증빙 요건). 화면에서는 탭으로 나뉘어 있어 CSV 로는 한쪽밖에 못 내려줬는데,
+     * 엑셀은 시트로 둘 다 담을 수 있어 통째로 제출할 수 있다.</p>
+     *
+     * <p>권한 검사는 {@link #gradeList}/{@link #historyList} 안의 {@code ensureCanGrade} 가 한다 —
+     * 다운로드만 권한 검사를 건너뛰는 구멍이 생기지 않도록 목록과 같은 경로를 탄다.</p>
+     */
+    public byte[] gradeExcel(Long examId, Long viewerId, boolean admin) {
+        Exam exam = requireExam(examId);
+        List<GradeListRow> rows = gradeList(examId, viewerId, admin);
+        List<GradeHistoryRow> histories = historyList(examId, viewerId, admin);
+
+        try (ExcelWriter writer = ExcelWriter.create()) {
+            writer.sheet("성적", GRADE_HEADERS);
+            for (GradeListRow r : rows) {
+                writer.row(r.no(), r.userName(), r.loginId(),
+                        r.autoScore(), r.manualScore(), r.totalScore(),
+                        r.passedText(), r.statusText(),
+                        r.gradedBy(), r.gradedAt(), r.confirmedBy(), r.confirmedAt(),
+                        r.historyCount());
+            }
+            if (rows.isEmpty()) {
+                writer.emptyNote("확정/채점된 성적이 없습니다: " + exam.getExamName());
+            }
+
+            writer.sheet("정정이력", HISTORY_HEADERS);
+            for (GradeHistoryRow h : histories) {
+                writer.row(h.gradeId(), h.userName(), h.date(), h.instructor(),
+                        h.score(), h.result(), h.reason());
+            }
+            if (histories.isEmpty()) {
+                writer.emptyNote("정정 이력이 없습니다.");
+            }
+            return writer.toBytes();
+        }
+    }
+
     /**
      * 성적 목록 CSV.
      *
-     * <p><b>엑셀(xlsx)이 아니라 CSV 인 이유</b>: Apache POI 가 {@code build.gradle} 에 없고,
-     * build.gradle 은 공동 소유라 이 슬라이스에서 의존성을 추가할 수 없다.
-     * 엑셀에서 한글이 깨지지 않도록 UTF-8 BOM 을 앞에 붙인다.</p>
+     * <p>기본 형식은 {@link #gradeExcel(Long, Long, boolean)} 이지만, 엑셀이 설치되지 않은
+     * 환경이나 다른 시스템으로 옮겨 넣을 때를 위해 CSV 도 남겨 둔다.
+     * 엑셀에서 한글이 깨지지 않도록 UTF-8 BOM 을 앞에 붙인다(xlsx 에는 붙이면 안 된다).</p>
      */
     public String gradeCsv(Long examId, Long viewerId, boolean admin) {
         Exam exam = requireExam(examId);

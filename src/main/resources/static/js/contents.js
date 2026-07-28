@@ -516,7 +516,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style='background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555;'>${q.explanation || '해설 정보가 없습니다.'}</div>
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-document.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            // 문제은행은 REST 스타일 URL — 정적 경로(contents-*.html)로 가면 404 (tbody 리스너와 동일 규칙)
+            const questionEditUrl = (window._questionUrls && window._questionUrls.edit)
+                ? window._questionUrls.edit.replace('{id}', encodeURIComponent(q.id))
+                : 'contents-test.html?id=' + encodeURIComponent(q.id);
+            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${questionEditUrl}'">수정하기</button>`;
         } else if (q.type === '시험') {
             // 시험 상세: 시험 설명, 문제 수, 배점 등
             html += `<div style='margin:24px 0;'>

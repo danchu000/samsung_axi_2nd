@@ -291,6 +291,31 @@
 
     // 확인 처리 / 삭제는 서버로 실제 submit 한다 (th:formaction). 데모 리스너 제거.
 
+    // 이 화면은 목록에서 window.open 팝업(520x600)으로 뜬다. 그대로 submit 하면
+    // 서버 리다이렉트(목록 전체 페이지)가 팝업 안에 렌더된다 — 팝업일 때는 fetch 로
+    // 제출하고 성공 시 부모 목록을 새로고침한 뒤 팝업을 닫는다.
+    const popupForm = document.querySelector('form.modal');
+    if (window.opener && popupForm) {
+      popupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitter = e.submitter;
+        const action = (submitter && submitter.formAction) || popupForm.action;
+        const fd = new FormData(popupForm);
+        if (submitter && submitter.name) fd.append(submitter.name, submitter.value);
+        try {
+          const res = await fetch(action, { method: 'POST', body: fd });
+          if (res.ok || res.redirected) {
+            window.opener.location.reload();
+            window.close();
+          } else {
+            alert('처리에 실패했습니다. (' + res.status + ')');
+          }
+        } catch (err) {
+          alert('처리 중 오류가 발생했습니다.');
+        }
+      });
+    }
+
     // init
     applyStatusUI(statusSelect.value);
     applyPriorityUI(prioritySelect.value);

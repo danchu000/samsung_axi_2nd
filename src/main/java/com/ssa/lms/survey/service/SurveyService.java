@@ -47,9 +47,10 @@ import java.util.Map;
 public class SurveyService {
 
     private final SurveyRepository surveyRepository;
+    // 엔티티 참조용 — A 가 "과정 1건 조회" 를 제공하지 않아 남겨둔다 (요청 목록에 추가)
+    private final CourseRepository courseRepository;
     private final SurveyResponseRepository surveyResponseRepository;
     private final CourseQueryService courseQueryService;
-    private final CourseRepository courseRepository;
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
 
@@ -64,13 +65,20 @@ public class SurveyService {
      * 임시로 A 소유 CourseRepository 를 읽기 전용으로 쓴다.
      * A 가 CourseQueryService 에 과정 목록 조회를 추가하면 그쪽으로 옮긴다 (docs/a-requests.md).
      */
+    /**
+     * 설문 대상 과정 셀렉트 옵션.
+     *
+     * <p>A 가 {@code CourseQueryService.findAllCourseOptions()} 를 제공하기 전에는
+     * {@code CourseRepository} 를 직접 주입해 쓰고 있었다(도메인 경계 위반).
+     * 이제 공식 조회로 위임한다.</p>
+     */
     public List<CourseOption> courseOptions() {
-        return courseRepository.findAll().stream()
-                .map(c -> new CourseOption(c.getId(), c.getCourseCode(), c.getCourseName(), c.getCohort()))
+        return courseQueryService.findAllCourseOptions().stream()
+                .map(c -> new CourseOption(c.id(), c.courseCode(), c.courseName(), c.cohort()))
                 .toList();
     }
 
-    /** 과정 셀렉트 한 줄. */
+    /** 화면용 과정 셀렉트 한 줄. A 의 레코드를 화면 표기 규칙에 맞춰 감싼다. */
     public record CourseOption(Long id, String code, String name, String cohort) {
         public String label() {
             return cohort == null || cohort.isBlank() ? name : name + " (" + cohort + ")";

@@ -38,6 +38,12 @@ public record ExamTakeRow(
         /** 시작 버튼을 눌러도 되는지. 화면이 회색 처리한다. */
         boolean startable,
         /** 시작할 수 없는 이유 (툴팁/모달 안내용). 시작 가능하면 null. */
-        String blockReason
+        String blockReason,
+        /** 연습(사전 모의) 시험이면 true — 목록에서 정식 시험과 구분 표시한다. */
+        boolean practiceMode,
+        /** 이 시험이 가진 문제 세트 수. 1이면 세트 기능을 쓰지 않는다. */
+        int setCount,
+        /** 성적 공개 정책 안내 문구 (예: "즉시 공개" / "채점 완료 후 공개" / "비공개"). */
+        String resultReleaseText
 ) {
 }

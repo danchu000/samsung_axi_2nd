@@ -59,6 +59,9 @@ public class ExamAttemptService {
     private static final List<Exam.ExamStatus> VISIBLE_STATUSES =
             List.of(Exam.ExamStatus.SCHEDULED, Exam.ExamStatus.OPEN, Exam.ExamStatus.CLOSED);
 
+    /** 문제 세트 배정용 난수. 예측 가능한 시드를 쓰면 배정이 새 나가므로 SecureRandom 을 쓴다. */
+    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
+
     private static final DateTimeFormatter LIST_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     private static final DateTimeFormatter FULL_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -93,8 +96,9 @@ public class ExamAttemptService {
         }
 
         List<Long> examIds = exams.stream().map(Exam::getId).toList();
-        Map<Long, Long> questionCounts = toCountMap(examTakeRepository.countExamQuestions(examIds));
-        Map<Long, String> typeTexts = toTypeTextMap(examTakeRepository.countExamQuestionTypes(examIds));
+        // 세트별로 센 뒤 "대표 세트"(가장 작은 번호) 값을 카드에 쓴다 — 응시자는 한 세트만 풀기 때문.
+        SetStats stats = SetStats.of(examTakeRepository.countExamQuestions(examIds));
+        Map<Long, String> typeTexts = toTypeTextMap(examTakeRepository.countExamQuestionTypes(examIds), stats);
 
         Map<Long, List<ExamAttempt>> byExam = new HashMap<>();
         for (ExamAttempt attempt : examAttemptRepository.findByUserAndExams(userId, examIds)) {
@@ -107,7 +111,8 @@ public class ExamAttemptService {
         List<ExamTakeRow> rows = new ArrayList<>();
         for (Exam exam : exams) {
             rows.add(toRow(exam, byExam.getOrDefault(exam.getId(), List.of()),
-                    questionCounts.getOrDefault(exam.getId(), 0L).intValue(),
+                    stats.representativeCount(exam.getId()),
+                    stats.setCount(exam.getId()),
                     typeTexts.getOrDefault(exam.getId(), "-"), now));
         }
         return rows;
@@ -173,7 +178,8 @@ public class ExamAttemptService {
 
         long used = examAttemptRepository.countByExamIdAndUserId(examId, userId);
         int max = maxAttempts(exam);
-        if (used >= max) {
+        // 사전 모의 테스트는 응시 환경 적응이 목적이라 횟수를 세지 않는다.
+        if (!exam.isPracticeMode() && used >= max) {
             throw new ExamTakeException("NO_ATTEMPT_LEFT",
                     exam.isRetakeAllowed()
                             ? "재응시 가능 횟수(" + max + "회)를 모두 사용했습니다."
@@ -190,10 +196,15 @@ public class ExamAttemptService {
         User user = examRefRepository.findUser(userId)
                 .orElseThrow(() -> new ExamTakeException("NOT_FOUND", "사용자를 찾을 수 없습니다."));
 
+        // ★ 문제 세트 배정 — 여기서 한 번만 뽑아 회차에 박는다.
+        //   이어하기·재조회 때 다시 뽑으면 새로고침마다 문항이 바뀌고 3년 재현도 깨진다.
+        int assignedSetNo = assignSet(exam);
+
         ExamAttempt attempt = ExamAttempt.builder()
                 .exam(exam)
                 .user(user)
                 .attemptNo((int) used + 1)
+                .assignedSetNo(assignedSetNo)
                 .startedAt(now)
                 // ★ 마감 시각은 서버가 계산해 박는다. 이후 판정은 오직 이 값으로만 한다.
                 .expiresAt(now.plusMinutes(exam.getTimeLimitMin()))
@@ -206,9 +217,28 @@ public class ExamAttemptService {
         examAttemptRepository.save(attempt);
 
         examEventLogService.append(attempt, ExamEventLog.EventType.ENTER,
-                "응시 시작 (회차 " + attempt.getAttemptNo() + ", 본인인증="
-                        + (verified.method() == null ? "면제" : verified.method()) + ")", ip);
+                "응시 시작 (회차 " + attempt.getAttemptNo() + ", 문제세트 " + assignedSetNo
+                        + ", 본인인증=" + (verified.method() == null ? "면제" : verified.method()) + ")", ip);
         return attempt.getId();
+    }
+
+    /**
+     * 문제 세트 무작위 배정.
+     *
+     * <p>실제로 편성된 세트 번호({@link Exam#availableSetNos()}) 중에서만 고른다.
+     * 선언된 세트 수를 그대로 믿고 뽑으면 규칙 확정이 덜 된 빈 세트가 배정돼
+     * "문항 0개인 시험"을 보게 된다. 세트가 하나뿐이면 항상 그 하나가 나오므로
+     * 세트 기능이 없던 때와 동작이 같다(하위호환).</p>
+     */
+    private int assignSet(Exam exam) {
+        List<Integer> setNos = exam.availableSetNos();
+        if (setNos.isEmpty()) {
+            return 1;
+        }
+        if (setNos.size() == 1) {
+            return setNos.get(0);
+        }
+        return setNos.get(RANDOM.nextInt(setNos.size()));
     }
 
     /* ===================== 응시 화면 ===================== */
@@ -258,6 +288,9 @@ public class ExamAttemptService {
                 exam.getNote(),
                 attempt.getAttemptNo(),
                 maxAttempts(exam),
+                exam.isPracticeMode(),
+                attempt.getAssignedSetNo(),
+                exam.availableSetNos().size(),
                 attempt.getStatus().name(),
                 format(attempt.getExpiresAt(), FULL_FORMAT),
                 FULL_FORMAT.format(now),
@@ -294,10 +327,11 @@ public class ExamAttemptService {
             throw new ExamTakeException("EXPIRED", "제한시간이 만료되어 답안을 저장할 수 없습니다.");
         }
 
-        ExamQuestion examQuestion = attempt.getExam().getExamQuestions().stream()
+        // 배정된 세트 밖의 문항은 거부한다 — questionId 만 바꿔 다른 세트 문항을 긁어가지 못하게.
+        ExamQuestion examQuestion = questionsOf(attempt).stream()
                 .filter(eq -> eq.getQuestion().getId().equals(questionId))
                 .findFirst()
-                .orElseThrow(() -> new ExamTakeException("BAD_QUESTION", "이 시험에 편성되지 않은 문항입니다."));
+                .orElseThrow(() -> new ExamTakeException("BAD_QUESTION", "이 회차에 배정되지 않은 문항입니다."));
         Question question = examQuestion.getQuestion();
 
         QuestionChoice choice = null;
@@ -389,7 +423,7 @@ public class ExamAttemptService {
         int answered = 0;
         boolean manualPending = false;
 
-        for (ExamQuestion eq : exam.getExamQuestions()) {
+        for (ExamQuestion eq : questionsOf(attempt)) {
             Question question = eq.getQuestion();
             Answer answer = answers.get(question.getId());
             if (answer != null && (answer.getChoice() != null
@@ -429,7 +463,8 @@ public class ExamAttemptService {
         for (Answer a : answerRepository.findAllByAttemptId(attempt.getId())) {
             answers.put(a.getQuestion().getId(), a);
         }
-        for (ExamQuestion eq : exam.getExamQuestions()) {
+        List<ExamQuestion> mine = questionsOf(attempt);
+        for (ExamQuestion eq : mine) {
             Answer answer = answers.get(eq.getQuestion().getId());
             if (answer != null && (answer.getChoice() != null
                     || (answer.getAnswerText() != null && !answer.getAnswerText().isBlank()))) {
@@ -442,22 +477,34 @@ public class ExamAttemptService {
         return buildResult(attempt, exam, answered, manualPending);
     }
 
+    /**
+     * 결과 화면 모델.
+     *
+     * <p><b>성적 비공개면 점수를 DTO 단계에서 아예 비운다.</b> 템플릿에서 숨기기만 하면
+     * 인라인 JS/모델 직렬화로 값이 HTML 에 남는다. 화면 조건문은 마지막 방어선이지 첫 방어선이 아니다.
+     * 관리자·강사는 이 경로를 타지 않는다 (채점 화면은 grading 슬라이스 소관이고 항상 점수를 보여준다).</p>
+     */
     private AttemptResultView buildResult(ExamAttempt attempt, Exam exam,
                                           int answered, boolean manualPending) {
+        boolean visible = exam.isResultVisibleToTrainee(LocalDateTime.now(), manualPending);
         return new AttemptResultView(
                 String.valueOf(attempt.getId()),
                 exam.getExamName(),
                 attempt.getStatus().name(),
                 attempt.getStatus() == AttemptStatus.AUTO_SUBMITTED,
                 format(attempt.getSubmittedAt(), FULL_FORMAT),
-                attempt.getAutoScore(),
-                attempt.getTotalScore(),
-                exam.getTotalScore(),
-                exam.getPassScore(),
-                attempt.getPassed(),
+                visible ? attempt.getAutoScore() : null,
+                visible ? attempt.getTotalScore() : null,
+                visible ? exam.getTotalScore() : null,
+                visible ? exam.getPassScore() : null,
+                visible ? attempt.getPassed() : null,
                 manualPending,
                 answered,
-                exam.getExamQuestions().size());
+                questionsOf(attempt).size(),
+                visible,
+                visible ? null : exam.resultHiddenMessage(),
+                exam.isPracticeMode(),
+                attempt.getAssignedSetNo());
     }
 
     /**
@@ -494,11 +541,21 @@ public class ExamAttemptService {
     }
 
     /**
+     * 이 회차에 실제로 출제된 문항 = <b>배정된 세트의 문항만</b>.
+     *
+     * <p>채점·결과 집계도 전부 이 목록으로 해야 한다. 시험 전체 문항을 훑으면
+     * 배정되지 않은 세트의 서술형이 "미채점"으로 잡혀 합격 판정이 영원히 미정으로 남는다.</p>
+     */
+    private List<ExamQuestion> questionsOf(ExamAttempt attempt) {
+        return attempt.getExam().questionsOfSet(attempt.getAssignedSetNo());
+    }
+
+    /**
      * 출제 순서. randomOrder=true 면 섞되 <b>회차 id 를 시드로 고정</b>한다.
      * 매번 다시 섞으면 새로고침마다 문항 순서가 바뀌어 응시자가 자기 답안을 찾지 못한다.
      */
     private List<ExamQuestion> orderQuestions(Exam exam, ExamAttempt attempt) {
-        List<ExamQuestion> ordered = new ArrayList<>(exam.getExamQuestions());
+        List<ExamQuestion> ordered = new ArrayList<>(questionsOf(attempt));
         ordered.sort(Comparator.comparing(ExamQuestion::getSeq));
         if (exam.isRandomOrder()) {
             Collections.shuffle(ordered, new Random(attempt.getId()));
@@ -507,7 +564,8 @@ public class ExamAttemptService {
     }
 
     private ExamTakeRow toRow(Exam exam, List<ExamAttempt> attempts, int questionCount,
-                              String typeText, LocalDateTime now) {
+                              int setCount, String typeText, LocalDateTime now) {
+        boolean practice = exam.isPracticeMode();
         int max = maxAttempts(exam);
         int used = attempts.size();
 
@@ -533,7 +591,8 @@ public class ExamAttemptService {
         } else if (afterWindow) {
             status = "ended";
             blockReason = "응시 기간이 종료되었습니다.";
-        } else if (used >= max) {
+        } else if (!practice && used >= max) {
+            // 모의 테스트는 횟수를 세지 않으므로 여기서 막지 않는다 (항상 다시 응시 가능).
             status = "completed";
             blockReason = "응시 가능 횟수를 모두 사용했습니다.";
         } else {
@@ -555,9 +614,10 @@ public class ExamAttemptService {
                 exam.getTimeLimitMin(),
                 questionCount,
                 typeText,
-                exam.isRetakeAllowed() ? "가능(최대 " + max + "회)" : "불가",
+                practice ? "무제한 (모의 테스트)"
+                        : (exam.isRetakeAllowed() ? "가능(최대 " + max + "회)" : "불가"),
                 used,
-                max,
+                practice ? Math.max(max, used + 1) : max,
                 status,
                 exam.getNote(),
                 exam.isRequireIdentityVerification(),
@@ -565,7 +625,10 @@ public class ExamAttemptService {
                 lastFinished == null ? null : String.valueOf(lastFinished.getId()),
                 ready,
                 startable,
-                blockReason);
+                blockReason,
+                practice,
+                setCount,
+                exam.resultReleaseText());
     }
 
     /** 수강생 명단은 A 의 계약(CourseQueryService)으로만 얻는다. A 리포지토리를 직접 쓰지 않는다. */
@@ -617,20 +680,60 @@ public class ExamAttemptService {
         return value.length() <= max ? value : value.substring(0, max);
     }
 
-    private Map<Long, Long> toCountMap(List<Object[]> rows) {
-        Map<Long, Long> map = new HashMap<>();
-        for (Object[] row : rows) {
-            map.put((Long) row[0], ((Number) row[1]).longValue());
+    /**
+     * 시험별 세트 통계 — [examId, setNo, count] 집계 결과를 담는다.
+     *
+     * <p>목록 카드는 "응시자 한 명이 실제로 푸는 문항 수"를 보여줘야 하므로 세트 합계가 아니라
+     * <b>대표 세트</b>(가장 작은 세트 번호) 값을 쓴다. 아직 어느 세트가 배정될지 모르는 시점이라
+     * 어느 하나를 골라야 하는데, 세트들은 같은 규칙으로 뽑혀 문항 수가 같은 것이 정상이다.</p>
+     */
+    private record SetStats(Map<Long, Integer> representativeSetNo, Map<Long, Integer> countBySet,
+                            Map<Long, Integer> setCount) {
+
+        static SetStats of(List<Object[]> rows) {
+            Map<Long, Integer> repSet = new HashMap<>();
+            Map<Long, Integer> counts = new HashMap<>();
+            Map<Long, Integer> sets = new HashMap<>();
+            for (Object[] row : rows) {
+                Long examId = (Long) row[0];
+                int setNo = row[1] == null ? 1 : ((Number) row[1]).intValue();
+                int count = ((Number) row[2]).intValue();
+                sets.merge(examId, 1, Integer::sum);
+                Integer current = repSet.get(examId);
+                if (current == null || setNo < current) {
+                    repSet.put(examId, setNo);
+                    counts.put(examId, count);
+                }
+            }
+            return new SetStats(repSet, counts, sets);
         }
-        return map;
+
+        int representativeCount(Long examId) {
+            return countBySet.getOrDefault(examId, 0);
+        }
+
+        int representativeSet(Long examId) {
+            return representativeSetNo.getOrDefault(examId, 1);
+        }
+
+        int setCount(Long examId) {
+            return Math.max(1, setCount.getOrDefault(examId, 1));
+        }
     }
 
-    /** [examId, questionType, count] 를 "객관식 + 주관식" 형태 문구로 접는다. */
-    private Map<Long, String> toTypeTextMap(List<Object[]> rows) {
+    /**
+     * [examId, setNo, questionType, count] 를 "객관식 + 주관식" 형태 문구로 접는다.
+     * 대표 세트의 행만 본다 — 세트를 다 합치면 "객관식 + 객관식" 처럼 중복 라벨이 나온다.
+     */
+    private Map<Long, String> toTypeTextMap(List<Object[]> rows, SetStats stats) {
         Map<Long, List<String>> grouped = new LinkedHashMap<>();
         for (Object[] row : rows) {
             Long examId = (Long) row[0];
-            Question.QuestionType type = (Question.QuestionType) row[1];
+            int setNo = row[1] == null ? 1 : ((Number) row[1]).intValue();
+            if (setNo != stats.representativeSet(examId)) {
+                continue;
+            }
+            Question.QuestionType type = (Question.QuestionType) row[2];
             grouped.computeIfAbsent(examId, k -> new ArrayList<>())
                     .add(AttemptQuestionRow.typeLabel(type));
         }

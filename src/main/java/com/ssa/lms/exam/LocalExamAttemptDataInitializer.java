@@ -200,6 +200,7 @@ public class LocalExamAttemptDataInitializer {
                 .loginId("trainee2").password(passwordEncoder.encode("1234"))
                 .name("박훈련").role(Role.TRAINEE).status(UserStatus.ACTIVE)
                 .email("trainee2@ssa.local").phone("010-3333-3333").birthDate("2000-05-05")
+                .profileImageUrl("/static/img/avatars/trainee2.svg")
                 .privacyConsentAt(LocalDateTime.now()).thirdPartyConsentAt(LocalDateTime.now())
                 .build()));
 

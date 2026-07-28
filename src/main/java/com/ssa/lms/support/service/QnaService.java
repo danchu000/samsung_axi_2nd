@@ -20,6 +20,7 @@ import com.ssa.lms.user.entity.Role;
 import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -141,7 +142,9 @@ public class QnaService {
     /** 비밀글 접근 통제 — 작성자 본인 / 관리자 / 강사만. */
     private void assertReadable(Qna qna, Long viewerId, boolean staff) {
         if (!qna.isReadableBy(viewerId, staff)) {
-            throw new IllegalStateException("비밀글은 작성자와 담당자만 열람할 수 있습니다.");
+            // 권한 실패 → AccessDeniedException(403). IllegalStateException 은 매핑되는 advice 가
+            // 없어 비밀글 URL 직접 접근 시 whitelabel 500 이 됐다.
+            throw new AccessDeniedException("비밀글은 작성자와 담당자만 열람할 수 있습니다.");
         }
     }
 
@@ -177,7 +180,7 @@ public class QnaService {
     public void update(Long id, Long userId, QnaForm form) {
         Qna qna = getOrThrow(id);
         if (qna.getUser() == null || !qna.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("본인이 작성한 질문만 수정할 수 있습니다.");
+            throw new AccessDeniedException("본인이 작성한 질문만 수정할 수 있습니다.");
         }
         qna.update(form.getTitle(), form.getContent(), form.toCategory(), form.toSecret());
     }

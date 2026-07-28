@@ -208,6 +208,7 @@ public class LocalProctorDataInitializer {
                             .email(loginId + "@ssa.local")
                             .phone(String.format("010-4000-%04d", seq))
                             .birthDate("2000-01-0" + Math.min(seq, 9))
+                            .profileImageUrl("/static/img/avatars/" + loginId + ".svg")
                             .privacyConsentAt(LocalDateTime.now())
                             .thirdPartyConsentAt(LocalDateTime.now())
                             .build()));
@@ -268,6 +269,9 @@ public class LocalProctorDataInitializer {
                                 LocalDateTime expiresAt, ExamAttempt.AttemptStatus status, String ip) {
         return ExamAttempt.builder()
                 .exam(exam).user(user).attemptNo(attemptNo)
+                // 실제 응시(start→assignSet)는 세트를 반드시 박는다. 시드도 같게 맞춘다 —
+                // 안 박으면 만료 자동제출/결과 집계에서 세트 번호 언박싱 NPE 로 학생 화면이 500 이 난다.
+                .assignedSetNo(exam.availableSetNos().stream().findFirst().orElse(1))
                 .startedAt(startedAt).expiresAt(expiresAt)
                 .status(status)
                 .identityVerifiedAt(startedAt).identityVerifyMethod("MOBILE")

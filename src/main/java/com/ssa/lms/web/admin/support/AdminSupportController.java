@@ -157,8 +157,14 @@ public class AdminSupportController {
      */
     @PostMapping("/tutoring/{id}/messages")
     public String sendMessage(@PathVariable Long id, @AuthenticationPrincipal LoginUser user,
-                              @RequestParam String content) {
-        tutoringService.sendMessage(id, user.getId(), content);
+                              @RequestParam String content, RedirectAttributes ra) {
+        // 관리자는 당사자가 아니므로 서비스가 AccessDeniedException(→403) 을 던진다 — 여기서 잡지 않는다.
+        // 종료된 방 전송(업무규칙 위반)만 flash 로 되돌린다. raw IllegalStateException 을 두면 500 이 됐다.
+        try {
+            tutoringService.sendMessage(id, user.getId(), content);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/support/tutoring/" + id;
     }
 

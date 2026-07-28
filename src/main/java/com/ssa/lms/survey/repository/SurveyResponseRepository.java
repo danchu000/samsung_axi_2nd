@@ -37,4 +37,7 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
             group by r.survey.id
             """)
     List<Object[]> countBySurveyIds(@Param("surveyIds") Collection<Long> surveyIds);
+
+    /** 이 설문에 응답이 하나라도 있는가 — 문항 수정 차단 판정용. */
+    boolean existsBySurveyId(Long surveyId);
 }

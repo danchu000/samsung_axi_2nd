@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Map;
 
 /**
@@ -156,9 +157,56 @@ public class SurveyService {
         //
         // 자식(보기)은 문항이 지워지면 cascade + orphanRemoval 로 함께 지워지므로
         // 문항만 clear 하면 된다. 다만 flush 는 반드시 그 사이에 한 번 들어가야 한다.
+        // 응답이 이미 들어왔으면 문항을 바꿀 수 없다.
+        //
+        // 두 가지 이유다.
+        //  (1) 데이터 무결성 — "예/아니오" 에 응답한 뒤 문항 내용을 바꾸면 이미 수집한
+        //      답변이 다른 질문의 답으로 둔갑한다. 설문 결과 자체가 못 쓰게 된다.
+        //  (2) FK — survey_answer 가 survey_question/survey_choice 를 참조하고 있어
+        //      물리 삭제 시 "Referential integrity constraint violation" 으로 500 이 난다.
+        //
+        // 제목 오타 수정·마감일 연장 같은 메타 정보 변경은 위에서 이미 반영됐으므로 그대로 통과한다.
+        // 문항을 바꿔야 하면 설문을 새로 만들어야 한다 (시험의 ensureNotAttempted 와 같은 정책).
+        if (surveyResponseRepository.existsBySurveyId(id)) {
+            if (questionsChanged(survey, form)) {
+                throw new IllegalStateException(
+                        "이미 응답이 있는 설문은 문항을 변경할 수 없습니다. "
+                                + "수집된 답변이 다른 질문의 답으로 바뀌기 때문입니다. "
+                                + "문항을 바꾸려면 설문을 새로 등록하세요. "
+                                + "(제목·기간·상태는 변경할 수 있습니다)");
+            }
+            return;   // 문항이 그대로면 메타 정보만 바뀐 것이므로 교체하지 않는다
+        }
+
         survey.clearQuestions();
         surveyRepository.flush();
         applyQuestions(survey, form);
+    }
+
+    /** 폼으로 들어온 문항 구성이 저장된 것과 다른지 — 순서·유형·내용·보기까지 본다. */
+    private boolean questionsChanged(Survey survey, SurveyForm form) {
+        List<SurveyQuestionForm> incoming = form.getQuestions() == null
+                ? List.of() : form.getQuestions();
+        List<SurveyQuestion> stored = survey.getQuestions();
+        if (incoming.size() != stored.size()) {
+            return true;
+        }
+        for (int i = 0; i < stored.size(); i++) {
+            SurveyQuestion q = stored.get(i);
+            SurveyQuestionForm f = incoming.get(i);
+            if (q.getQuestionType() != f.toQuestionType()
+                    || !Objects.equals(q.getContent(), f.getContent())
+                    || q.isRequired() != f.isRequired()) {
+                return true;
+            }
+            List<String> storedChoices = q.getChoices().stream()
+                    .map(SurveyChoice::getContent).toList();
+            List<String> formChoices = f.getChoices() == null ? List.of() : f.getChoices();
+            if (!storedChoices.equals(formChoices)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 선택 비활성화 — 화면의 "선택한 설문 비활성화". 비활성화는 DRAFT 로 내린다. */

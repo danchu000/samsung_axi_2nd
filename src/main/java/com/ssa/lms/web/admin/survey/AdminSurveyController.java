@@ -56,8 +56,14 @@ public class AdminSurveyController {
     public String update(@PathVariable Long id, @Valid @ModelAttribute("form") SurveyForm form, Model model,
                          BindingResult errors, RedirectAttributes redirect) {
         if (errors.hasErrors()) { model.addAttribute("courses", surveyService.courseOptions()); return "admin/admin-05-attendance/admin-attendance-survey-add"; }
-        surveyService.update(id, form);
-        redirect.addFlashAttribute("message", "설문을 수정했습니다.");
+        try {
+            surveyService.update(id, form);
+            redirect.addFlashAttribute("message", "설문을 수정했습니다.");
+        } catch (IllegalStateException e) {
+            // 응답이 있는 설문의 문항 변경 시도 — 관리자에게 500 대신 사유를 알려준다
+            redirect.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/survey/" + id + "/edit";
+        }
         return "redirect:/admin/survey";
     }
 

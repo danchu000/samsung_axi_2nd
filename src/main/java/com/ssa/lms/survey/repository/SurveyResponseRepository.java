@@ -38,10 +38,13 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
             """)
     List<Object[]> countBySurveyIds(@Param("surveyIds") Collection<Long> surveyIds);
 
-    /** 이 설문들에 응답한 사용자 — [surveyId, userId]. */
+    /** 이 설문들에 응답한 사용자 — [surveyId, userId]. 리마인드 대상 산출용. */
     @Query("""
             select r.survey.id, r.user.id from SurveyResponse r
             where r.survey.id in :surveyIds and r.user is not null
             """)
     List<Object[]> findRespondedPairs(@Param("surveyIds") Collection<Long> surveyIds);
+
+    /** 이 설문에 응답이 하나라도 있는가 — 문항 수정 차단 판정용. */
+    boolean existsBySurveyId(Long surveyId);
 }

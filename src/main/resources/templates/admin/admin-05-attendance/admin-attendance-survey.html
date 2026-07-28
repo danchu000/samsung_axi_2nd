@@ -428,6 +428,22 @@
     </script>
 
 
+    <!-- ===== 서버 연동 (개발자 B) ===== -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 화면 JS 가 기대하는 필드명으로 매핑한다 (DTO 필드명과 다름)
+        window._serverSurveyRows = (/*[[${rows}]]*/ []).map(function (r) {
+            return {
+                id: r.id, name: r.title, type: r.type, session: r.sessionName,
+                reflect: r.reflect, required: r.required, response: r.response,
+                // 이수현황·수강률·이탈위험도는 개발자 A의 이수/수강 도메인이라 아직 미연동
+                complete: '-', rate: '-', risk: '-',
+                status: r.status, surveyStatus: r.surveyStatus, deadline: r.deadline
+            };
+        });
+        /*]]>*/
+    </script>
+
     <script>
         // 서버(Thymeleaf)가 내려준 행이 있으면 그것을 쓰고, 없으면 아래 더미로 동작
         const surveyData = window._serverSurveyRows || [
@@ -703,21 +719,7 @@
         
     </script>
 
-    <!-- ===== 서버 연동 (개발자 B) ===== -->
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // 화면 JS 가 기대하는 필드명으로 매핑한다 (DTO 필드명과 다름)
-        window._serverSurveyRows = (/*[[${rows}]]*/ []).map(function (r) {
-            return {
-                id: r.id, name: r.title, type: r.type, session: r.sessionName,
-                reflect: r.reflect, required: r.required, response: r.response,
-                // 이수현황·수강률·이탈위험도는 개발자 A의 이수/수강 도메인이라 아직 미연동
-                complete: '-', rate: '-', risk: '-',
-                status: r.status, surveyStatus: r.surveyStatus, deadline: r.deadline
-            };
-        });
-        /*]]>*/
-    </script>
+
     <div th:if="${message}" th:text="${message}"
          style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
 </body>

@@ -24,4 +24,9 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     @Query("select e.trainee.id from Enrollment e where e.course.id = :courseId and e.status in :statuses")
     List<Long> findTraineeIdsByCourseIdAndStatusIn(@Param("courseId") Long courseId,
                                                    @Param("statuses") Collection<EnrollmentStatus> statuses);
+
+    /** 훈련생이 수강 중(승인/수료)인 과정 id 목록 — CourseQueryService 전용 (위의 반대 방향) */
+    @Query("select e.course.id from Enrollment e where e.trainee.id = :traineeId and e.status in :statuses")
+    List<Long> findCourseIdsByTraineeIdAndStatusIn(@Param("traineeId") Long traineeId,
+                                                   @Param("statuses") Collection<EnrollmentStatus> statuses);
 }

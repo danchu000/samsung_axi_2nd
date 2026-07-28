@@ -1,5 +1,6 @@
 package com.ssa.lms.course.service;
 
+import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.CourseInstructorRepository;
 import com.ssa.lms.course.repository.CourseRepository;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * B 도메인(시험/과제/설문 등)이 호출하는 과정 조회 계약 (a-requests.md P0-4, b-audit-reply.md §3-3(2)).
@@ -59,6 +61,24 @@ public class CourseQueryService {
      */
     public List<Long> findCourseIdsByInstructorId(Long instructorId) {
         return courseInstructorRepository.findCourseIdsByInstructorId(instructorId);
+    }
+
+    /**
+     * 훈련생이 수강 중인 과정 id 목록 — {@link #findUserIdsByCourseId(Long)} 의 반대 방향.
+     * 동일하게 승인(APPROVED)·수료(COMPLETED) 상태만 포함한다 (판정 규칙 단일화).
+     */
+    public List<Long> findCourseIdsByUserId(Long userId) {
+        return enrollmentRepository.findCourseIdsByTraineeIdAndStatusIn(
+                userId, List.of(EnrollmentStatus.APPROVED, EnrollmentStatus.COMPLETED));
+    }
+
+    /**
+     * 과정 엔티티 1건 조회 — B 엔티티(Exam/CourseAssignment/Survey 등)의 {@code course} 연관 설정용.
+     * soft delete 된 과정은 {@code @SQLRestriction} 에 의해 빈 Optional. <b>읽기/연관 설정 전용</b> —
+     * 반환 엔티티의 상태 변경은 A 소유 서비스에서만 한다.
+     */
+    public Optional<Course> findCourse(Long courseId) {
+        return courseRepository.findById(courseId);
     }
 
     /** 전체 과정 셀렉트 옵션 — 시작일 내림차순. */

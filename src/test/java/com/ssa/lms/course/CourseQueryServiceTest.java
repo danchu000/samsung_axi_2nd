@@ -117,4 +117,22 @@ class CourseQueryServiceTest {
     void 없는_과정_상세_URL_은_500이_아니라_404다() throws Exception {
         mvc.perform(get("/admin/courses/999999")).andExpect(status().isNotFound());
     }
+
+    @Test
+    void 훈련생의_수강_과정_id_목록은_승인_수료만_포함한다() {
+        // 시드 데이터: trainee1 은 COURSE-2026-001 에 APPROVED (LocalDataInitializer)
+        Long trainee1 = userRepository.findByLoginId("trainee1").orElseThrow().getId();
+        Long demoCourse = courseRepository.findByCourseCode("COURSE-2026-001").orElseThrow().getId();
+
+        assertThat(courseQueryService.findCourseIdsByUserId(trainee1)).contains(demoCourse);
+        assertThat(courseQueryService.findCourseIdsByUserId(-1L)).isEmpty();
+    }
+
+    @Test
+    void 과정_엔티티_1건_조회는_없는_id_면_빈_Optional() {
+        Course c = course("E1");
+        assertThat(courseQueryService.findCourse(c.getId())).isPresent()
+                .get().extracting(Course::getCourseCode).isEqualTo("COURSE-CQS-E1");
+        assertThat(courseQueryService.findCourse(-1L)).isEmpty();
+    }
 }

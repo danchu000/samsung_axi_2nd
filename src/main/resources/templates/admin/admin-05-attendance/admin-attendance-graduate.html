@@ -103,6 +103,8 @@
                         <input type="hidden" name="courseId" th:value="${selectedCourse.id}">
                         <button type="submit" class="btn btn-primary">이수 자동 판정 실행</button>
                     </form>
+                    <a class="btn btn-secondary"
+                       th:href="@{/admin/completion/export.xlsx(courseId=${selectedCourse.id})}">이수 현황 엑셀 다운로드</a>
                     <span class="empty-hint" style="padding:0;">기준 대비 진도율·출석률(·성적)로 이수/미이수를 판정합니다.</span>
                 </div>
 

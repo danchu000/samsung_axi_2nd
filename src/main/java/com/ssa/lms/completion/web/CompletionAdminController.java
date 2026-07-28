@@ -5,6 +5,7 @@ import com.ssa.lms.completion.service.CertificateService;
 import com.ssa.lms.completion.service.CompletionService;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.repository.CourseRepository;
+import com.ssa.lms.export.ExcelDownload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -82,6 +83,13 @@ public class CompletionAdminController {
         completionService.changeConfirmStatus(completionId, status);
         ra.addFlashAttribute("message", "이수확정상태를 변경했습니다.");
         return "redirect:/admin/completion?courseId=" + courseId;
+    }
+
+    /** 과정별 이수 현황 xlsx 다운로드 — 이수 관리 화면 표를 그대로 내려받는다. */
+    @GetMapping("/export.xlsx")
+    public ResponseEntity<byte[]> exportExcel(@RequestParam Long courseId) {
+        byte[] body = completionService.completionExcel(courseId);
+        return ExcelDownload.attachment("이수현황_" + completionService.courseLabel(courseId), body);
     }
 
     /** 이수증 PDF — 이수 확정(PASS+CONFIRMED) 수강생만. 새 탭에서 인라인 표시. */

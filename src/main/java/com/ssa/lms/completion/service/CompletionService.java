@@ -10,6 +10,7 @@ import com.ssa.lms.content.service.ProgressQueryService;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.repository.CourseRepository;
 import com.ssa.lms.course.service.CourseQueryService;
+import com.ssa.lms.export.ExcelWriter;
 import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -145,6 +147,68 @@ public class CompletionService {
     public List<CompletionView> viewsByTrainee(Long traineeId) {
         return completionRepository.findByTraineeId(traineeId).stream()
                 .map(CompletionView::of).toList();
+    }
+
+    /* ===== 엑셀 다운로드 ===== */
+
+    /** 이수 현황 xlsx 의 헤더 — 이수 관리 화면 표 컬럼과 같은 순서. */
+    private static final String[] COMPLETION_HEADERS = {
+            "번호", "이름", "생년월일", "과정", "진도율(%)", "출석률(%)",
+            "성적확정", "이수결과", "이수확정상태", "확정일시"
+    };
+
+    private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    /**
+     * 과정별 이수 현황을 xlsx 한 벌로 만든다 — 관리자 이수 관리 화면의 표를 그대로 내려받는 용도.
+     *
+     * <p>화면 표({@link #viewsByCourse})와 같은 데이터/순서를 쓰므로 화면과 다운로드가 어긋나지 않는다.
+     * 판정된 이수가 0건이면 빈 시트 대신 안내 행 하나를 남긴다({@link ExcelWriter#emptyNote}).</p>
+     */
+    public byte[] completionExcel(Long courseId) {
+        Course course = getCourse(courseId);
+        List<CompletionView> rows = viewsByCourse(courseId);
+
+        try (ExcelWriter writer = ExcelWriter.create()) {
+            writer.sheet(sheetName(course), COMPLETION_HEADERS);
+            if (rows.isEmpty()) {
+                writer.emptyNote("판정된 이수 정보가 없습니다.");
+            } else {
+                int no = 1;
+                for (CompletionView r : rows) {
+                    writer.row(
+                            no++,
+                            r.traineeName(),
+                            r.birthDate(),
+                            r.courseLabel(),
+                            r.progressRate(),
+                            r.attendanceRate(),
+                            gradesText(r.gradesConfirmed()),
+                            r.resultLabel(),
+                            r.confirmStatusLabel(),
+                            r.confirmedAt() == null ? null : r.confirmedAt().format(TS));
+                }
+            }
+            return writer.toBytes();
+        }
+    }
+
+    /** 다운로드 파일명/시트명에 쓸 과정 라벨 — 확정 이수 여부와 무관하게 항상 만든다. */
+    public String courseLabel(Long courseId) {
+        return sheetName(getCourse(courseId));
+    }
+
+    private static String sheetName(Course course) {
+        String cohort = course.getCohort();
+        return course.getCourseName() + (cohort != null ? "_" + cohort : "");
+    }
+
+    /** 성적 요건을 끄고 판정하면 {@code gradesConfirmed} 가 null 이다 — "미적용"으로 구분해 표시. */
+    private static String gradesText(Boolean confirmed) {
+        if (confirmed == null) {
+            return "미적용";
+        }
+        return confirmed ? "확정" : "미확정";
     }
 
     /**

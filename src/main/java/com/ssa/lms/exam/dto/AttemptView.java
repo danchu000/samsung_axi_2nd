@@ -18,8 +18,13 @@ public record AttemptView(
         int maxAttempts,
         /** 연습(사전 모의) 시험이면 true — 성적에 반영되지 않고 응시 횟수 제한도 없다. */
         boolean practiceMode,
-        /** 이 응시자에게 배정된 문제 세트 번호. 세트가 하나뿐이면 1. */
-        int assignedSetNo,
+        /**
+         * 이 응시자에게 배정된 문제 세트 번호. 세트가 하나뿐이면 1.
+         * {@code null} 은 세트 기능 도입 이전 회차라는 뜻이다
+         * ({@link com.ssa.lms.exam.entity.ExamAttempt#getAssignedSetNo()} 계약) — 원시 int 로 받으면
+         * 그런 회차의 응시 화면이 언박싱 NPE 로 500 이 나므로 래퍼로 받는다.
+         */
+        Integer assignedSetNo,
         /** 이 시험이 가진 전체 세트 수. 1이면 세트 기능을 쓰지 않는 시험이다. */
         int totalSets,
         /** IN_PROGRESS / SUBMITTED / AUTO_SUBMITTED / ... */

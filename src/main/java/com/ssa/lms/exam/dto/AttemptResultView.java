@@ -31,7 +31,11 @@ public record AttemptResultView(
         String hiddenMessage,
         /** 연습(사전 모의) 시험이면 true — 성적에 반영되지 않는다. */
         boolean practiceMode,
-        /** 배정된 문제 세트 번호. */
-        int assignedSetNo
+        /**
+         * 배정된 문제 세트 번호. {@code null} 은 세트 기능 도입 이전 회차라는 뜻이다
+         * ({@link com.ssa.lms.exam.entity.ExamAttempt#getAssignedSetNo()} 계약). 원시 {@code int}
+         * 로 받으면 그 null 을 언박싱하다 결과 집계 전체가 NPE 로 죽으므로 래퍼로 받는다.
+         */
+        Integer assignedSetNo
 ) {
 }

@@ -145,8 +145,13 @@ public class TraineeDashboardService {
         return score + " (" + passedLabel(latest.passed()) + ")";
     }
 
-    /** null = 미정. 절대 "불합격"으로 표시하지 않는다. */
-    static String passedLabel(Boolean passed) {
+    /**
+     * 합격 여부 문구.
+     *
+     * <p><b>null 은 미정이다. 절대 "불합격"으로 표시하지 않는다.</b> 채점이 끝나지 않았을 뿐인데
+     * 훈련생 화면에 떨어졌다고 뜨면 안 된다 (GradeQueryService 계약 주석 참고).</p>
+     */
+    public static String passedLabel(Boolean passed) {
         if (passed == null) {
             return "판정 미정";
         }

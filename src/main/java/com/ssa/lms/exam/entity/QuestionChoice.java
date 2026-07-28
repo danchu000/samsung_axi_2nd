@@ -52,4 +52,13 @@ public class QuestionChoice extends BaseEntity {
     void assignQuestion(Question question) {
         this.question = question;
     }
+
+    /**
+     * 내용·정답 여부만 바꾼다. 행(id)은 유지된다.
+     * answer.choice_id 가 이 행을 참조하므로 삭제 후 재생성하면 FK 위반이 난다.
+     */
+    void updateContent(String content, boolean correct) {
+        this.content = content;
+        this.correct = correct;
+    }
 }

@@ -11,7 +11,9 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 문제은행.
@@ -138,6 +140,50 @@ public class Question extends BaseEntity {
     /** 수정 시 보기를 통째로 갈아끼우기 위해 비운다. orphanRemoval 로 기존 행이 지워진다. */
     public void clearChoices() {
         this.choices.clear();
+    }
+
+    /**
+     * 보기를 seq 기준으로 <b>제자리 갱신</b>한다.
+     *
+     * <p>예전에는 {@code clearChoices()} 후 새로 넣었는데, 그러면 question_choice 행이
+     * 물리 삭제된다. 그런데 {@code answer.choice_id} 가 그 행을 참조하고 있어서,
+     * <b>이미 응시된 문제를 수정하면 FK 위반으로 500 이 났다.</b>
+     * (실제 오류: {@code Referential integrity constraint violation: answer FOREIGN KEY(choice_id)})</p>
+     *
+     * <p>그래서 같은 seq 는 내용만 바꾸고 행은 유지한다. 응시자가 "3번을 골랐다"는 기록이
+     * 그대로 살아 있어야 채점·이의제기 대응이 된다(3년 보존 요건).</p>
+     *
+     * @return 입력에서 사라져 삭제해야 하는 보기들. 참조 여부는 서비스가 판단한다.
+     */
+    public List<QuestionChoice> syncChoices(List<QuestionChoice> incoming) {
+        Map<Integer, QuestionChoice> bySeq = new LinkedHashMap<>();
+        for (QuestionChoice c : this.choices) {
+            bySeq.put(c.getSeq(), c);
+        }
+
+        List<Integer> keptSeqs = new ArrayList<>();
+        for (QuestionChoice in : incoming) {
+            QuestionChoice existing = bySeq.get(in.getSeq());
+            if (existing != null) {
+                existing.updateContent(in.getContent(), in.isCorrect());
+            } else {
+                addChoice(in);
+            }
+            keptSeqs.add(in.getSeq());
+        }
+
+        List<QuestionChoice> removed = new ArrayList<>();
+        for (QuestionChoice c : bySeq.values()) {
+            if (!keptSeqs.contains(c.getSeq())) {
+                removed.add(c);
+            }
+        }
+        return removed;
+    }
+
+    /** 참조가 없어 실제로 지워도 되는 보기만 떼어낸다. */
+    public void removeChoices(List<QuestionChoice> targets) {
+        this.choices.removeAll(targets);
     }
 
     public void update(QuestionType questionType, String questionText, String correctAnswer,

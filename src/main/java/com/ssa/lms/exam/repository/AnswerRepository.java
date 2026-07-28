@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,11 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             where a.attempt.id = :attemptId
             """)
     List<Answer> findAllByAttemptId(@Param("attemptId") Long attemptId);
+
+    /**
+     * 이 보기들을 고른 답안이 하나라도 있는지 — 문제 수정 시 보기를 지워도 되는지 판단한다.
+     * answer.choice_id 에 FK 가 걸려 있어, 참조가 있는 보기를 지우면 500 이 난다.
+     */
+    @Query("select distinct a.choice.id from Answer a where a.choice.id in :choiceIds")
+    List<Long> findReferencedChoiceIds(@Param("choiceIds") Collection<Long> choiceIds);
 }

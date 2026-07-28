@@ -5,6 +5,7 @@ import com.ssa.lms.exam.dto.QuestionListRow;
 import com.ssa.lms.exam.dto.QuestionSearchCond;
 import com.ssa.lms.exam.entity.Question;
 import com.ssa.lms.exam.entity.QuestionChoice;
+import com.ssa.lms.exam.repository.AnswerRepository;
 import com.ssa.lms.exam.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 문제은행 서비스.
@@ -32,6 +34,7 @@ public class QuestionService {
     private static final String CODE_PREFIX = "Q-";
 
     private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
 
     /**
      * 목록 조회. 사용중인 과정 수와 평균 성취도는 페이지에 담긴 id 묶음으로
@@ -112,12 +115,7 @@ public class QuestionService {
                 form.getCategory(), form.getCategoryM(), form.getCategoryS(), form.getTags(),
                 form.getTimeLimit(), form.isCaseSensitive(), form.isAllowPartial(), form.toStatus());
 
-        // 보기를 통째로 교체한다. clear() 만 하고 바로 add() 하면 Hibernate 가
-        // orphan DELETE 보다 INSERT 를 먼저 내보내 uk_question_choice_seq(question_id, seq)
-        // 유니크 제약에 걸린다. 그래서 삭제를 먼저 flush 한 뒤에 새 보기를 넣는다.
-        question.clearChoices();
-        questionRepository.flush();
-        applyChoices(question, form);
+        syncChoices(question, form);
     }
 
     /** 선택 비활성화 — 화면의 "선택한 문제 비활성화". */
@@ -137,6 +135,48 @@ public class QuestionService {
     }
 
     /* ===== 내부 ===== */
+
+    /**
+     * 보기 반영 — 삭제·재생성이 아니라 <b>제자리 갱신</b>이다.
+     *
+     * <p>예전에는 보기를 통째로 지우고 새로 넣었는데, {@code answer.choice_id} 가
+     * question_choice 를 참조하고 있어서 <b>이미 응시된 문제를 수정하면 FK 위반으로
+     * 500 이 났다.</b> 관리자가 오탈자 하나 고치려다 막히는 상황이었다.</p>
+     *
+     * <p>같은 seq 는 내용만 바꿔 행을 유지하고, 사라진 seq 는 참조가 없을 때만 지운다.
+     * 참조가 있으면 지우지 않고 그대로 둔다 — 응시자가 "3번을 골랐다"는 기록이
+     * 남아 있어야 채점·이의제기 대응이 되기 때문이다(3년 보존 요건).</p>
+     */
+    private void syncChoices(Question question, QuestionForm form) {
+        if (question.getQuestionType() != Question.QuestionType.MULTIPLE_CHOICE) {
+            // 객관식이 아니게 바뀐 경우 — 남은 보기는 참조가 없을 때만 정리한다
+            removeUnreferenced(question, List.copyOf(question.getChoices()));
+            return;
+        }
+        List<QuestionChoice> removed = question.syncChoices(form.toChoices());
+        removeUnreferenced(question, removed);
+    }
+
+    /** 답안이 참조하지 않는 보기만 실제로 지운다. */
+    private void removeUnreferenced(Question question, List<QuestionChoice> candidates) {
+        if (candidates.isEmpty()) {
+            return;
+        }
+        List<Long> ids = candidates.stream()
+                .map(QuestionChoice::getId)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        Set<Long> referenced = ids.isEmpty()
+                ? Set.of()
+                : Set.copyOf(answerRepository.findReferencedChoiceIds(ids));
+
+        List<QuestionChoice> deletable = candidates.stream()
+                .filter(c -> c.getId() == null || !referenced.contains(c.getId()))
+                .toList();
+        if (!deletable.isEmpty()) {
+            question.removeChoices(deletable);
+        }
+    }
 
     private void applyChoices(Question question, QuestionForm form) {
         if (question.getQuestionType() != Question.QuestionType.MULTIPLE_CHOICE) {

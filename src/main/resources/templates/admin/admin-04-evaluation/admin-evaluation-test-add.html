@@ -28,6 +28,8 @@
             gap: 10px 24px;
         }
         .check-grid label { font-size: 15px; }
+        .setting-hint { font-size: 13px; color: #888; margin-top: 6px; line-height: 1.6; }
+        .set-select { width: 84px; margin-left: 10px; }
     </style>
 </head>
 <body data-user-role="admin">
@@ -257,6 +259,46 @@
                         </div>
                         <div style="font-size:13px;color:#888;margin-top:6px;">
                             자동채점 배점 + 수동채점 배점 = 총점 이어야 하며, 합격점수는 총점을 넘을 수 없습니다.
+                        </div>
+                    </div>
+
+                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <!-- 시험 운영 설정 — 문제 세트 랜덤 배정 / 성적 공개 / 사전 모의 테스트 -->
+                    <div style="margin-bottom:18px;">
+                        <div class="section-title" style="font-size:18px;margin-bottom:10px;">시험 운영 설정</div>
+                        <div style="display:flex;gap:24px;margin-bottom:12px;">
+                            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                                <label for="questionSetCount">문제 세트 개수</label>
+                                <input type="number" class="form-input" id="questionSetCount" name="questionSetCount"
+                                       min="1" max="10" th:value="*{questionSetCount}">
+                                <span class="field-error" th:if="${#fields.hasErrors('questionSetCount')}"
+                                      th:errors="*{questionSetCount}"></span>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                                <label for="resultRelease">성적 공개</label>
+                                <select class="form-select" id="resultRelease" name="resultRelease">
+                                    <option value="즉시 공개" th:selected="*{resultRelease == '즉시 공개'}">즉시 공개</option>
+                                    <option value="채점 완료 후" th:selected="*{resultRelease == '채점 완료 후'}">채점 완료 후</option>
+                                    <option value="지정 일시" th:selected="*{resultRelease == '지정 일시'}">지정 일시</option>
+                                    <option value="비공개" th:selected="*{resultRelease == '비공개'}">비공개</option>
+                                </select>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                                <label for="resultReleaseAt">성적 공개 일시</label>
+                                <input type="datetime-local" class="form-input" id="resultReleaseAt" name="resultReleaseAt"
+                                       th:value="${form.resultReleaseAt != null} ? ${#temporals.format(form.resultReleaseAt, 'yyyy-MM-dd''T''HH:mm')} : ''">
+                            </div>
+                        </div>
+                        <div>
+                            <input type="hidden" name="_practiceMode" value="on">
+                            <input type="checkbox" id="practiceMode" name="practiceMode" th:checked="*{practiceMode}">
+                            <label for="practiceMode">사전 모의 테스트 (성적 미반영 · 응시 횟수 무제한)</label>
+                        </div>
+                        <div class="setting-hint">
+                            문제 세트를 2개 이상으로 두면 응시 시작 시 서버가 세트 하나를 무작위로 배정합니다.
+                            배정된 세트는 응시 회차에 기록되어 이어하기·재조회 때 같은 문항이 나옵니다.<br>
+                            성적 공개를 <b>비공개 / 채점 완료 후 / 지정 일시</b>로 두면 응시자 결과 화면에 점수·합격 여부가 내려가지 않습니다.
+                            (관리자·강사 채점 화면은 이 설정과 무관하게 항상 점수를 봅니다)
                         </div>
                     </div>
 

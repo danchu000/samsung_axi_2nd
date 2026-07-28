@@ -56,6 +56,15 @@
                     <section class="exam-top card">
                         <div class="exam-top-left">
                         <h2 class="exam-title" id="examTitle" th:text="${attempt.examName}">시험명</h2>
+                        <!-- 시험 설정 3종 표시: 모의/정식 구분 + 이 응시자에게 배정된 문제 세트 -->
+                        <p class="exam-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px 0;">
+                            <span th:if="${attempt.practiceMode}"
+                                  style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#FFF3E0;color:#EF6C00;">
+                                사전 모의 테스트 · 성적 미반영</span>
+                            <span th:if="${attempt.totalSets > 1}"
+                                  style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#EDE7F6;color:#5E35B1;"
+                                  th:text="'배정 문제세트 ' + ${attempt.assignedSetNo} + ' / 전체 ' + ${attempt.totalSets} + '종'">세트</span>
+                        </p>
                         <p class="exam-notice" id="examNotice"
                            th:text="${attempt.note} ?: '제한시간 내에 답안을 제출하세요.'">간단 안내 문구 (제한시간 / 제출 주의)</p>
                         <!-- 본인인증 배지 — 내역서 증빙 요건이라 화면에 남긴다 -->
@@ -80,18 +89,39 @@
                         <h3 style="margin:0;" th:text="${result.autoSubmitted
                                 ? '제한시간 만료 — 서버가 자동 제출했습니다'
                                 : '답안이 제출되었습니다'}">제출 결과</h3>
+
+                        <!-- 사전 모의 테스트는 성적에 반영되지 않는다는 점을 결과에서도 못 박는다 -->
+                        <div th:if="${result.practiceMode}" class="result-notice"
+                             style="padding:10px 14px;border-radius:6px;background:#FFF3E0;color:#EF6C00;font-size:14px;">
+                            사전 모의 테스트입니다. 이 응시 결과는 성적에 반영되지 않습니다.
+                        </div>
+
                         <div class="detail-grid" style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;">
                             <div class="k">상태</div>      <div class="v" id="rStatus" th:text="${result.status}">-</div>
                             <div class="k">제출시각</div>   <div class="v" id="rSubmittedAt" th:text="${result.submittedAt} ?: '-'">-</div>
                             <div class="k">응답 문항</div>  <div class="v" id="rAnswered" th:text="${result.answeredCount + ' / ' + result.questionCount}">-</div>
-                            <div class="k">자동채점 점수</div>
-                            <div class="v" id="rScore"
-                                 th:text="${(result.autoScore == null ? 0 : result.autoScore) + ' / ' + result.examTotalScore + '점'}">-</div>
-                            <div class="k">합격 기준</div>  <div class="v" id="rPassScore" th:text="${result.passScore + '점'}">-</div>
-                            <div class="k">합격 여부</div>
-                            <div class="v" id="rPassed" th:text="${result.manualPending
-                                    ? '수동 채점 대기 — 아직 확정되지 않았습니다'
-                                    : (result.passed == null ? '-' : (result.passed ? '합격' : '불합격'))}">-</div>
+
+                            <!-- ===== 성적 공개 여부 =====
+                                 resultVisible=false 면 점수·합격 기준·합격 여부를 렌더 자체를 하지 않는다.
+                                 (서버도 AttemptResultView 에서 이미 null 로 비워 내려보낸다 — 화면 조건문은 두 번째 방어선)
+                                 정답·해설은 응시 화면과 마찬가지로 이 화면 어디에도 내려가지 않는다. -->
+                            <th:block th:if="${result.resultVisible}">
+                                <div class="k">자동채점 점수</div>
+                                <div class="v" id="rScore"
+                                     th:text="${(result.autoScore == null ? 0 : result.autoScore)
+                                             + ' / ' + (result.examTotalScore == null ? '-' : result.examTotalScore) + '점'}">-</div>
+                                <div class="k">합격 기준</div>
+                                <div class="v" id="rPassScore"
+                                     th:text="${result.passScore == null ? '-' : result.passScore + '점'}">-</div>
+                                <div class="k">합격 여부</div>
+                                <div class="v" id="rPassed" th:text="${result.manualPending
+                                        ? '수동 채점 대기 — 아직 확정되지 않았습니다'
+                                        : (result.passed == null ? '-' : (result.passed ? '합격' : '불합격'))}">-</div>
+                            </th:block>
+                            <th:block th:unless="${result.resultVisible}">
+                                <div class="k">채점 결과</div>
+                                <div class="v" id="rHidden" th:text="${result.hiddenMessage}">성적이 공개되지 않았습니다.</div>
+                            </th:block>
                         </div>
                         <div>
                             <a class="btn btn-gray" th:href="@{/trainee/exam}">시험 목록으로</a>

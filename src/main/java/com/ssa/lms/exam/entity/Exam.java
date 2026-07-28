@@ -272,6 +272,16 @@ public class Exam extends BaseEntity {
     }
 
     /**
+     * 성적 공개 방식만 교체. 문항·규칙 컬렉션은 건드리지 않는다.
+     * 응시 기록이 있어 {@code update()} 가 잠긴 시험도 이 경로로는 공개 설정을 바꿀 수 있다
+     * (채점이 끝난 뒤 공개로 돌리는 것이 정상 운영이라 잠그면 안 된다).
+     */
+    public void changeResultRelease(ResultRelease resultRelease, LocalDateTime resultReleaseAt) {
+        this.resultRelease = resultRelease == null ? ResultRelease.IMMEDIATE : resultRelease;
+        this.resultReleaseAt = resultReleaseAt;
+    }
+
+    /**
      * 편성 문항 전체 제거.
      * 호출 후 곧바로 add 하면 안 된다 — orphan DELETE 보다 INSERT 가 먼저 나가
      * uk_exam_question(exam_id, question_id) 유니크 제약에 걸린다. 사이에 flush() 할 것.

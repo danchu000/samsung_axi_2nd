@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -274,6 +275,27 @@ public class ExamService {
             }
         }
         return added;
+    }
+
+    /**
+     * 성적 공개 방식만 변경.
+     *
+     * <p>{@link #update(Long, ExamForm)} 은 {@link #ensureNotAttempted(Long)} 로 잠긴다 — 편성 문항을
+     * 통째로 갈아끼우기 때문에 응시 기록이 있으면 3년 재현이 깨지기 때문이다. 하지만 성적 공개 방식은
+     * 문항 구성과 아무 상관이 없고, 오히려 <b>시험이 끝난 뒤에</b> 공개로 돌리는 것이 정상 운영이다
+     * ("채점 끝나면 공개"). 잠금을 그대로 두면 잘못 잡힌 비공개 설정을 영영 못 고친다.
+     * 그래서 정책 두 필드만 건드리는 좁은 경로를 따로 뒀다 — 컬렉션은 손대지 않는다.</p>
+     */
+    @Transactional
+    public void changeResultRelease(Long id, String resultRelease, LocalDateTime resultReleaseAt) {
+        Exam exam = getOrThrow(id);
+        ExamForm form = new ExamForm();
+        form.setResultRelease(resultRelease);
+        Exam.ResultRelease mode = form.toResultRelease();
+        if (mode == Exam.ResultRelease.SCHEDULED && resultReleaseAt == null) {
+            throw new IllegalArgumentException("성적 공개를 '지정 일시'로 하려면 공개 일시를 입력해야 합니다.");
+        }
+        exam.changeResultRelease(mode, resultReleaseAt);
     }
 
     /** 선택 비활성화 — 화면의 "선택 비활성화". 상태를 종료(CLOSED)로 내린다. */

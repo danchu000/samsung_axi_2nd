@@ -61,7 +61,7 @@
                 <span class="menu-text" th:classappend="${active == 'courses' or active == 'schedule'} ? 'active_menu'">과정/운영 관리</span>
                 <ul>
                     <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses'">과정 관리</li>
-                    <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); alert('준비 중인 기능입니다.')">일정 관리</li>
+                    <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses/schedule'">일정 관리</li>
                 </ul>
             </li>
             <li data-page="/admin/evaluation/assignments" onclick="handleMenuClick(this, '/admin/evaluation/assignments')">

@@ -40,7 +40,7 @@
                 <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'dashboard'} ? 'active_menu'">대시보드</span>
             </li>
-            <li onclick="alert('준비 중인 기능입니다.')">
+            <li onclick="handleMenuClick(this, '/instructor/trainees')">
                 <img src="/static/icons/02-user.svg" alt="trainee icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'trainees'} ? 'active_menu'">훈련생</span>
             </li>
@@ -53,8 +53,8 @@
                 <span class="menu-text" th:classappend="${active == 'courses' or active == 'scheduler'} ? 'active_menu'">담당 과정</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'courses'} ? 'active_menu'">과정 관리</li></a>
-                    <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'scheduler'} ? 'active_menu'">일정 관리</li></a>
+                    <a href="/instructor/courses"><li th:classappend="${active == 'courses'} ? 'active_menu'">과정 관리</li></a>
+                    <a href="/instructor/scheduler"><li th:classappend="${active == 'scheduler'} ? 'active_menu'">일정 관리</li></a>
                 </ul>
             </li>
             <li onclick="handleMenuClick(this, '/instructor/assignments')">

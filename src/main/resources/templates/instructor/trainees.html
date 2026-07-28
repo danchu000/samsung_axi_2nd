@@ -1,504 +1,68 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/static/font/pretendard.css">
+    <link rel="stylesheet" href="/static/font/pretendard.css">
     <link rel="stylesheet" href="/static/css/i-common-style.css">
     <link rel="stylesheet" href="/static/css/i-sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/trainees.css">
 
-    
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
-    <title>Samsung Academy LXP - 강사</title>
+    <title>Samsung Academy LXP - 담당 훈련생</title>
     <style>
-        /* 추가적인 페이지별 스타일은 여기에 작성 */
+        .list-table { width:100%; border-collapse:collapse; background:#fff; }
+        .list-table th, .list-table td { border-bottom:1px solid #eee; padding:12px 14px; font-size:14px; text-align:left; }
+        .list-table th { color:#777; font-weight:600; background:#fafafa; }
+        .empty-hint { color:#999; font-size:14px; padding:24px; text-align:center; }
+        .course-select-bar { display:flex; align-items:center; gap:10px; margin:16px 0; }
+        .course-select-bar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; min-width:320px; }
     </style>
 </head>
 <body>
-    <!-- 상단 헤더 -->
-    <header class="header">
-        <h1> > </h1>
-        <!-- icon -->
-        <div class="icon-container">
-            <div class="icon-box"><a href="/templates/instructor/alarm.html"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
-            <div class="icon-box" onClick="location.href='/templates/instructor/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
-            <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/instructor :: header('담당 훈련생')}"></header>
+    <th:block th:replace="~{fragments/instructor :: sidebar('trainees')}"/>
 
-<!-- 왼쪽 사이드바 -->
-    <aside class="sidebar">
-        <!-- 사이드바 메뉴 내용 -->
-
-        <!-- logo-box -->
-        <div class="logo-box">
-            <img id="sidebarLogo" src="/static/img/logo-white.png" alt="logo" style="width: 130px;">
-        </div>
-
-        <!-- menu -->
-        <nav class="menu">
-            <ul>
-                <li onclick="handleMenuClick(this, 'index.html')">
-                    <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">대시보드</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'trainees.html')">
-                    <img src="/static/icons/02-user.svg" alt="trainee icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">훈련생</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'contents.html')">
-                    <img src="/static/icons/03-description.svg" alt="contents icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">콘텐츠</span>
-                </li>
-                <li onclick="handleMenuClick(this, 'courses.html')">
-                    <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">담당 과정</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/courses.html"><li>과정 관리</li></a>
-                        <a href="/templates/instructor/scheduler.html"><li>일정 관리</li></a>
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, 'assignment.html')">
-                    <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">평가</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/assignment.html"><li>과제 채점</li></a>
-                        <a href="/templates/instructor/result.html"><li>시험 채점</li></a>
-                        <a href="/templates/instructor/proctor/exams.html"><li>평가 모니터링</li></a>
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
-                    <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">출결/이수 관리</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/attendance.html"><li>출결현황</li></a>
-                        <a href="/templates/instructor/graduate.html"><li>이수 관리</li></a>    
-                    </ul>
-                </li>
-                <li onclick="handleMenuClick(this, 'notices.html')">
-                    <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                    <span class="menu-text">소통</span>
-                    <span class="chev" aria-hidden="true">▾</span>
-                    <ul>
-                        <a href="/templates/instructor/notices.html"><li>공지사항</li></a>
-                        <a href="/templates/instructor/tutoring.html"><li>튜터링/Q&A</li></a>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <span class="logout" onclick="location.href='../01-login/login.html'">로그아웃 
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="CurrentColor">
-                <path d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67v-586.66q0-27 19.83-46.84Q159.67-840 186.67-840h292.66v66.67H186.67v586.66h292.66V-120H186.67Zm470.66-176.67-47-48 102-102H360v-66.66h351l-102-102 47-48 184 184-182.67 182.66Z"/>
-            </svg>
-        </span>
-    </aside>
-
-    <!-- 토글 버튼 -->
-    <div class="toggle-btn" onclick="toggleSidebar()">
-        ◀
-    </div>    <!-- 메인 콘텐츠 영역 -->
     <main class="main-content">
-        <!-- 훈련생 관리 -->
-        <section class="trainee-list-section">
-            <div class="section-header">
-                <h2>훈련생 관리</h2>
-            </div>
+        <section class="main-content-inner">
+            <div class="section-header"><h2>담당 훈련생</h2></div>
 
-            <!-- 훈련생 목록 내용 -->
-            <div class="trainee-list-section-search">
-                <div class="search-container">
-                    <select name="className" id="className">
-                        <option value="">훈련직종 전체</option>
-                        <option value="class1">Python 기초</option>
-                        <option value="class2">Java 심화</option>
-                        <option value="class3">웹 개발</option>
-                    </select>
-                    
-                    <select name="attendance" id="attendance">
-                        <option value="">교육과정</option>
-                        <option value="desc">출석률 높은순</option>
-                        <option value="asc">출석률 낮은순</option>
-                    </select>
+            <!-- 과정 선택 -->
+            <form class="course-select-bar" method="get" action="/instructor/trainees">
+                <label for="courseId">과정 선택</label>
+                <select id="courseId" name="courseId" onchange="this.form.submit()">
+                    <option th:if="${#lists.isEmpty(courseOptions)}" value="">담당 과정 없음</option>
+                    <option th:each="opt : ${courseOptions}"
+                            th:value="${opt.id}"
+                            th:selected="${opt.id == selectedCourseId}"
+                            th:text="|${opt.courseName} (${opt.courseCode})|">과정</option>
+                </select>
+            </form>
 
-                    <select name="attendance" id="attendance">
-                        <option value="">과정명</option>
-                        <option value="desc">출석률 높은순</option>
-                        <option value="asc">출석률 낮은순</option>
-                    </select>
-                    
-                    <select name="registrationDate" id="registrationDate">
-                        <option value="">등록일(기간)</option>
-                        <option value="today">오늘</option>
-                        <option value="week">최근 1주일</option>
-                        <option value="month">최근 1개월</option>
-                        <option value="3months">최근 3개월</option>
-                        <option value="6months">최근 6개월</option>
-                    </select>
-
-                    <select name="accountStatus" id="accountStatus" style="margin-left:10px;">
-                        <option value="">계정상태 전체</option>
-                        <option value="active">활성화</option>
-                        <option value="inactive">비활성화</option>
-                    </select>
-                </div>
-                <div class="search-input-wrapper">
-                    <input type="search" name="traineeSearch" id="traineeSearch" placeholder="이름 또는 전화번호, 수업명으로 검색">
-                    <img src="/static/icons/search.svg" alt="search icon" class="search-icon" onclick="performSearch()">
-                </div>
-                
-                <!-- 상태 필터 체크박스 -->
-                <div class="status-filter">
-                    <div class="status-checkboxes">
-                        <label>
-                            <input type="checkbox" name="status" value="pending">
-                            <span>접수대기</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="inProgress">
-                            <span>수료중</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="completed">
-                            <span>수료완료</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="earlyEmployment">
-                            <span>조기취업</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="dropout">
-                            <span>중도탈락</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="attended">
-                            <span>출석</span>
-                        </label>
-                        <label>
-                            <input type="checkbox" name="status" value="absent">
-                            <span>미출석</span>
-                        </label>
-                    </div>
-                    
-                    <select name="sortBy" id="sortBy" class="sort-select">
-                        <option value="name">가나다 순</option>
-                        <option value="attendance">출석률 순</option>
-                        <option value="lastAccess">최근접속일 순</option>
-                        <option value="registration">등록일 순</option>
-                        
-                    </select>
-                </div>
-            </div>
             <div class="trainee-list-section-table">
-                <table class="trainee-table">
+                <table class="list-table">
                     <thead>
                         <tr>
+                            <th>번호</th>
                             <th>이름</th>
-                            <th>수업명</th>
-                            <th>현재상태</th>
-                            <th>출석률</th>
-                            <th>최근접속일</th>
-                            <th>이탈 위험 점수</th>
-                            <th>계정상태</th>
+                            <th>로그인 ID</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- JS에서 동적으로 렌더링됩니다. -->
+                        <tr th:each="t, stat : ${trainees}">
+                            <td th:text="${stat.count}">1</td>
+                            <td th:text="${t.name}">이름</td>
+                            <td th:text="${t.loginId}">loginId</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(trainees)}">
+                            <td colspan="3" class="empty-hint">수강생(승인/수료)이 없습니다.</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-
-        <!-- 훈련생 상세정보 -->
-        <section class="trainee-detail-section">
-            <div class="section-header">
-                <h2>훈련생 상세정보</h2>
-            </div> 
-            <!-- 훈련생 상세정보 내용 -->
-            <div class="trainee-detail-basicinfo">
-                <div class="trainee-photo">
-                    <img src="/static/img/sample-pic-college-student.png" alt="수강생 사진">
-                </div>
-                <div class="trainee-basic-info">
-                    <div class="info-row">
-                        <span class="label">이름</span>
-                        <span class="value">김민아 (여) <span class="status-badge status-in-progress">수료중</span></span>
-                        <div class="info-row-badges">                            
-                            <span class="badge-label">계정상태</span>
-                            <span class="status-badge status-in-progress">활성화</span>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">생년월일</span>
-                        <span class="value">1995-03-15</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">이메일</span>
-                        <span class="value">mina.kim@example.com</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">연락처</span>
-                        <span class="value">010-1234-5678 / (언니) 02-123-4567</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">주소</span>
-                        <span class="value">서울특별시 강남구 테헤란로 123</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">입학일</span>
-                        <span class="value">2025-11-01</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">최근접속일</span>
-                        <span class="value">2026-01-05</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">출석률</span>
-                        <span class="value"><span class="attendance-rate">95%</span></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">이탈 위험점수</span>
-                        <span class="value"><span class="risk-score risk-low">낮음</span></span>
-                    </div>
-                </div>
-            </div>
-            <div class="trainee-detail-info">
-                <!-- 수강수업명 -->
-                <div class="detail-section">
-                    <h3>과정</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">훈련직종분류</span>
-                        <span class="detail-value">신규 K-디지털 트레이닝과정</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">교육과정분류</span>
-                        <span class="detail-value">신성장분야</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">과정명</span>
-                        <span class="detail-value">Python 기초 프로그래밍 (2025-11-01 ~ 2026-02-28)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">접속이력</span>
-                        <button class="btn-xs btn-secondary" onclick="openDetailPopup()">상세보기</button>
-                    </div>
-                </div>
-                <div class="divider"></div>
-                
-                <!-- 국민취업지원제도 -->
-                <div class="detail-section">
-                    <h3>국민취업지원제도</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">참여여부</span>
-                        <span class="detail-value">1유형</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">참여센터</span>
-                        <span class="detail-value">강남고용센터</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">담당자</span>
-                        <span class="detail-value">홍길동</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">연락처</span>
-                        <span class="detail-value">02-123-4567</span>
-                    </div>
-                </div>
-                <div class="divider"></div>
-
-                <!-- 최종학력/졸업여부 -->
-                <div class="detail-section">
-                    <h3>최종학력/졸업여부</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">최종학력</span>
-                        <span class="detail-value">대학교 졸업</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">학교명</span>
-                        <span class="detail-value">서울대학교</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">전공</span>
-                        <span class="detail-value">컴퓨터공학과</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">졸업여부</span>
-                        <span class="detail-value">졸업</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- 지원 내용 -->
-                <div class="detail-section">
-                    <h3>지원 내용</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">지원 경로</span>
-                        <span class="detail-value">인터넷 검색</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">보유능력</span>
-                        <span class="detail-value">Python, Java, HTML/CSS, JavaScript</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">접수방법</span>
-                        <span class="detail-value">인터넷</span>
-                    </div>
-                    <div class="detail-row" style="margin-top: 10px;">
-                        <span class="detail-label">남기신 글</span>
-                    </div>
-                    <div class="message-box">
-                        프로그래밍에 흥미가 많아 지원하게 되었습니다. 열심히 공부하여 좋은 개발자가 되고 싶습니다. 감사합니다.
-                    </div>
-                </div>
-
-                <div class="edit-button-container">
-                    <button type="button" class="btn btn-edit" onclick="location.href='trainees-update.html'">수정하기</button>
-                </div>
-            </div>
-        </section>
-    </main>    
-    <script>
-        // 훈련생 데이터 배열 (타임리프로 쉽게 교체 가능)
-        const traineeData = [
-            {
-                name: '김민아',
-                className: 'Python 기초',
-                status: 'in-progress',
-                statusText: '수료중',
-                attendance: '95%',
-                lastAccess: '2026-01-05',
-                risk: 'low',
-                riskText: '낮음',
-                account: 'active'
-            },
-            {
-                name: '홍길동',
-                className: 'Java 심화',
-                status: 'completed',
-                statusText: '수료완료',
-                attendance: '88%',
-                lastAccess: '2026-01-04',
-                risk: 'medium',
-                riskText: '보통',
-                account: 'active'
-            },
-            {
-                name: '이영희',
-                className: '웹 개발',
-                status: 'dropout',
-                statusText: '중도탈락',
-                attendance: '72%',
-                lastAccess: '2026-01-03',
-                risk: 'high',
-                riskText: '높음',
-                account: 'inactive'
-            },
-            {
-                name: '박지성',
-                className: 'Python 기초',
-                status: 'in-progress',
-                statusText: '수료중',
-                attendance: '91%',
-                lastAccess: '2026-01-05',
-                risk: 'low',
-                riskText: '낮음',
-                account: 'active'
-            },
-            {
-                name: '최수진',
-                className: '웹 개발',
-                status: 'early-employment',
-                statusText: '조기취업',
-                attendance: '85%',
-                lastAccess: '2026-01-04',
-                risk: 'medium',
-                riskText: '보통',
-                account: 'active'
-            },
-            {
-                name: '정혜인',
-                className: 'Java 심화',
-                status: 'in-progress',
-                statusText: '수료중',
-                attendance: '78%',
-                lastAccess: '2026-01-02',
-                risk: 'high',
-                riskText: '높음',
-                account: 'inactive'
-            },
-            {
-                name: '강동원',
-                className: 'Python 기초',
-                status: 'pending',
-                statusText: '접수대기',
-                attendance: '93%',
-                lastAccess: '2026-01-05',
-                risk: 'low',
-                riskText: '낮음',
-                account: 'active'
-            },
-            {
-                name: '윤서준',
-                className: '웹 개발',
-                status: 'in-progress',
-                statusText: '수료중',
-                attendance: '89%',
-                lastAccess: '2026-01-04',
-                risk: 'low',
-                riskText: '낮음',
-                account: 'active'
-            }
-        ];
-
-        // 상세보기 버튼 클릭 시 새 창 띄우기
-        function openDetailPopup() {
-            window.open('trainee-access-history.html', '_blank', 'width=800,height=600,scrollbars=yes');
-        }
-        
-        // 테이블 렌더링 함수
-        function renderTraineeTable() {
-            const tbody = document.querySelector('.trainee-table tbody');
-            tbody.innerHTML = '';
-            traineeData.forEach((t, idx) => {
-                const tr = document.createElement('tr');
-                tr.onclick = function() { selectTrainee(tr); };
-                if (t.account === 'inactive') tr.classList.add('row-inactive');
-                tr.innerHTML = `
-                    <td>${t.name}</td>
-                    <td>${t.className}</td>
-                    <td><span class="status-badge status-${t.status}">${t.statusText}</span></td>
-                    <td class="attendance-rate">${t.attendance}</td>
-                    <td>${t.lastAccess}</td>
-                    <td><span class="risk-score risk-${t.risk}">${t.riskText}</span></td>
-                    <td>
-                        <select class="status-select" onclick="event.stopPropagation()" onchange="changeTraineeStatus(this)">
-                            <option value="active" ${t.account==='active'?'selected':''}>활성화</option>
-                            <option value="inactive" ${t.account==='inactive'?'selected':''}>비활성화</option>
-                        </select>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Enter 키로도 검색 가능하게
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('traineeSearch').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-            renderTraineeTable(); // 페이지 로드 시 테이블 렌더링
-        });
-
-    </script>
+    </main>
 </body>
 </html>
-            

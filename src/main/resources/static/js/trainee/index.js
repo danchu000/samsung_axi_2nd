@@ -108,46 +108,20 @@
    * - 라우팅: goTo() 내부 경로를 프로젝트에 맞게 바꿔서 사용
    */
 
-  // ===== DATA (더미) =====
-  const USER = { name: "김민아" };
+  // ===== DATA (서버) =====
+  // templates/trainee/index.html 의 인라인 <script th:inline="javascript"> 가
+  // window._serverTraineeDashboard 를 먼저 채운다 (이 파일은 defer 라 그 뒤에 실행된다).
+  //
+  // 폴백은 "빈 대시보드"다. 예전 더미(김민아 / 풀스택 과정 …)를 남겨두면 서버 조회가
+  // 실패했을 때 남의 이름과 가짜 과정이 본인 것처럼 보이므로 그대로 두면 안 된다.
+  const TRAINEE_DASHBOARD = window._serverTraineeDashboard || {
+    userName: "훈련생", today: "-", stats: [], todos: [], courses: [], notices: []
+  };
 
-  const COURSES = [
-    {
-      id: "C-01",
-      name: "풀스택 웹 개발 (React & Node.js)",
-      cohort: "1기",
-      startAt: "2025-12-01",
-      endAt: "2026-01-31",
-      attendanceRate: 92,
-      lastStudy: "오늘 08:12",
-      dday: 5
-    },
-    {
-      id: "C-02",
-      name: "AI 활용 실무 (Python)",
-      cohort: "2기",
-      startAt: "2026-01-10",
-      endAt: "2026-03-10",
-      attendanceRate: 78,
-      lastStudy: "어제 21:40",
-      dday: 44
-    }
-  ];
-
-  // type: TASK / SURVEY / EXAM
-  const TODOS = [
-    { id:"A1", type:"TASK", title:"과제 1 - 연산자 요약", meta:"풀스택 웹 개발 / 3차시", due:"2026-01-26 23:59", dday:0, action:"submitTask" },
-    { id:"SV-001", type:"SURVEY", title:"과정 만족도 조사", meta:"풀스택 웹 개발 / 1기", due:"2026-01-30 23:59", dday:4, action:"answerSurvey" },
-    { id:"EX-01", type:"EXAM", title:"모의시험 1", meta:"AI 활용 실무 / 2기", due:"2026-01-28 10:00", dday:2, action:"goExamTask" }
-  ];
-
-  const NOTICES = [
-    { id:"N-01", title:"[안내] 학습 일정 변경 공지", date:"2026-01-25" },
-    { id:"N-02", title:"[필독] 시험 응시 유의사항", date:"2026-01-24" },
-    { id:"N-03", title:"[공지] 설문 참여 안내", date:"2026-01-23" },
-    { id:"N-04", title:"[안내] 출결 처리 기준", date:"2026-01-22" },
-    { id:"N-05", title:"[공지] 과제 제출 형식 안내", date:"2026-01-21" }
-  ];
+  const USER = { name: TRAINEE_DASHBOARD.userName };
+  const STATS = TRAINEE_DASHBOARD.stats || [];
+  const COURSES = TRAINEE_DASHBOARD.courses || [];
+  const TODOS = TRAINEE_DASHBOARD.todos || [];
 
   // ===== DOM =====
   const hpUserName = document.getElementById("hpUserName");
@@ -198,36 +172,30 @@
     return `<span class="pill">D-${dday}</span>`;
   }
 
-  // ===== Routing (경로만 너 프로젝트에 맞게 수정) =====
+  // ===== Routing =====
+  // 실제 컨트롤러 URL. 기존 값은 상대경로 *.html 이라 전부 404 였고 "surveys.html.html" 오타도 있었다.
   function goTo(key, params){
-    if (key==="learning") location.href = "continue-learning.html";
-    if (key==="attendance") location.href = "attendance.html";
-    if (key==="examTask") location.href = "online-test.html";
-    if (key==="survey") location.href = "surveys.html.html";
-    if (key==="notice") location.href = "notices.html";
+    if (key==="learning") location.href = "/trainee/learning";
+    if (key==="attendance") location.href = "/trainee/my-course";
+    if (key==="examTask") location.href = "/trainee/exam";
+    if (key==="assignment") location.href = "/trainee/assignment";
+    if (key==="survey") location.href = "/trainee/survey";
+    if (key==="notice") location.href = "/trainee/notice";
 
-    // 세부 이동
-    if (key==="surveyDetail") location.href = `trainee-survey-detail.html?surveyId=${encodeURIComponent(params.surveyId)}`;
-    if (key==="noticeDetail") location.href = `notices-detail.html?noticeId=${encodeURIComponent(params.noticeId)}`;
+    if (key==="surveyDetail") location.href = `/trainee/survey/${encodeURIComponent(params.surveyId)}`;
+    if (key==="noticeDetail") location.href = `/trainee/notice/${encodeURIComponent(params.noticeId)}`;
   }
 
   // ===== Render: Stats =====
+  // 타일 구성(수강중 과정 / 남은 과제·시험 / 최근 성적 / 안 읽은 알림)은 서버가 정한다.
+  // 화면 JS 가 다시 계산하면 서버 집계와 값이 갈린다.
   function renderStats(){
-    const ongoingCourses = COURSES.length;
-    const dueTodayTasks = TODOS.filter(x => x.type==="TASK" && x.dday === 0).length;
-    const ongoingSurveys = TODOS.filter(x => x.type==="SURVEY").length;
-
-    // 최근 학습 요약 (가장 최근 학습시간을 단순히 첫 과정으로)
-    const lastStudy = COURSES[0]?.lastStudy || "-";
-
-    const blocks = [
-      { k:"진행중 과정", v:`${ongoingCourses}개`, s:"현재 수강 중" },
-      { k:"오늘 마감 과제", v:`${dueTodayTasks}개`, s:"오늘까지 제출" },
-      { k:"진행중 설문", v:`${ongoingSurveys}개`, s:"응답 필요" },
-      { k:"최근 학습", v:lastStudy, s:"마지막 접속" }
-    ];
-
-    hpStats.innerHTML = blocks.map(b => `
+    if (!hpStats) return;
+    if (!STATS.length){
+      hpStats.innerHTML = `<div class="stat"><div class="stat-k">요약</div><div class="stat-v">-</div><div class="stat-s">표시할 데이터가 없어요</div></div>`;
+      return;
+    }
+    hpStats.innerHTML = STATS.map(b => `
       <div class="stat">
         <div class="stat-k">${escapeHtml(b.k)}</div>
         <div class="stat-v">${escapeHtml(b.v)}</div>
@@ -238,10 +206,11 @@
 
   // ===== Render: Todos =====
   function renderTodos(){
-    // 우선순위: D-day → D-1.. → 그 외
+    if (!hpTodoList || !hpTodoEmpty) return;
+    // 서버가 이미 마감 임박순으로 내려주지만, 화면에서도 같은 기준으로 한 번 더 정렬한다.
     const sorted = [...TODOS].sort((a,b)=>{
-      const ad = a.dday ?? 9999;
-      const bd = b.dday ?? 9999;
+      const ad = (a.dday === null || a.dday === undefined) ? 9999 : a.dday;
+      const bd = (b.dday === null || b.dday === undefined) ? 9999 : b.dday;
       return ad - bd;
     });
 
@@ -263,7 +232,7 @@
           <div class="todo-meta">${escapeHtml(item.meta)} · 마감 ${escapeHtml(item.due)}</div>
         </div>
         <div class="todo-actions">
-          <button type="button" style="width:85px;" class="mini-btn primary" data-todo="${escapeHtml(item.id)}" data-action="${escapeHtml(item.action)}">
+          <button type="button" style="width:85px;" class="mini-btn primary" data-href="${escapeHtml(item.href)}">
             ${item.type==="TASK" ? "제출하기" : item.type==="SURVEY" ? "응답하기" : "자세히"}
           </button>
         </div>
@@ -273,6 +242,7 @@
 
   // ===== Render: Courses =====
   function renderCourses(){
+    if (!hpCourseGrid || !hpCourseEmpty) return;
     if (!COURSES.length){
       hpCourseGrid.innerHTML = "";
       hpCourseEmpty.style.display = "block";
@@ -289,19 +259,23 @@
 
         <div class="course-info">
           <div class="info-box">
+            <div class="info-k">진도율</div>
+            <div class="info-v">${escapeHtml(c.progressRate)}</div>
+          </div>
+          <div class="info-box">
             <div class="info-k">출결률</div>
-            <div class="info-v">${escapeHtml(c.attendanceRate)}%</div>
+            <div class="info-v">${escapeHtml(c.attendanceRate)}</div>
           </div>
           <div class="info-box">
             <div class="info-k">종료 D-day</div>
-            <div class="info-v">D-${escapeHtml(c.dday)}</div>
+            <div class="info-v">${escapeHtml(c.dday)}</div>
           </div>
         </div>
 
         <div class="course-actions">
-          <button type="button" class="mini-btn" data-course-action="continue" data-course="${escapeHtml(c.id)}">학습 계속하기</button>
-          <button type="button" class="mini-btn" data-course-action="attendance" data-course="${escapeHtml(c.id)}">출결/이수</button>
-          <button type="button" class="mini-btn" data-course-action="notice" data-course="${escapeHtml(c.id)}">공지</button>
+          <button type="button" class="mini-btn" data-href="${escapeHtml(c.continueHref)}">학습 계속하기</button>
+          <button type="button" class="mini-btn" data-course-action="attendance">출결/이수</button>
+          <button type="button" class="mini-btn" data-href="${escapeHtml(c.noticeHref)}">공지</button>
         </div>
       </div>
     `).join("");
@@ -321,39 +295,30 @@
 
 
   // ===== Events =====
-  document.querySelector(".quick-actions").addEventListener("click",(e)=>{
-    const btn = e.target.closest("[data-go]");
-    if(!btn) return;
-    goTo(btn.getAttribute("data-go"));
-  });
+  // 서버가 내려준 data-href 로 이동한다. 화면 JS 가 경로를 다시 조립하면 컨트롤러 URL 이 바뀔 때마다 깨진다.
+  function bindHrefClicks(root){
+    if (!root) return;
+    root.addEventListener("click",(e)=>{
+      const btn = e.target.closest("[data-href]");
+      if (btn) { location.href = btn.getAttribute("data-href"); return; }
+      const action = e.target.closest("[data-course-action]");
+      if (action) goTo(action.getAttribute("data-course-action"));
+    });
+  }
 
-  hpTodoList.addEventListener("click",(e)=>{
-    const btn = e.target.closest("[data-action][data-todo]");
-    if(!btn) return;
-    const action = btn.getAttribute("data-action");
-    const id = btn.getAttribute("data-todo");
+  const quickActions = document.querySelector(".quick-actions");
+  if (quickActions){
+    quickActions.addEventListener("click",(e)=>{
+      const btn = e.target.closest("[data-go]");
+      if(!btn) return;
+      goTo(btn.getAttribute("data-go"));
+    });
+  }
 
-    if(action==="submitTask"){
-      // 과제 페이지로 이동(또는 과제 제출 모달 직접 열고 싶으면 연결 가능)
-      goTo("examTask");
-    }
-    if(action==="answerSurvey"){
-      goTo("surveyDetail", { surveyId: id });
-    }
-    if(action==="goExamTask"){
-      goTo("examTask");
-    }
-  });
+  bindHrefClicks(hpTodoList);
+  bindHrefClicks(hpCourseGrid);
 
-  hpCourseGrid.addEventListener("click",(e)=>{
-    const btn = e.target.closest("[data-course-action]");
-    if(!btn) return;
-    const action = btn.getAttribute("data-course-action");
-    // const courseId = btn.getAttribute("data-course"); // 필요하면 사용
-    if(action==="continue") goTo("learning");
-    if(action==="attendance") goTo("attendance");
-    if(action==="notice") goTo("notice");
-  });
+  if (hpRefresh) hpRefresh.addEventListener("click", ()=> location.reload());
 
   // hpNoticeList.addEventListener("click",(e)=>{
   //   const btn = e.target.closest("[data-notice]");
@@ -372,8 +337,9 @@
 
   // ===== init =====
   function renderAll(){
-    hpUserName.textContent = USER.name || "훈련생";
-    hpTodayText.textContent = `${nowKSTText()}`;
+    if (hpUserName) hpUserName.textContent = USER.name || "훈련생";
+    // 오늘 날짜도 서버 값(KST 서버 기준)을 쓴다. 브라우저 시계로 계산하면 마감 D-day 와 어긋난다.
+    if (hpTodayText) hpTodayText.textContent = TRAINEE_DASHBOARD.today || nowKSTText();
     renderStats();
     renderTodos();
     renderCourses();

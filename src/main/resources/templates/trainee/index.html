@@ -9,6 +9,25 @@
     <link rel="stylesheet" href="/static/css/chatbot.css">
     <script src="/static/js/chatbot.js" defer></script>
     <script src="/static/js/trainee/index.js" defer></script>
+
+    <!-- ===== 서버 데이터 주입 =====
+         TraineeDashboardView(com.ssa.lms.dashboard.dto)를 그대로 내려받는다.
+         trainee/index.js 는 defer 라 문서 파싱 후 실행되므로 이 값이 먼저 채워진다. -->
+    <script th:inline="javascript">
+        window._serverTraineeDashboard = /*[[${dashboard}]]*/ null;
+    </script>
+
+    <style>
+        /* 공지 미리보기 — 기존 .notice-mini-* 스타일(트레이니 index.css)에 링크/범위 배지만 얹는다 */
+        .notice-mini-link {
+            display: flex; align-items: center; gap: 8px;
+            min-width: 0; flex: 1; text-decoration: none; color: inherit;
+        }
+        .notice-mini-scope {
+            font-size: 12px; color: #638ECB; white-space: nowrap;
+            border: 1px solid #b1cfef; border-radius: 999px; padding: 2px 8px;
+        }
+    </style>
     <title>Samsung Academy LXP</title>
 </head>
 <!-- ********************************************************************************************************* -->
@@ -164,15 +183,41 @@
                     </div>
                 </div>
 
-                <!-- 공지사항 미리보기 -->
-                <!-- 공지사항 (심플) -->
-                  <div style="width:100%; display:grid; grid-template-columns: 2.1fr 1fr 1fr 1fr 1fr; gap:12px; align-items:center;">
-                      <img src="/static/img/01.png" alt="공지1" style="border-radius:10px; width:100%; height:auto; min-width:60px; object-fit:cover;">
-                      <img src="/static/img/02.png" alt="공지2" style="border-radius:10px; width:100%; height:auto; min-width:60px; object-fit:cover;">
-                      <img src="/static/img/03.png" alt="공지3" style="border-radius:10px; width:100%; height:auto; min-width:60px; object-fit:cover;">
-                      <img src="/static/img/04.png" alt="공지4" style="border-radius:10px; width:100%; height:auto; min-width:60px; object-fit:cover;">
-                      <img src="/static/img/05.png" alt="공지5" style="border-radius:10px; width:100%; height:auto; min-width:60px; object-fit:cover;">
-                  </div>
+                <!-- ===== 공지사항 / 훈련생 유의사항 =====
+                     정부 제출 문서(양식3) "훈련생 유의사항 등재(정보제공)" 요건.
+                     원래는 /static/img/01~05.png 하드코딩 이미지 5장이라 실제 정보 제공이 아니었다.
+
+                     노출 범위는 훈련생 공지 목록 화면과 같은 규칙이다 —
+                     게시된 공지 중 "전체 공지 + 본인이 수강 중인 과정의 공지"만.
+                     (TraineeDashboardService.notices() → NoticeService.searchPublished
+                      + NoticeVisibilityService.traineeCourseIds)
+                     JS 로 그리지 않고 서버에서 직접 렌더한다 — 정보제공 요건이라
+                     스크립트가 죽어도 본문에 남아 있어야 한다. -->
+                <div class="card section">
+                    <div class="section-head">
+                    <div>
+                        <h3 class="section-title">공지사항 · 훈련생 유의사항</h3>
+                        <p class="section-desc">전체 공지와 내가 수강 중인 과정의 공지를 보여줘요.</p>
+                    </div>
+                    <a class="btn btn-gray" th:href="${dashboard.noticeMoreHref}" href="/trainee/notice">전체보기</a>
+                    </div>
+
+                    <ul class="notice-mini-list" id="hpNoticeList" th:if="${not #lists.isEmpty(dashboard.notices)}">
+                    <li class="notice-mini-item" th:each="n : ${dashboard.notices}">
+                        <a class="notice-mini-link" th:href="${n.href}" href="/trainee/notice">
+                        <span class="pill dday" th:if="${n.pinned}">고정</span>
+                        <span class="notice-mini-scope" th:text="${n.scope}">전체</span>
+                        <span class="notice-mini-title" th:text="${n.title}" th:title="${n.title}">공지 제목</span>
+                        </a>
+                        <span class="notice-mini-date" th:text="${n.date}">2026-07-28</span>
+                    </li>
+                    </ul>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(dashboard.notices)}">
+                    <p class="empty-title">등록된 공지가 없어요.</p>
+                    <p class="empty-desc">새 공지가 등록되면 여기에 표시돼요.</p>
+                    </div>
+                </div>
 
 
                 </div>

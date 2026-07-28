@@ -1,30 +1,49 @@
 package com.ssa.lms.web;
 
+import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.dashboard.service.AdminDashboardService;
+import com.ssa.lms.dashboard.service.InstructorDashboardService;
+import com.ssa.lms.dashboard.service.TraineeDashboardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * 역할별 모듈 진입점 — 로그인 성공 시 {@code RoleBasedAuthenticationSuccessHandler} 가 여기로 보낸다.
  *
- * <p><b>임시 연결</b>: 각 모듈의 실제 대시보드/index 컨트롤러가 생기기 전까지
- * 기존 정적 화면(templates/{admin,instructor,trainee}/index.html)을 그대로 렌더링한다.
- * 각 도메인 소유자가 컨트롤러를 만들면 이 매핑은 제거/이관된다.</p>
+ * <p>세 화면(templates/{admin,instructor,trainee}/index.html)은 그대로 두고, 정적 더미로 채워지던
+ * 대시보드 값만 서버 집계로 바꿨다. <b>역할 분기와 뷰 이름은 건드리지 않는다</b> — 여기는 A가 만든
+ * 공용 진입점이고, 각 도메인 컨트롤러가 생기면 매핑이 이관될 자리다.</p>
+ *
+ * <p>집계 로직은 전부 {@code com.ssa.lms.dashboard.service.*} 에 있다. 여기서는 모델에 담기만 한다.</p>
  */
 @Controller
+@RequiredArgsConstructor
 public class ModuleHomeController {
 
+    private final AdminDashboardService adminDashboardService;
+    private final InstructorDashboardService instructorDashboardService;
+    private final TraineeDashboardService traineeDashboardService;
+
     @GetMapping("/admin")
-    public String adminHome() {
+    public String adminHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
+        model.addAttribute("dashboard", adminDashboardService.load(loginUser.getId()));
         return "admin/index";
     }
 
     @GetMapping("/instructor")
-    public String instructorHome() {
+    public String instructorHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
+        model.addAttribute("dashboard",
+                instructorDashboardService.load(loginUser.getId(), loginUser.getName()));
         return "instructor/index";
     }
 
     @GetMapping("/trainee")
-    public String traineeHome() {
+    public String traineeHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
+        model.addAttribute("dashboard",
+                traineeDashboardService.load(loginUser.getId(), loginUser.getName()));
         return "trainee/index";
     }
 }

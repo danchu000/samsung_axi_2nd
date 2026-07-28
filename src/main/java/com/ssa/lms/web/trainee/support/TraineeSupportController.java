@@ -7,6 +7,7 @@ import com.ssa.lms.support.service.QnaService;
 import com.ssa.lms.support.service.TutoringService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -98,7 +99,9 @@ public class TraineeSupportController {
         // 본인 방인지 먼저 확인한다 — openDetail() 은 읽음 처리를 하므로 권한 검사 뒤에 부른다.
         var room = tutoringService.getOrThrow(id);
         if (room.getTrainee() == null || !room.getTrainee().getId().equals(loginUser.getId())) {
-            throw new IllegalStateException("본인 튜터링만 열람할 수 있습니다.");
+            // 권한 실패는 AccessDeniedException 으로 던져야 AccessDeniedAdvice 가 403 안내 화면으로
+            // 받는다. IllegalStateException 은 어떤 advice 도 잡지 않아 whitelabel 500 이 됐다.
+            throw new AccessDeniedException("본인 튜터링만 열람할 수 있습니다.");
         }
         fillTutoring(loginUser, model);
         model.addAttribute("detail", tutoringService.openDetail(id, loginUser.getId()));

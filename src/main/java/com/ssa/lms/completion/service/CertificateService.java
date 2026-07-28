@@ -37,13 +37,16 @@ public class CertificateService {
         this.fontPath = fontPath;
     }
 
-    /** 이수증 PDF 바이트 생성. 발급 불가(미이수/미확정) 시 {@link IllegalStateException}. */
+    /** 이수증 PDF 바이트 생성. 발급 불가(미이수/미확정) 시 {@link IllegalArgumentException} → 404. */
     @Transactional(readOnly = true)
     public byte[] generate(Long completionId) {
         Completion c = completionRepository.findById(completionId)
                 .orElseThrow(() -> new IllegalArgumentException("이수 정보를 찾을 수 없습니다: " + completionId));
         if (!c.isCertificateIssuable()) {
-            throw new IllegalStateException("이수 확정된 수강생만 이수증을 발급할 수 있습니다.");
+            // 확정 전 completion 의 certificate URL 직접 접근은 정상 상태(발급할 이수증이 아직 없음)다.
+            // IllegalStateException 은 어떤 advice 도 잡지 않아 whitelabel 500 이 됐다. "없는 이수증"으로
+            // 보고 GlobalExceptionHandler 의 404 채널(IllegalArgumentException)을 탄다.
+            throw new IllegalArgumentException("이수 확정된 수강생만 이수증을 발급할 수 있습니다.");
         }
 
         Course course = c.getCourse();

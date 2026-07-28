@@ -64,8 +64,8 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
             where (:courseId is null or c.id = :courseId)
               and e.status in :statuses
               and (:scoped = false or c.id in :courseIds)
-              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
-              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+              and (:instructor is null or lower(i.name) like lower(concat('%', cast(:instructor as string), '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', cast(:keyword as string), '%')))
             """,
             countQuery = """
             select count(distinct e) from Exam e
@@ -74,8 +74,8 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
             where (:courseId is null or c.id = :courseId)
               and e.status in :statuses
               and (:scoped = false or c.id in :courseIds)
-              and (:instructor is null or lower(i.name) like lower(concat('%', :instructor, '%')))
-              and (:keyword is null or lower(e.examName) like lower(concat('%', :keyword, '%')))
+              and (:instructor is null or lower(i.name) like lower(concat('%', cast(:instructor as string), '%')))
+              and (:keyword is null or lower(e.examName) like lower(concat('%', cast(:keyword as string), '%')))
             """)
     Page<Exam> searchPage(@Param("courseId") Long courseId,
                           @Param("statuses") Collection<Exam.ExamStatus> statuses,

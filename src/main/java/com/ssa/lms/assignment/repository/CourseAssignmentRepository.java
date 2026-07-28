@@ -70,9 +70,9 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
               and (:status is null or ca.status = :status)
               and (:scoped = false or c.id in :courseIds)
               and (:keyword is null
-                   or lower(a.title) like lower(concat('%', :keyword, '%'))
-                   or lower(c.courseName) like lower(concat('%', :keyword, '%'))
-                   or lower(g.name) like lower(concat('%', :keyword, '%')))
+                   or lower(a.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(c.courseName) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(g.name) like lower(concat('%', cast(:keyword as string), '%')))
             """,
             countQuery = """
             select count(ca) from CourseAssignment ca
@@ -84,9 +84,9 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
               and (:status is null or ca.status = :status)
               and (:scoped = false or c.id in :courseIds)
               and (:keyword is null
-                   or lower(a.title) like lower(concat('%', :keyword, '%'))
-                   or lower(c.courseName) like lower(concat('%', :keyword, '%'))
-                   or lower(g.name) like lower(concat('%', :keyword, '%')))
+                   or lower(a.title) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(c.courseName) like lower(concat('%', cast(:keyword as string), '%'))
+                   or lower(g.name) like lower(concat('%', cast(:keyword as string), '%')))
             """)
     Page<CourseAssignment> searchPage(@Param("courseId") Long courseId,
                                       @Param("graderId") Long graderId,

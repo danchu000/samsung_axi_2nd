@@ -470,7 +470,11 @@ public class ExamAttemptService {
                     || (answer.getAnswerText() != null && !answer.getAnswerText().isBlank()))) {
                 answered++;
             }
-            if (!eq.getQuestion().isAutoGradable()) {
+            // 수동 채점 대기 = "사람이 채점해야 하는 문항인데 아직 점수가 없다".
+            // 유형만 보고 판정하면(예전 구현) 채점이 끝나도 영원히 대기로 남는다.
+            // 그러면 성적 공개를 AFTER_GRADING 으로 둔 시험이 채점 후에도 계속 가려져
+            // HIDDEN 과 구분이 없어진다. 채점 슬라이스의 판정(ExamGradingService.recalc)과 같은 규칙이다.
+            if (!eq.getQuestion().isAutoGradable() && (answer == null || answer.getScore() == null)) {
                 manualPending = true;
             }
         }

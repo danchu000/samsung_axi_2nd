@@ -106,10 +106,15 @@
                                  (서버도 AttemptResultView 에서 이미 null 로 비워 내려보낸다 — 화면 조건문은 두 번째 방어선)
                                  정답·해설은 응시 화면과 마찬가지로 이 화면 어디에도 내려가지 않는다. -->
                             <th:block th:if="${result.resultVisible}">
-                                <div class="k">자동채점 점수</div>
+                                <!-- 취득 점수는 자동 + 수동 합계(ExamAttempt.totalScore)다.
+                                     자동 점수만 보여주면 서술형 채점이 끝난 뒤에도 점수가 모자라 보인다. -->
+                                <div class="k">취득 점수</div>
                                 <div class="v" id="rScore"
-                                     th:text="${(result.autoScore == null ? 0 : result.autoScore)
+                                     th:text="${(result.totalScore == null ? 0 : result.totalScore)
                                              + ' / ' + (result.examTotalScore == null ? '-' : result.examTotalScore) + '점'}">-</div>
+                                <div class="k">자동채점 점수</div>
+                                <div class="v" id="rAutoScore"
+                                     th:text="${(result.autoScore == null ? 0 : result.autoScore) + '점'}">-</div>
                                 <div class="k">합격 기준</div>
                                 <div class="v" id="rPassScore"
                                      th:text="${result.passScore == null ? '-' : result.passScore + '점'}">-</div>

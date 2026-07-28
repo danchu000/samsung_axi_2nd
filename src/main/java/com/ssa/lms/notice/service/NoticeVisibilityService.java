@@ -2,6 +2,7 @@ package com.ssa.lms.notice.service;
 
 import com.ssa.lms.course.entity.CourseInstructor;
 import com.ssa.lms.course.entity.Enrollment;
+import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.CourseInstructorRepository;
 import com.ssa.lms.course.repository.EnrollmentRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,18 @@ public class NoticeVisibilityService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseInstructorRepository courseInstructorRepository;
 
-    /** 훈련생이 수강 중인 과정 id. */
+    /**
+     * 훈련생이 수강 중인 과정 id.
+     *
+     * <p><b>승인(APPROVED)·수료(COMPLETED) 상태만 센다.</b> 예전에는 상태를 보지 않아
+     * 신청만 하고 반려(REJECTED)·취소(CANCELLED)된 과정의 공지까지 보였다.
+     * A 의 {@code CourseQueryService.findUserIdsByCourseId} 도 같은 두 상태만 인정하므로
+     * 기준을 맞춘다 — 한쪽만 다르면 "공지는 보이는데 과제는 안 보이는" 상태가 된다.</p>
+     */
     public List<Long> traineeCourseIds(Long userId) {
         return enrollmentRepository.findByTraineeIdOrderByAppliedAtDesc(userId).stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED
+                        || e.getStatus() == EnrollmentStatus.COMPLETED)
                 .map(Enrollment::getCourse)
                 .map(c -> c.getId())
                 .distinct()

@@ -54,7 +54,9 @@
             <!-- 성적 목록 / 다운로드 -->
             <div class="exam-grade-actions" style="display:flex; gap:10px; justify-content:flex-end; margin:14px 0 6px 0;">
                 <a class="btn btn-gray btn-sm" th:href="${summary.gradesUrl}" href="#">성적 목록 / 변경 이력</a>
-                <a class="btn btn-secondary btn-sm" th:href="${summary.csvUrl}" href="#">성적 다운로드 (CSV)</a>
+                <a class="btn btn-secondary btn-sm" th:href="${summary.excelUrl}" href="#">성적 다운로드 (엑셀)</a>
+                    <!-- 엑셀이 없는 환경/타 시스템 반입용 대체 형식 -->
+                    <a class="btn btn-gray btn-sm" th:href="${summary.csvUrl}" href="#">CSV</a>
             </div>
 
             <!-- 학생 목록 (메인컨텐츠) -->

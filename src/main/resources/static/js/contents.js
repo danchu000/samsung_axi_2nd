@@ -1,3 +1,52 @@
+/**
+ * 콘텐츠 유형 → 실제 화면 URL.
+ *
+ * 원래 이 파일은 정적 HTML 시절의 상대경로(contents-video.html 등)로 이동했다.
+ * 컨트롤러 전환 후에는 그 경로가 존재하지 않아 **전부 404** 가 났다
+ * (예: /admin/evaluation/questions 에서 누르면 /admin/evaluation/contents-video.html).
+ *
+ * 유형별로 주인이 다르므로 한 곳에 모아 둔다.
+ *   문제·시험·과제 — 개발자 B (평가 도메인)
+ *   영상·문서     — 개발자 A (콘텐츠 도메인). type 파라미터가 **필수**라 빼면 400.
+ *   강의          — 아직 화면이 없다. null 을 돌려주고 호출부가 안내를 띄운다.
+ *
+ * 문제 등록/수정만 페이지가 window._questionUrls 로 URL 을 내려주므로 그것을 우선한다.
+ */
+var CONTENT_URLS = (function () {
+    function q(key, fallback) {
+        return (window._questionUrls && window._questionUrls[key]) || fallback;
+    }
+    return {
+        /** 등록 화면. 없으면 null. */
+        add: function (type) {
+            switch (type) {
+                case '문제': return q('add', '/admin/evaluation/questions/new');
+                case '시험': return '/admin/evaluation/exams/new';
+                case '과제': return '/admin/evaluation/assignments/new';
+                case '영상': return '/instructor/contents/new?type=VIDEO';
+                case '문서': return '/instructor/contents/new?type=DOCUMENT';
+                default:     return null;   // 강의 등 미구현
+            }
+        },
+        /** 수정 화면. 없으면 null. */
+        edit: function (type, id) {
+            var enc = encodeURIComponent(id);
+            switch (type) {
+                case '문제': return q('edit', '/admin/evaluation/questions/{id}/edit').replace('{id}', enc);
+                case '시험': return '/admin/evaluation/exams/' + enc + '/edit';
+                case '과제': return '/admin/evaluation/assignments/' + enc + '/edit';
+                case '영상':
+                case '문서': return '/instructor/contents/' + enc + '/edit';
+                default:     return null;
+            }
+        },
+        /** 이동 화면이 없을 때 공통 안내. 조용히 404 로 보내지 않는다. */
+        notReady: function (type) {
+            alert('"' + type + '" 등록 화면은 아직 준비 중입니다.');
+        }
+    };
+})();
+
 // 탭 클릭 이벤트 및 등록 버튼 문구 변경
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -85,18 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 typeSelectModal.querySelectorAll('.type-card').forEach(card => {
                     card.addEventListener('click', function() {
                         const type = card.getAttribute('data-type');
-                        let page = '';
-                        switch(type) {
-                            case '영상': page = 'contents-video.html'; break;
-                            case '문서': page = 'contents-document.html'; break;
-                            case '강의': page = 'contents-class.html'; break;
-                            case '문제': page = 'contents-test.html'; break;
-                            case '과제': page = 'contents-practice.html'; break;
-                            case '시험': page = 'contents-grading.html'; break;
-                            default: page = 'contents-video.html'; break;
-                        }
+                        const page = CONTENT_URLS.add(type);
                         document.body.removeChild(typeSelectModal);
                         typeSelectModal = null;
+                        if (!page) { CONTENT_URLS.notReady(type); return; }
                         window.location.href = page;
                     });
                 });
@@ -114,17 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 // 각 유형별 등록 페이지로 이동
-                let page = '';
-                switch(type) {
-                    case '영상': page = 'contents-video.html'; break;
-                    case '문서': page = 'contents-document.html'; break;
-                    case '강의': page = 'contents-class.html'; break;
-                    // 문제은행은 컨트롤러 전환 완료 — 페이지가 URL 을 내려주면 그쪽으로 간다
-                    case '문제': page = (window._questionUrls && window._questionUrls.add) || 'contents-test.html'; break;
-                    case '과제': page = 'contents-practice.html'; break;
-                    case '시험': page = 'contents-grading.html'; break;
-                    default: page = 'contents-video.html'; break;
-                }
+                const page = CONTENT_URLS.add(type);
+                if (!page) { CONTENT_URLS.notReady(type); return; }
                 window.location.href = page;
             }
         });
@@ -329,19 +361,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 수정 버튼 클릭 시 update 페이지로 이동
-    // 유형에 따라 수정 페이지 경로 반환 함수
-    function getUpdatePageByType(type) {
-        switch(type) {
-            case '영상': return 'contents-video.html';
-            case '문서': return 'contents-document.html';
-            case '강의': return 'contents-class.html';
-            case '문제': return 'contents-test.html';
-            case '과제': return 'contents-practice.html';
-            case '시험': return 'contents-grading.html';
-            default: return 'contents.html';
-        }
-    }
+    // 수정 화면 경로는 파일 상단 CONTENT_URLS.edit 로 일원화했다.
+    // (예전 getUpdatePageByType 은 정적 contents-*.html 을 돌려줘 전부 404 였다)
 
 
     // tr 클릭 시 모달로 상세 보기 (수정 버튼 제외)
@@ -361,13 +382,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     type = typeTd.textContent.trim();
                 }
             }
-            // 문제은행은 REST 스타일 URL 이라 ?id= 규칙과 다르다
-            if (type === '문제' && window._questionUrls && window._questionUrls.edit) {
-                window.location.href = window._questionUrls.edit.replace('{id}', encodeURIComponent(qid));
-                return;
-            }
-            const page = getUpdatePageByType(type);
-            window.location.href = `${page}?id=${encodeURIComponent(qid)}`;
+            // 유형마다 URL 규칙이 다르다 (REST 스타일 vs ?id=). CONTENT_URLS 가 그 차이를 흡수한다.
+            const page = CONTENT_URLS.edit(type, qid);
+            if (!page) { CONTENT_URLS.notReady(type); return; }
+            window.location.href = page;
             return;
         }
         let tr = e.target.closest('tr');
@@ -418,7 +436,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         ` : ''}
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-video.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            const _u = CONTENT_URLS.edit('영상', q.id);
+            html += _u
+                ? `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${_u}'">수정하기</button>`
+                : '';   // 화면이 없는 유형은 버튼을 아예 그리지 않는다
         } else if (q.type === '문서') {
             if (q.previewUrl) {
                 // 이미지 또는 PDF 미리보기
@@ -457,7 +478,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         ` : ''}
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-document.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            const _u = CONTENT_URLS.edit('문서', q.id);
+            html += _u
+                ? `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${_u}'">수정하기</button>`
+                : '';   // 화면이 없는 유형은 버튼을 아예 그리지 않는다
         } else if (q.type === '강의') {
             // 강의 상세: 수업개요, 학습자료, 진행안내(설명)
             html += `<div style='margin:24px 0;'>
@@ -474,7 +498,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style='background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555;'>${q.guide || '진행안내 정보가 없습니다.'}</div>
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-class.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            const _u = CONTENT_URLS.edit('강의', q.id);
+            html += _u
+                ? `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${_u}'">수정하기</button>`
+                : '';   // 화면이 없는 유형은 버튼을 아예 그리지 않는다
         } else if (q.type === '과제') {
             // 문제 상세: 주관식/객관식, 문제 설명, 답, 해설
             html += `<div style='margin:24px 0;'>
@@ -495,7 +522,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style='background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555;'>${q.explanation || '해설 정보가 없습니다.'}</div>
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-practice.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            const _u = CONTENT_URLS.edit('과제', q.id);
+            html += _u
+                ? `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${_u}'">수정하기</button>`
+                : '';   // 화면이 없는 유형은 버튼을 아예 그리지 않는다
         } else if ( q.type === '문제') {
             // 문제 상세: 주관식/객관식, 문제 설명, 답, 해설
             html += `<div style='margin:24px 0;'>
@@ -516,10 +546,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style='background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555;'>${q.explanation || '해설 정보가 없습니다.'}</div>
                 </div>
             </div>`;
-            // 문제은행은 REST 스타일 URL — 정적 경로(contents-*.html)로 가면 404 (tbody 리스너와 동일 규칙)
-            const questionEditUrl = (window._questionUrls && window._questionUrls.edit)
-                ? window._questionUrls.edit.replace('{id}', encodeURIComponent(q.id))
-                : 'contents-test.html?id=' + encodeURIComponent(q.id);
+            // 유형별 URL 규칙은 CONTENT_URLS 로 일원화 (A 가 먼저 고친 분기를 같은 규칙으로 흡수)
+            const questionEditUrl = CONTENT_URLS.edit('문제', q.id);
             html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${questionEditUrl}'">수정하기</button>`;
         } else if (q.type === '시험') {
             // 시험 상세: 시험 설명, 문제 수, 배점 등
@@ -537,7 +565,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style='background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555;'><button class="btn-xs btn-gray">미리보기</button></div>
                 </div>
             </div>`;
-            html += `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='contents-grading.html?id=${encodeURIComponent(q.id)}'">수정하기</button>`;
+            const _u = CONTENT_URLS.edit('시험', q.id);
+            html += _u
+                ? `<button style="margin-top: 16px; margin-left: auto; display: block;" class="btn btn-secondary" onclick="window.location.href='${_u}'">수정하기</button>`
+                : '';   // 화면이 없는 유형은 버튼을 아예 그리지 않는다
         }
         modal.classList.add('show');
         modalContent.innerHTML = html;

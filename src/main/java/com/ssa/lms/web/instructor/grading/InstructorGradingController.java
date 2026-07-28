@@ -1,6 +1,7 @@
 package com.ssa.lms.web.instructor.grading;
 
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.export.ExcelDownload;
 import com.ssa.lms.grading.dto.ManualScoreRequest;
 import com.ssa.lms.grading.service.ExamGradingService;
 import com.ssa.lms.web.admin.grading.AdminGradingController;
@@ -88,6 +89,16 @@ public class InstructorGradingController {
                 attemptId, loginUser.getId(), admin(loginUser), BASE));
     }
 
+    /** 성적 목록 다운로드 — 기본 형식 xlsx. 담당하지 않는 과정이면 서비스가 403 으로 막는다. */
+    @GetMapping("/exams/{examId}/grades.xlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> gradesExcel(@PathVariable Long examId,
+                                              @AuthenticationPrincipal LoginUser loginUser) {
+        byte[] body = examGradingService.gradeExcel(examId, loginUser.getId(), admin(loginUser));
+        return ExcelDownload.attachment("성적_" + examGradingService.examName(examId), body);
+    }
+
+    /** 대체 형식 CSV. */
     @GetMapping("/exams/{examId}/grades.csv")
     @ResponseBody
     public ResponseEntity<byte[]> gradesCsv(@PathVariable Long examId,

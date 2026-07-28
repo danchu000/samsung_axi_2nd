@@ -35,7 +35,9 @@
                 <h2 th:text="|${summary.examName} — 성적 목록|">성적 목록</h2>
                 <div style="display:flex; gap:8px;">
                     <a class="btn btn-gray btn-sm" th:href="@{|/admin/evaluation/grading/exams/${summary.examId}|}" href="#">채점 화면으로</a>
-                    <a class="btn btn-secondary btn-sm" th:href="${summary.csvUrl}" href="#">성적 다운로드 (CSV)</a>
+                    <a class="btn btn-secondary btn-sm" th:href="${summary.excelUrl}" href="#">성적 다운로드 (엑셀)</a>
+                    <!-- 엑셀이 없는 환경/타 시스템 반입용 대체 형식 -->
+                    <a class="btn btn-gray btn-sm" th:href="${summary.csvUrl}" href="#">CSV</a>
                 </div>
             </div>
 

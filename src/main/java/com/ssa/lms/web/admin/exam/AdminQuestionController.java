@@ -3,8 +3,10 @@ package com.ssa.lms.web.admin.exam;
 import com.ssa.lms.exam.dto.QuestionForm;
 import com.ssa.lms.exam.dto.QuestionListRow;
 import com.ssa.lms.exam.dto.QuestionSearchCond;
+import com.ssa.lms.export.ExcelDownload;
 import com.ssa.lms.web.PageView;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import com.ssa.lms.exam.service.QuestionService;
@@ -16,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -57,6 +60,21 @@ public class AdminQuestionController {
         model.addAttribute("rows", result.getContent());
         model.addAttribute("page", PageView.of(result));
         return "admin/admin-04-evaluation/admin-evaluation-question-bank";
+    }
+
+    /**
+     * 화면 우측 상단 "엑셀로 다운로드" 버튼.
+     *
+     * <p>목록과 같은 {@code cond} 를 받아 <b>현재 검색 조건 전체</b>를 내린다(페이지 10건이 아니라).
+     * 접근 권한은 SecurityConfig 의 {@code /admin/evaluation/**} → ADMIN, INSTRUCTOR 로,
+     * 목록 화면과 같다. 문항은 과정에 매인 데이터가 아니라 문제은행 전체가 공용이므로
+     * 성적·설문처럼 강사를 담당 과정으로 좁히지 않는다 — 목록 화면과 같은 범위다.</p>
+     */
+    @GetMapping("/export.xlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> export(@ModelAttribute("cond") QuestionSearchCond cond) {
+        return ExcelDownload.attachment(
+                "문제은행_" + LocalDate.now(), questionService.exportExcel(cond));
     }
 
     /** 등록 폼. */

@@ -2,6 +2,8 @@ package com.ssa.lms.assignment.repository;
 
 import com.ssa.lms.assignment.entity.CourseAssignment;
 import java.time.LocalDateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,6 +45,56 @@ public interface CourseAssignmentRepository extends JpaRepository<CourseAssignme
                                   @Param("graderId") Long graderId,
                                   @Param("status") CourseAssignment.CourseAssignmentStatus status,
                                   @Param("keyword") String keyword);
+
+    /**
+     * 관리자/강사 목록 검색 — <b>서버 페이징 + 강사 담당 과정 제한</b> 버전.
+     *
+     * <p>강사 제한을 자바에서 걸면 페이징 건수가 어긋나므로(시험 목록에서 실제로 겪은 문제)
+     * 담당 과정 조건을 쿼리로 내렸다. 권한 필터가 SQL 안에 있어 page 파라미터를 조작해도
+     * 담당 아닌 과정이 새어 나오지 않는다.</p>
+     *
+     * <p>정렬은 {@code Pageable} 로 받는다 — 쿼리에 {@code order by} 를 박아두면
+     * Spring Data 가 Sort 를 뒤에 덧붙일 때 문법이 깨진다.</p>
+     *
+     * @param scoped    true 면 {@code courseIds} 로 제한한다 (강사). 관리자는 false.
+     * @param courseIds 비어 있으면 안 된다 — 빈 in 절은 DB 별로 동작이 갈린다.
+     *                  담당 과정이 없는 강사는 서비스가 빈 페이지로 끊는다.
+     */
+    @Query(value = """
+            select ca from CourseAssignment ca
+            join fetch ca.course c
+            join fetch ca.assignment a
+            left join fetch ca.grader g
+            where (:courseId is null or c.id = :courseId)
+              and (:graderId is null or g.id = :graderId)
+              and (:status is null or ca.status = :status)
+              and (:scoped = false or c.id in :courseIds)
+              and (:keyword is null
+                   or lower(a.title) like lower(concat('%', :keyword, '%'))
+                   or lower(c.courseName) like lower(concat('%', :keyword, '%'))
+                   or lower(g.name) like lower(concat('%', :keyword, '%')))
+            """,
+            countQuery = """
+            select count(ca) from CourseAssignment ca
+            join ca.course c
+            join ca.assignment a
+            left join ca.grader g
+            where (:courseId is null or c.id = :courseId)
+              and (:graderId is null or g.id = :graderId)
+              and (:status is null or ca.status = :status)
+              and (:scoped = false or c.id in :courseIds)
+              and (:keyword is null
+                   or lower(a.title) like lower(concat('%', :keyword, '%'))
+                   or lower(c.courseName) like lower(concat('%', :keyword, '%'))
+                   or lower(g.name) like lower(concat('%', :keyword, '%')))
+            """)
+    Page<CourseAssignment> searchPage(@Param("courseId") Long courseId,
+                                      @Param("graderId") Long graderId,
+                                      @Param("status") CourseAssignment.CourseAssignmentStatus status,
+                                      @Param("keyword") String keyword,
+                                      @Param("scoped") boolean scoped,
+                                      @Param("courseIds") Collection<Long> courseIds,
+                                      Pageable pageable);
 
     @Query("""
             select ca from CourseAssignment ca

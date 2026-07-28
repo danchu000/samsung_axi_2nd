@@ -7,6 +7,7 @@ import com.ssa.lms.exam.entity.Question;
 import com.ssa.lms.exam.entity.QuestionChoice;
 import com.ssa.lms.exam.repository.AnswerRepository;
 import com.ssa.lms.exam.repository.QuestionRepository;
+import com.ssa.lms.export.ExcelWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,6 +72,37 @@ public class QuestionService {
      */
     public List<QuestionListRow> searchAll(QuestionSearchCond cond) {
         return search(cond, Pageable.unpaged()).getContent();
+    }
+
+    /** 문제은행 엑셀 시트 헤더 — 화면 표(admin-evaluation-question-bank.html) 컬럼과 같은 순서. */
+    private static final String[] EXPORT_HEADERS = {
+            "번호", "문제코드", "유형", "제목", "난이도", "카테고리",
+            "사용중인 과정 수", "평균 성취도", "생성일", "상태"};
+
+    /**
+     * 화면의 "엑셀로 다운로드" — 현재 검색 조건에 걸린 <b>전체</b> 문항.
+     *
+     * <p>목록 화면은 서버 페이징(10건)이지만 다운로드는 페이지가 아니라 조건 전체를 내린다.
+     * 페이지에 보이는 10건만 받는 건 실무에서 쓸모가 없다.</p>
+     *
+     * <p><b>정답·해설은 넣지 않는다.</b> {@link QuestionListRow} 가 이미 그 둘을 뺀 DTO 이고,
+     * 다운로드 파일은 메일·메신저로 흘러다니기 쉬워 목록 화면보다 유출 위험이 크다.</p>
+     */
+    public byte[] exportExcel(QuestionSearchCond cond) {
+        List<QuestionListRow> rows = searchAll(cond);
+        try (ExcelWriter writer = ExcelWriter.create()) {
+            writer.sheet("문제은행", EXPORT_HEADERS);
+            int no = 0;
+            for (QuestionListRow r : rows) {
+                writer.row(++no, r.code(), r.type(), r.title(), r.difficulty(), r.category(),
+                        r.usedCourseCount(), r.avgAchievement(), r.createdAt(),
+                        "Active".equals(r.status()) ? "활성화" : "비활성화");
+            }
+            if (rows.isEmpty()) {
+                writer.emptyNote("검색 조건에 맞는 문제가 없습니다.");
+            }
+            return writer.toBytes();
+        }
     }
 
     public Question getOrThrow(Long id) {

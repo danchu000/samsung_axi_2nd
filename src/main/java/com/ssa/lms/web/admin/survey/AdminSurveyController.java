@@ -1,11 +1,17 @@
 package com.ssa.lms.web.admin.survey;
 
+import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.export.ExcelDownload;
 import com.ssa.lms.survey.dto.SurveyForm;
 import com.ssa.lms.survey.dto.SurveyQuestionForm;
 import com.ssa.lms.survey.dto.SurveySearchCond;
+import com.ssa.lms.survey.service.SurveyReportService;
 import com.ssa.lms.survey.service.SurveyService;
+import com.ssa.lms.user.entity.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,6 +28,7 @@ public class AdminSurveyController {
 
     private static final int PAGE_SIZE = 10;
     private final SurveyService surveyService;
+    private final SurveyReportService surveyReportService;
 
     @GetMapping
     public String list(@ModelAttribute("cond") SurveySearchCond cond,
@@ -33,6 +40,25 @@ public class AdminSurveyController {
         model.addAttribute("rows", result.getContent());
         model.addAttribute("page", com.ssa.lms.web.PageView.of(result));
         return "admin/admin-05-attendance/admin-attendance-survey";
+    }
+
+    /**
+     * 설문 결과 리포트 다운로드 (문항별 집계).
+     *
+     * <p>목록 화면의 "결과" 버튼이 부른다. 별도 리포트 화면을 만들지 않고 파일로만 내리는 이유는,
+     * 이 화면 계열에 결과용 정적 화면이 원래 없었고 새 화면을 만들면 안 되기 때문이다(CLAUDE.md).</p>
+     *
+     * <p>결과는 응답 내용이라 민감하다 — SecurityConfig 의 ADMIN·INSTRUCTOR 위에
+     * {@code SurveyReportService} 가 "강사는 담당 과정만"을 한 번 더 본다. URL 의 id 만 바꿔서
+     * 남의 과정 응답을 받아갈 수 없어야 한다.</p>
+     */
+    @GetMapping("/{id}/report.xlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> report(@PathVariable Long id,
+                                         @AuthenticationPrincipal LoginUser loginUser) {
+        boolean admin = loginUser != null && loginUser.getRole() == Role.ADMIN;
+        byte[] body = surveyReportService.reportExcel(id, loginUser.getId(), admin);
+        return ExcelDownload.attachment("설문결과_" + surveyReportService.surveyTitle(id), body);
     }
 
     @GetMapping("/new")

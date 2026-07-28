@@ -32,9 +32,11 @@ import java.util.*;
  *
  * <p>앨리스 항목의 "학습알림 — 24시간 전 / 1시간 전 리마인드", "미참여자 독려" 요건이다.</p>
  *
- * <p><b>메일은 아직 못 보낸다.</b> {@code spring-boot-starter-mail} 이 build.gradle 에 없고
- * 그 파일은 공동 소유라 A 합의가 필요하다. 지금은 인앱 알림({@link Notification})만 만든다.
- * 메일이 들어오면 {@link #notify} 안에서 발송 경로만 추가하면 된다.</p>
+ * <p><b>인앱 알림 + 메일 두 갈래로 나간다.</b> 인앱({@link Notification})은 LMS 에 들어와야 보이고,
+ * 독려는 안 들어온 사람에게 보내는 것이라 인앱만으로는 도달하지 않는다. {@link #notify} 에서
+ * 같은 문구를 {@link ReminderMailSender} 로 한 번 더 보낸다.
+ * 메일 발송은 기본적으로 꺼져 있고({@code lms.mail.enabled=false}) 로그만 남는다 —
+ * 켜는 방법과 SMTP 주입 방식은 {@link ReminderMailSender} 주석 참고.</p>
  *
  * <p><b>중복 발송 방지:</b> 스케줄러가 주기적으로 도는데 기록이 없으면 같은 사람에게
  * 같은 알림이 계속 쌓인다. {@link ReminderLog} 에 (사용자, 종류, 대상, 단계)를 남겨
@@ -58,6 +60,7 @@ public class ReminderService {
     private final NotificationRecipientRepository recipientRepository;
     private final UserRepository userRepository;
     private final CourseQueryService courseQueryService;
+    private final ReminderMailSender mailSender;
 
     /**
      * 마감 임박 대상에게 리마인드를 보낸다.
@@ -186,9 +189,14 @@ public class ReminderService {
     /* ===== 공통 ===== */
 
     /**
-     * 알림 1건 생성 + 발송 기록.
+     * 알림 1건 생성 + 발송 기록 + 메일 발송.
      *
-     * <p>메일 발송이 필요해지면 여기에 경로를 추가하면 된다 — 대상·본문이 이미 확정된 지점이다.</p>
+     * <p><b>인앱이 먼저, 메일이 나중이다.</b> 메일은 부가 경로라 실패해도 인앱 알림은 이미
+     * 저장돼 있어야 한다. 메일 예외는 {@link ReminderMailSender} 안에서 전부 삼켜지지만,
+     * 혹시 새어 나오더라도 이 사람 이후의 발송이 멈추지 않도록 여기서 한 번 더 막는다.</p>
+     *
+     * <p><b>반환값에 메일 성패는 반영하지 않는다.</b> 이 값은 "리마인드가 나갔는가"를 세는 것이고
+     * 기준은 인앱 알림이다. 메일이 실패해도 재발송 대상이 되면 인앱 알림만 중복으로 쌓인다.</p>
      */
     private int notify(Long userId, ReminderLog.ReminderType type, Long targetRefId,
                        ReminderLog.ReminderStage stage, LocalDateTime now,
@@ -215,6 +223,14 @@ public class ReminderService {
         reminderLogRepository.save(ReminderLog.builder()
                 .user(user.get()).reminderType(type).targetRefId(targetRefId)
                 .stage(stage).sentAt(now).build());
+
+        // 메일은 인앱 알림·발송기록이 확정된 뒤에 보낸다. 메일 주소가 없는 계정은
+        // ReminderMailSender 가 NO_ADDRESS 로 걸러내고 인앱만 나간 상태로 끝난다.
+        try {
+            mailSender.send(user.get(), title, content);
+        } catch (RuntimeException e) {
+            log.error("독려 메일 발송 중 예기치 못한 오류 — 인앱 알림은 정상 발송됨. userId={}", userId, e);
+        }
         return 1;
     }
 

@@ -2,10 +2,15 @@ package com.ssa.lms.web.admin.exam;
 
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.exam.dto.ExamForm;
+import com.ssa.lms.exam.dto.ExamListRow;
 import com.ssa.lms.exam.dto.ExamSearchCond;
 import com.ssa.lms.exam.service.ExamService;
+import com.ssa.lms.web.PageView;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -35,15 +40,34 @@ public class AdminExamController {
     private static final String ADD_VIEW = "admin/admin-04-evaluation/admin-evaluation-test-add";
     private static final String EDIT_VIEW = "admin/admin-04-evaluation/admin-evaluation-test-update";
 
+    /** 문제은행·설문·Q&A 와 같은 값으로 맞춘다. 화면 페이지네이션 DOM 이 10건 기준이다. */
+    private static final int PAGE_SIZE = 10;
+
     private final ExamService examService;
 
-    /** 시험 목록. 필터는 서버에서 처리하고 화면은 th:each 로 그린다. */
+    /**
+     * 시험 목록. 필터·페이징 모두 서버에서 처리하고 화면은 th:each 로 그린다.
+     *
+     * <p>서버 페이징이다 — 예전에는 필터링된 전체 행을 내려주고 화면 JS 가 숨겼다 보였다 했다.
+     * 시험은 기수마다 쌓여서 한 번 열 때 수백 행이 오갔다. 문제은행
+     * ({@code AdminQuestionController})과 같은 방식으로 한 페이지 분량만 내린다.</p>
+     *
+     * <p>강사는 담당 과정 시험만 본다 — 권한정의서(1) "△(담당 과정 한정)".
+     * 이 제한은 {@code ExamService.searchScoped} 안에서 <b>쿼리 조건</b>으로 들어가므로
+     * page 파라미터를 조작해도 담당 아닌 과정이 나오지 않는다.</p>
+     */
     @GetMapping
     public String list(@AuthenticationPrincipal LoginUser loginUser,
-                       @ModelAttribute("cond") ExamSearchCond cond, Model model) {
-        // 강사는 담당 과정 시험만 — 권한정의서(1) "△(담당 과정 한정)"
-        model.addAttribute("rows", examService.searchScoped(
-                cond, loginUser.getId(), isAdmin(loginUser)));
+                       @ModelAttribute("cond") ExamSearchCond cond,
+                       @RequestParam(defaultValue = "1") int page,
+                       Model model) {
+        Page<ExamListRow> result = examService.searchScoped(
+                cond, loginUser == null ? null : loginUser.getId(), isAdmin(loginUser),
+                PageRequest.of(Math.max(page - 1, 0), PAGE_SIZE,
+                        Sort.by(Sort.Direction.DESC, "id")));
+
+        model.addAttribute("rows", result.getContent());
+        model.addAttribute("page", PageView.of(result));
         model.addAttribute("courseOptions", examService.courseOptions());
         model.addAttribute("instructorOptions", examService.instructorOptions());
         return LIST_VIEW;

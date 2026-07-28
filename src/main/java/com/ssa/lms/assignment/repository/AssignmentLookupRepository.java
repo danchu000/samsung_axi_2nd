@@ -34,21 +34,24 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AssignmentLookupRepository {
 
+    private final com.ssa.lms.course.service.CourseQueryService courseQueryService;
+
     @PersistenceContext
     private EntityManager em;
 
     /** 과정 셀렉트 옵션 — 최근 시작 과정 우선. */
+    /**
+     * 과정 셀렉트 옵션 — A 의 {@code CourseQueryService.findAllCourseOptions()} 로 위임한다.
+     *
+     * <p>예전에는 A 가 이 조회를 제공하지 않아 여기서 직접 JPQL 을 돌렸다.
+     * 이제 공식 조회가 생겼으므로 단일 출처로 모은다. 반환 타입만 화면용으로 감싼다.</p>
+     */
     public List<CourseOption> findCourseOptions() {
-        return em.createQuery("""
-                        select new com.ssa.lms.assignment.dto.CourseOption(
-                            c.id, c.courseCode, c.courseName, c.cohort)
-                        from Course c
-                        order by c.startDate desc, c.id desc
-                        """, CourseOption.class)
-                .getResultList();
+        return courseQueryService.findAllCourseOptions().stream()
+                .map(c -> new CourseOption(c.id(), c.courseCode(), c.courseName(), c.cohort()))
+                .toList();
     }
 
-    /** 채점자 셀렉트 옵션 — 강사 전체. */
     public List<UserOption> findInstructorOptions() {
         return em.createQuery("""
                         select new com.ssa.lms.assignment.dto.UserOption(u.id, u.loginId, u.name)

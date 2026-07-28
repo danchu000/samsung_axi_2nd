@@ -345,6 +345,13 @@
         </div>
     </div>
 
+    <!-- ===== 서버 연동 (개발자 B) ===== -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window._serverSurveyQuestions = /*[[${form.questions}]]*/ [];
+        /*]]>*/
+    </script>
+
     <script>
             // 대상 과정은 서버가 내려준 셀렉트(#courseSelect)로 대체됐다.
             // 기존 renderSelectedCourseInfo() 는 더미 과정명으로 그 영역을 덮어써서 제거했다.
@@ -501,12 +508,6 @@
             document.getElementById('cancelBtn').addEventListener('click', () => history.back());
             document.getElementById('createBtn').addEventListener('click', () => alert('설문 등록(데모)'));
         })();
-    </script>
-    <!-- ===== 서버 연동 (개발자 B) ===== -->
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        window._serverSurveyQuestions = /*[[${form.questions}]]*/ [];
-        /*]]>*/
     </script>
 </body>
 </html>

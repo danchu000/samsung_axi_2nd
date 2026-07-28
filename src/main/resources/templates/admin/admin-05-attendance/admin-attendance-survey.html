@@ -496,7 +496,7 @@
                         <td>${row.rate}</td>
                         <td>${row.risk}</td>
                         <td>${deadlineDisplay}</td>
-                        <td><button class="btn btn-secondary" type="button" onclick="location.href='/admin/survey/' + row.id + '/edit'">상세보기</button></td>
+                        <td><button class="btn btn-secondary" type="button" ${row.id == null ? 'disabled title="데모 행"' : ''} onclick="location.href='/admin/survey/${row.id}/edit'">상세보기</button></td>
                     </tr>
                 `;
             });

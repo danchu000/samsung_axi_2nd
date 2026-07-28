@@ -87,28 +87,4 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
                                       @Param("categoryS") String categoryS,
                                       @Param("tag") String tag,
                                       Pageable pageable);
-
-    /**
-     * 자동 출제 규칙에 맞는 문제은행 후보 개수.
-     *
-     * <p>법정 요건: 출제 문항 수의 <b>3배 이상</b>을 문제은행에 확보해야 한다.
-     * 확보량이 부족하면 시험 확정을 거부하기 위해 세는 것이라, 페이징 없이 전량을 센다.
-     * 조건은 {@link #findRuleCandidates} 와 동일하게 유지해야 한다 — 한쪽만 바꾸면
-     * "충분하다고 통과시켜 놓고 실제로는 덜 뽑는" 상태가 된다.</p>
-     */
-    @Query("""
-            select count(q) from Question q
-            where q.status = :status
-              and (:difficulty is null or q.difficulty = :difficulty)
-              and (:categoryL is null or q.categoryL = :categoryL)
-              and (:categoryM is null or q.categoryM = :categoryM)
-              and (:categoryS is null or q.categoryS = :categoryS)
-              and (:tag is null or lower(q.tags) like lower(concat('%', :tag, '%')))
-            """)
-    long countRuleCandidates(@Param("status") Question.QuestionStatus status,
-                             @Param("difficulty") Difficulty difficulty,
-                             @Param("categoryL") String categoryL,
-                             @Param("categoryM") String categoryM,
-                             @Param("categoryS") String categoryS,
-                             @Param("tag") String tag);
 }

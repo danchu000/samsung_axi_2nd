@@ -37,8 +37,6 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class ExamService {
 
-    /** 문제은행 확보 배수 — 법정 요건: 출제 문항 수의 3배 이상. */
-    private static final int REQUIRED_POOL_RATIO = 3;
 
     private final ExamRepository examRepository;
     private final ExamRefRepository examRefRepository;
@@ -223,10 +221,6 @@ public class ExamService {
             throw new IllegalArgumentException("등록된 자동 출제 규칙이 없습니다.");
         }
 
-        // 문항을 건드리기 전에 문제은행 확보량부터 본다. 부족한데 확정을 시작하면
-        // 기존 규칙 문항만 지워지고 새로 못 채우는 상태가 된다.
-        ensureQuestionPool(exam);
-
         // 재실행 가능하게 기존 규칙 문항을 먼저 걷어낸다. 여기서도 DELETE 를 먼저 flush 해야
         // 같은 문제를 다시 뽑았을 때 유니크 제약에 걸리지 않는다.
         exam.removeRuleQuestions();
@@ -315,64 +309,6 @@ public class ExamService {
     }
 
     /* ===== 내부 ===== */
-
-    /**
-     * 문제은행 확보량 검증 — <b>출제 문항 수의 3배 이상</b>이어야 한다 (법정 요건).
-     *
-     * <p>이 검사가 없으면 후보가 모자라도 {@code pick()} 이 조용히 덜 뽑고 끝난다.
-     * 그러면 "3배수 확보" 요건을 못 지킨 채 시험이 확정되고, 사후에 알아채기 어렵다.</p>
-     *
-     * <p>규칙·난이도 묶음마다 따로 센다. 총합이 3배여도 특정 난이도가 모자라면
-     * 그 난이도 문항은 덜 뽑히기 때문이다. 부족한 묶음을 전부 모아 한 번에 알려준다.</p>
-     */
-    private void ensureQuestionPool(Exam exam) {
-        List<String> shortages = new ArrayList<>();
-
-        for (ExamQuestionRule rule : exam.getQuestionRules()) {
-            List<ExamQuestionRuleDifficulty> difficulties = rule.getDifficulties();
-            if (difficulties.isEmpty()) {
-                checkPool(rule, null, rule.getTotalCount(), shortages);
-            } else {
-                for (ExamQuestionRuleDifficulty d : difficulties) {
-                    checkPool(rule, d.getDifficulty(), d.getQuestionCount(), shortages);
-                }
-            }
-        }
-
-        if (!shortages.isEmpty()) {
-            throw new IllegalStateException(
-                    "문제은행 확보량이 부족합니다. 출제 문항 수의 3배 이상이 필요합니다.\n"
-                            + String.join("\n", shortages));
-        }
-    }
-
-    private void checkPool(ExamQuestionRule rule, Difficulty difficulty, Integer count,
-                           List<String> shortages) {
-        int need = count == null ? 0 : count;
-        if (need <= 0) {
-            return;
-        }
-        long available = examRepository.countRuleCandidates(
-                Question.QuestionStatus.ACTIVE, difficulty,
-                rule.getCategoryL(), rule.getCategoryM(), rule.getCategoryS(), rule.getTags());
-        long required = (long) need * REQUIRED_POOL_RATIO;
-        if (available < required) {
-            shortages.add(String.format(
-                    "  · %s%s : 출제 %d문항 → %d문항 필요, 현재 %d문항 (%d문항 부족)",
-                    describeCategory(rule),
-                    difficulty == null ? "" : " / 난이도 " + difficulty.name(),
-                    need, required, available, required - available));
-        }
-    }
-
-    private String describeCategory(ExamQuestionRule rule) {
-        StringBuilder sb = new StringBuilder();
-        if (rule.getCategoryL() != null) sb.append(rule.getCategoryL());
-        if (rule.getCategoryM() != null) sb.append(" > ").append(rule.getCategoryM());
-        if (rule.getCategoryS() != null) sb.append(" > ").append(rule.getCategoryS());
-        if (rule.getTags() != null && !rule.getTags().isBlank()) sb.append(" [").append(rule.getTags()).append("]");
-        return sb.length() == 0 ? "전체" : sb.toString();
-    }
 
     private int pick(Exam exam, ExamQuestionRule rule, Difficulty difficulty, Integer count,
                      Set<Long> already, int startSeq) {

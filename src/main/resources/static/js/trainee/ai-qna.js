@@ -1,84 +1,34 @@
 /**
  * AI 학습 도우미 (훈련생) — 기존 글등록형 Q&A 를 대체하는 채팅 화면.
  *
- * 지금은 화면만 있는 단계라 답변을 **정해진 더미에서 골라** 보여준다.
- * 실제 모델 연동 시 sendToServer() 안쪽만 fetch 로 바꾸면 되고,
- * 화면 코드는 건드릴 필요가 없다.
+ * 답변은 서버(POST /trainee/ai/qna/ask)가 만든다. 화면에는 예시 답변을 두지 않는다 —
+ * 더미가 남아 있으면 모델이 죽었을 때도 그럴듯한 답이 나와서 장애를 못 알아챈다.
  *
  * 설계상 지킨 것
- *  - 답변에는 항상 **근거 자료**를 붙인다. 출처 없는 답은 학습에 해롭다.
+ *  - 답변에 딸린 **관련 학습 자료**는 서버가 실제 콘텐츠 링크로 내려준 것만 보여준다.
+ *  - 실패(한도 초과·모델 오류)도 말풍선으로 보여준다. 조용히 아무 일도 안 일어나면 안 된다.
  *  - 사람에게 넘기는 경로(강사 전달)를 항상 보이는 자리에 둔다.
  */
 (function () {
     'use strict';
 
-    var CANNED = [
-        {
-            match: ['트랜잭션', 'acid', '격리'],
-            answer: '트랜잭션의 ACID 중 격리성(Isolation)은 "동시에 실행되는 여러 트랜잭션이 서로의 중간 상태를 보지 못하는 성질"이에요.\n\n' +
-                    '예를 들어 A가 계좌 이체를 하는 도중에 B가 잔액을 조회하면, B는 이체가 끝나기 전의 값이나 끝난 후의 값 중 하나만 보게 되고 "출금은 됐는데 입금은 안 된" 중간 상태는 볼 수 없어요.',
-            sources: [{ label: '3주차 강의자료 — 트랜잭션과 동시성 (p.12)', href: '#' },
-                      { label: '단원평가 3회차 4번 문항 해설', href: '#' }]
-        },
-        {
-            match: ['도커', 'docker', '컨테이너'],
-            answer: 'Docker 는 애플리케이션과 실행에 필요한 환경을 하나로 묶어 "어디서 실행해도 같게" 만들어 주는 도구예요.\n\n' +
-                    '내 컴퓨터에서는 되는데 서버에서는 안 되는 문제를 줄이려고 씁니다. 이미지(설계도)를 만들고, 그걸 실행한 것이 컨테이너예요.',
-            sources: [{ label: '5주차 실습자료 — 컨테이너 기초 (p.3)', href: '#' }]
-        },
-        {
-            match: ['jpa', '영속성', '엔티티'],
-            answer: 'JPA 의 영속성 컨텍스트는 엔티티를 보관하는 "1차 캐시"라고 생각하면 이해가 쉬워요.\n\n' +
-                    '같은 트랜잭션 안에서 같은 엔티티를 두 번 조회하면 DB에 두 번 가지 않고 캐시에서 꺼내 줍니다. 그래서 두 객체가 == 비교에서도 같아요.',
-            sources: [{ label: '4주차 강의자료 — JPA 영속성 컨텍스트 (p.8)', href: '#' }]
-        },
-        {
-            match: ['spring', '스프링', '의존성', 'di', '빈'],
-            answer: 'Spring 의 의존성 주입(DI)은 "필요한 객체를 내가 직접 만들지 않고 밖에서 받는 것"이에요.\n\n' +
-                    'new 로 직접 만들면 그 클래스에 묶여버려서 나중에 바꾸기 어렵고 테스트도 힘들어요. 스프링이 대신 만들어 넣어주면 필요할 때 다른 구현으로 갈아끼울 수 있습니다.',
-            sources: [{ label: '2주차 강의자료 — 스프링 컨테이너와 DI (p.5)', href: '#' }]
-        },
-        {
-            match: ['rest', 'api', '설계', 'http', '메서드'],
-            answer: 'REST API 설계에서 가장 자주 나오는 원칙은 "URL 에는 자원(명사), 동작은 HTTP 메서드로" 예요.\n\n' +
-                    '· 조회 GET /users/1\n· 생성 POST /users\n· 수정 PUT/PATCH /users/1\n· 삭제 DELETE /users/1\n\n' +
-                    '/getUser, /deleteUser 처럼 URL 에 동사를 넣지 않는 것이 핵심이에요.',
-            sources: [{ label: '6주차 강의자료 — REST API 설계 원칙 (p.4)', href: '#' },
-                      { label: '중간평가 2회차 7번 문항 해설', href: '#' }]
-        },
-        {
-            match: ['과제', '제출', '마감', '점수', '평가'],
-            answer: '이번 주 과제는 "게시판 CRUD 구현" 이고 마감은 금요일 23:59 예요.\n\n' +
-                    '평가 항목은 기능 구현 40점, 코드 구조 30점, 테스트 코드 20점, 문서화 10점입니다.\n' +
-                    '제출은 파일·링크·텍스트 중 편한 방법을 쓰시면 되고, 마감 전까지는 여러 번 다시 제출할 수 있어요.',
-            sources: [{ label: '과제 상세 — 게시판 CRUD 구현', href: '#' }]
-        },
-        {
-            match: ['깃', 'git', '브랜치', '머지', '충돌'],
-            answer: 'Git 브랜치는 "작업을 따로 떼어 두는 복사본" 이라고 생각하면 쉬워요.\n\n' +
-                    'main 에서 바로 작업하면 실수했을 때 되돌리기 어려워요. 기능마다 브랜치를 만들어 작업하고, 다 되면 main 에 합칩니다(merge).\n' +
-                    '같은 줄을 서로 다르게 고치면 충돌이 나는데, 이때는 어느 쪽을 남길지 직접 정해줘야 해요.',
-            sources: [{ label: '1주차 실습자료 — Git 협업 흐름 (p.9)', href: '#' }]
-        }
-    ];
-
-    var FALLBACK = {
-        answer: '죄송해요, 학습 자료에서 관련 내용을 찾지 못했어요.\n\n' +
-                '질문을 조금 더 구체적으로 적어주시거나, 아래 "강사님께 전달" 버튼을 눌러 주세요. 담당 강사님이 직접 답변해 드려요.',
-        sources: []
-    };
-
+    /*
+     * 질문 예시. 특정 기술을 적어두면 그 과정에서 다루지도 않는 내용을 물어보게 되고,
+     * "학습 자료에 없다"는 답만 돌아온다. 어느 과정에서나 쓰이는 형태로만 둔다.
+     */
     var SUGGEST = [
-        '트랜잭션 격리성이 뭔가요?',
-        'JPA 영속성 컨텍스트를 쉽게 설명해 주세요',
-        'Docker 는 왜 쓰나요?',
-        '이번 주 과제에서 어떤 걸 평가하나요?'
+        '이번 주에 배운 내용을 요약해 주세요',
+        '방금 강의에서 나온 개념을 쉽게 설명해 주세요',
+        '이 과정에서 어떤 자료를 먼저 봐야 하나요?',
+        '이번 과제는 무엇을 평가하나요?'
     ];
 
-    var ESCALATED = [
-        { q: '3주차 실습에서 커넥션 풀 설정값을 어떻게 정해야 하나요?', teacher: '김강사', status: '답변완료', date: '2026-07-26' },
-        { q: '과제 제출 형식이 zip 이어도 되나요?', teacher: '김강사', status: '대기중', date: '2026-07-28' }
-    ];
+    /*
+     * 강사 전달 내역은 아직 서버에 저장되지 않는다(전달 버튼도 안내만 띄운다).
+     * 예시 행을 넣어 두면 실제로 전달된 질문처럼 보여서, 답변을 기다리다 놓치게 된다.
+     * 서버가 붙으면 window._serverEscalated 로 채운다.
+     */
+    var ESCALATED = window._serverEscalated || [];
 
     var log, input, busy = false;
 
@@ -228,15 +178,48 @@
     }
 
     /**
-     * 서버 연동 지점. 지금은 더미에서 고르고 살짝 지연을 준다.
-     * 실제 연동 시 이 함수 안만 fetch('/trainee/ai-qna/ask', ...) 로 바꾼다.
+     * 서버에 질문을 보낸다.
+     *
+     * 서버는 실패해도 200 + {ok:false, answer:안내문구} 로 답한다. 채팅창에서 500 이 나면
+     * 사용자에게 보여줄 말이 없기 때문이다. 그래서 여기서는 ok 를 보지 않고 answer 를 그대로
+     * 말풍선에 띄운다 — 실패 사유는 이미 사람이 읽을 수 있는 문장으로 와 있다.
+     *
+     * 네트워크 자체가 끊긴 경우(fetch reject)만 여기서 문구를 만든다.
      */
     function sendToServer(text, done) {
-        var lower = text.toLowerCase();
-        var hit = CANNED.filter(function (c) {
-            return c.match.some(function (k) { return lower.indexOf(k) >= 0; });
-        })[0];
-        setTimeout(function () { done(hit || FALLBACK); }, 700);
+        var courseSelect = document.getElementById('courseSelect');
+        var courseId = courseSelect ? courseSelect.value : '';
+
+        if (!courseId) {
+            done({ answer: '질문할 과정을 먼저 선택해 주세요. 수강 중인 과정이 없으면 질문할 수 없어요.', sources: [] });
+            return;
+        }
+
+        var headers = { 'Content-Type': 'application/json' };
+        var csrfToken = (document.querySelector('meta[name="_csrf"]') || {}).content;
+        var csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+        if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+        fetch('/trainee/ai/qna/ask', {
+            method: 'POST',
+            headers: headers,
+            credentials: 'same-origin',
+            body: JSON.stringify({ courseId: Number(courseId), question: text })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (data) {
+                done({ answer: data.answer, sources: data.sources || [] });
+            })
+            .catch(function () {
+                done({
+                    answer: '답변을 가져오지 못했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.\n' +
+                            '계속 안 되면 아래 "강사님께 전달" 버튼을 눌러 주세요.',
+                    sources: []
+                });
+            });
     }
 
     function push(who, text, sources, time, scroll) {
@@ -254,7 +237,9 @@
         if (sources && sources.length) {
             var src = document.createElement('div');
             src.className = 'ai-source';
-            src.innerHTML = '📎 근거 자료<br>' + sources.map(function (s) {
+            // "근거"가 아니라 "관련 자료" — 서버는 자료의 제목·설명까지만 보고 답한다.
+            // 본문을 읽지 않은 답을 근거라고 부르면 훈련생이 답변을 과신한다.
+            src.innerHTML = '📎 관련 학습 자료<br>' + sources.map(function (s) {
                 return '<a href="' + esc(s.href) + '">' + esc(s.label) + '</a>';
             }).join('<br>');
             body.appendChild(src);

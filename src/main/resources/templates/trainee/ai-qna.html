@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- fetch 로 질문을 보내므로 CSRF 토큰이 필요하다 (CSRF 는 켜져 있음) -->
+<meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" content="" />
+<meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}" content="" />
 
 <!-- 공통 -->
 <link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
@@ -34,7 +37,7 @@
                 <span>ⓘ</span>
                 <span>
                     AI 답변은 <b>참고용</b>이에요. 내용이 정확하지 않을 수 있으니
-                    중요한 내용은 근거 자료를 함께 확인해 주세요.
+                    중요한 내용은 관련 학습 자료를 함께 확인해 주세요.
                     해결되지 않으면 아래 <b>강사님께 전달</b> 버튼을 눌러 주세요.
                 </span>
             </div>
@@ -44,11 +47,18 @@
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                     <label for="courseSelect" style="font-size:13px; color:#374151; font-weight:600;">질문할 과정</label>
                     <select id="courseSelect" class="form-select" style="min-width:280px;">
-                        <option value="1">클라우드 기반 풀스택 개발자 양성과정</option>
-                        <option value="2">데이터 분석 실무 과정</option>
+                        <option th:each="c : ${myCourses}"
+                                th:value="${c.id()}" th:text="${c.name()}">과정</option>
+                        <option th:if="${#lists.isEmpty(myCourses)}" value="">수강 중인 과정이 없습니다</option>
                     </select>
                     <span class="ai-card-sub" style="margin:0;">선택한 과정의 학습 자료에서 답을 찾아요.</span>
                 </div>
+            </div>
+
+            <!-- 키가 없거나 기능이 꺼져 있으면 미리 알린다 — 다 쓰고 나서 실패하면 허탈하다 -->
+            <div class="ai-disclaimer" th:unless="${aiAvailable}" style="border-color:#f0b429;">
+                <span>⚠</span>
+                <span>AI 답변 기능이 아직 켜져 있지 않아요. 질문은 <b>강사님께 전달</b>로 남겨 주세요.</span>
             </div>
 
             <!-- ===== 채팅 ===== -->

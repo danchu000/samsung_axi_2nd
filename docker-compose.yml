@@ -31,6 +31,12 @@ services:
       LMS_CRYPTO_SECRET: ${LMS_CRYPTO_SECRET:?LMS_CRYPTO_SECRET 를 .env 에 설정하세요}
       # 미지정 시 첫 기동 때 무작위 생성되어 로그에 1회 출력됨
       LMS_ADMIN_INIT_PASSWORD: ${LMS_ADMIN_INIT_PASSWORD:-}
+      # AI(Claude) — 키가 없으면 AI 기능만 꺼진 채 뜬다. 앱 기동을 막지 않는다.
+      LMS_AI_ENABLED: ${LMS_AI_ENABLED:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LMS_AI_MODEL: ${LMS_AI_MODEL:-claude-sonnet-5}
+      LMS_AI_DAILY_LIMIT: ${LMS_AI_DAILY_LIMIT:-500}
+      LMS_AI_DAILY_LIMIT_PER_USER: ${LMS_AI_DAILY_LIMIT_PER_USER:-50}
     volumes:
       - lxp-uploads:/data/uploads
     depends_on:

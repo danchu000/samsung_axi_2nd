@@ -1,24 +1,32 @@
 package com.ssa.lms.web.trainee.ai;
 
+import com.ssa.lms.ai.dto.AiQnaAnswer;
+import com.ssa.lms.ai.service.AiQnaService;
+import com.ssa.lms.auth.LoginUser;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 
 /**
  * 훈련생 AI 학습지원 화면.
- *
- * <p><b>현재 단계: 화면(프론트엔드)만 구현.</b> 서비스·엔티티는 아직 없고, 각 화면은
- * 자기 JS 안의 더미 데이터로 그린다. 서버가 붙으면 이 컨트롤러에서 모델에 값을 담고
- * 화면이 {@code window._serverRoadmap} / {@code _serverCurriculum} 등으로 내려주면 된다.</p>
  *
  * <p>대입 스크립트는 소비 스크립트보다 <b>앞에</b> 둬야 한다 — 뒤에 두면 서버 값이
  * 영원히 더미에 가려진다 (CLAUDE.md 규칙 4).</p>
  *
  * <p>담당 화면
  * <ul>
- *   <li>{@code /trainee/ai/qna} — AI 학습 도우미 (기존 글등록형 Q&amp;A 를 대체)</li>
- *   <li>{@code /trainee/ai/curriculum} — 학습 데이터 기반 원내 과정 추천</li>
- *   <li>{@code /trainee/ai/roadmap} — 채용공고 주간 수집 기반 직무 로드맵</li>
+ *   <li>{@code /trainee/ai/qna} — AI 학습 도우미. <b>모델 연동 완료</b>
+ *       (과정 목록·답변 모두 서버에서 온다)</li>
+ *   <li>{@code /trainee/ai/curriculum} — 학습 데이터 기반 원내 과정 추천. <b>화면만</b> —
+ *       JS 안의 더미로 그린다</li>
+ *   <li>{@code /trainee/ai/roadmap} — 채용공고 주간 수집 기반 직무 로드맵. <b>화면만</b></li>
  * </ul>
  * <p>접근 권한은 SecurityConfig 의 URL 규칙이 담당한다 ({@code /trainee/**} → TRAINEE·ADMIN).
  * 이 프로젝트는 메서드 보안(@EnableMethodSecurity)을 켜지 않아 {@code @PreAuthorize} 는
@@ -26,13 +34,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/trainee/ai")
+@RequiredArgsConstructor
 public class TraineeAiController {
+
+    private final AiQnaService aiQnaService;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
-    public String qna() {
+    public String qna(@AuthenticationPrincipal LoginUser me, Model model) {
+        model.addAttribute("myCourses",
+                aiQnaService.askableCourses(me == null ? null : me.getId()));
+        // 키가 없거나 꺼져 있으면 화면이 미리 안내한다 — 질문을 다 쓰고 나서 실패하면 허탈하다
+        model.addAttribute("aiAvailable", aiQnaService.available());
         return "trainee/ai-qna";
     }
+
+    /**
+     * 질문 → 답변. 화면이 fetch 로 부른다.
+     *
+     * <p><b>실패해도 200 으로 답한다.</b> 모델 장애·한도 초과는 사용자가 이해할 수 있는
+     * 안내 문구로 내려주는 편이 낫다 — 채팅창에서 500 이 나면 아무 말도 못 보여준다.
+     * 실패 여부는 본문의 {@code ok} 로 구분한다.</p>
+     */
+    @PostMapping("/qna/ask")
+    @ResponseBody
+    public AiQnaAnswer ask(@AuthenticationPrincipal LoginUser me, @RequestBody AskRequest req) {
+        if (req == null || req.courseId() == null) {
+            return AiQnaAnswer.fail("NO_COURSE", "질문할 과정을 먼저 선택해 주세요.");
+        }
+        return aiQnaService.ask(me.getId(), req.courseId(), req.question());
+    }
+
+    /** 화면에서 받는 요청 본문. */
+    public record AskRequest(Long courseId, String question) {}
 
     /** 맞춤 커리큘럼 추천 — 추천 대상은 원내 개설 과정으로 한정한다. */
     @GetMapping("/curriculum")

@@ -3,6 +3,12 @@ spring:
   profiles:
     default: local
 
+  # 프로젝트 루트 .env 를 있으면 읽는다(.gitignore 등록됨 — 커밋되지 않음).
+  # 로컬에서 API 키를 셸 export 없이 파일로만 두기 위한 것. 없으면 그냥 건너뛴다(optional).
+  # 도커 배포에서는 .env 가 컨테이너에 들어가지 않고 compose 가 환경변수로 주입한다.
+  config:
+    import: optional:file:./.env[.properties]
+
   jpa:
     open-in-view: false
     properties:
@@ -22,6 +28,18 @@ spring:
 lms:
   crypto:
     secret: ${LMS_CRYPTO_SECRET:samsung-lxp-local-dev-only-secret}
+
+  # AI(Claude) 연동. 키는 여기 적지 말고 환경변수 또는 .env 로만 주입한다.
+  # 키가 없으면 자동으로 꺼진 상태로 뜨고 AI 화면은 안내 문구를 보여준다(AiConfig).
+  ai:
+    enabled: ${LMS_AI_ENABLED:false}
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${LMS_AI_MODEL:claude-sonnet-5}
+    max-output-tokens: 1024
+    timeout: 30s
+    # 비용 안전장치 — 무한 루프나 반복 호출로 요금이 터지는 것을 막는다
+    daily-request-limit: ${LMS_AI_DAILY_LIMIT:500}
+    daily-request-limit-per-user: ${LMS_AI_DAILY_LIMIT_PER_USER:50}
 
 logging:
   level:

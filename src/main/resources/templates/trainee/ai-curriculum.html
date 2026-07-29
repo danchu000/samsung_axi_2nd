@@ -53,6 +53,18 @@
                 </span>
             </div>
 
+            <!--
+              추천은 12시간 동안 재사용된다(모델 호출을 아끼기 위해).
+              학습을 많이 진행했을 때 훈련생이 직접 갱신할 수 있어야 한다 —
+              엔드포인트만 있고 누를 곳이 없으면 없는 기능이나 마찬가지다.
+            -->
+            <form method="post" action="/trainee/ai/curriculum/refresh"
+                  style="text-align:right; margin-bottom:12px;" th:if="${aiAvailable}">
+                <input type="hidden" th:if="${_csrf != null}"
+                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-gray btn-sm">🔄 추천 다시 받기</button>
+            </form>
+
             <!-- ===== 내 학습 현황 요약 ===== -->
             <div class="ai-card">
                 <div class="ai-card-head">

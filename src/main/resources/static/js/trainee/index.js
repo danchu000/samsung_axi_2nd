@@ -250,35 +250,54 @@
     }
     hpCourseEmpty.style.display = "none";
 
-    hpCourseGrid.innerHTML = COURSES.map(c => `
+    hpCourseGrid.innerHTML = COURSES.map(c => {
+      // 진도는 숫자만 있으면 눈에 안 들어온다 — 막대로 함께 보여준다
+      const pct = pctOf(c.progressRate);
+      const att = pctOf(c.attendanceRate);
+      // 출결이 이수 기준(보통 80%)에 가까워지면 알려준다. 훈련생이 가장 늦게 아는 값이다
+      const attWarn = att !== null && att < 80;
+
+      return `
       <div class="course-card" data-course="${escapeHtml(c.id)}">
         <div>
           <div class="course-name">${escapeHtml(c.name)}</div>
           <div class="course-sub">${escapeHtml(c.cohort)} · ${escapeHtml(c.startAt)} ~ ${escapeHtml(c.endAt)}</div>
         </div>
 
+        <div class="course-progress">
+          <div class="course-progress-head">
+            <span>학습 진도</span>
+            <b>${escapeHtml(c.progressRate)}</b>
+          </div>
+          <div class="ai-bar"><span style="width:${pct === null ? 0 : pct}%"></span></div>
+        </div>
+
         <div class="course-info">
           <div class="info-box">
-            <div class="info-k">진도율</div>
-            <div class="info-v">${escapeHtml(c.progressRate)}</div>
-          </div>
-          <div class="info-box">
             <div class="info-k">출결률</div>
-            <div class="info-v">${escapeHtml(c.attendanceRate)}</div>
+            <div class="info-v${attWarn ? " warn" : ""}">${escapeHtml(c.attendanceRate)}</div>
           </div>
           <div class="info-box">
-            <div class="info-k">종료 D-day</div>
+            <div class="info-k">종료까지</div>
             <div class="info-v">${escapeHtml(c.dday)}</div>
           </div>
         </div>
 
+        ${attWarn ? '<p class="course-hint">출결률이 이수 기준(80%)보다 낮아요. 출결 현황을 확인해 주세요.</p>' : ""}
+
         <div class="course-actions">
-          <button type="button" class="mini-btn" data-href="${escapeHtml(c.continueHref)}">학습 계속하기</button>
+          <button type="button" class="mini-btn primary" data-href="${escapeHtml(c.continueHref)}">이어서 학습하기</button>
           <button type="button" class="mini-btn" data-course-action="attendance">출결/이수</button>
           <button type="button" class="mini-btn" data-href="${escapeHtml(c.noticeHref)}">공지</button>
         </div>
       </div>
-    `).join("");
+    `;}).join("");
+  }
+
+  /** "62%" 같은 표시용 문자열에서 숫자만 뽑는다. 값이 없으면("-") null. */
+  function pctOf(v){
+    const m = String(v ?? "").match(/\d+(\.\d+)?/);
+    return m ? Math.max(0, Math.min(100, Math.round(parseFloat(m[0])))) : null;
   }
 
   // ===== Render: Notices =====

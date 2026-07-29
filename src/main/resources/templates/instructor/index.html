@@ -817,8 +817,10 @@
                 <span class="muted">기간 경과 대비 진도</span>
               </div>
               <div class="panel-body">
-                <canvas id="courseProgressChart" height="220" style="width:100%;"></canvas>
-                <p class="muted" style="margin:6px 0 0;">■ 진도율 &nbsp;│ 기간 경과 — 진도가 기간보다 낮으면 지연</p>
+                <canvas id="courseProgressChart" height="240" style="width:100%;"></canvas>
+                <div class="chart-filters" style="justify-content:flex-start; margin-top:4px;">
+                    <span class="muted">■ 진도율&nbsp;&nbsp;□ 기간 경과율 — 진도가 기간보다 낮으면 지연</span>
+                </div>
               </div>
             </div>
 
@@ -828,8 +830,7 @@
                 <span class="muted">담당 과정 훈련생</span>
               </div>
               <div class="panel-body">
-                <canvas id="completionChart" height="220" style="width:100%;"></canvas>
-                <p class="muted" style="margin:6px 0 0;">요건별 충족 인원</p>
+                <canvas id="completionChart" height="240" style="width:100%;"></canvas>
               </div>
             </div>
 

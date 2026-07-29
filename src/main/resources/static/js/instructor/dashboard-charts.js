@@ -1,98 +1,43 @@
 /**
  * 강사 대시보드 차트 + 처리할 일 체크리스트.
  *
- * 관리자 화면과 **같은 그림**을 담당 과정 범위로만 그린다 — 보는 범위만 다르고
- * 판단 기준은 같아야 한다. 그리는 코드는 dashboard-charts-common.js 한 벌을 쓴다.
+ * <b>관리자 화면과 완전히 같은 코드 경로를 쓴다.</b> 그리는 함수(DashCharts)도,
+ * 데이터 모양(window._serverDashboardMetrics)도 같고, 범위만 담당 과정으로 좁혀
+ * 서버에서 계산돼 내려온다.
+ *
+ * 예전엔 강사 쪽에만 표본 폴백이 남아 있어 같은 과정을 두고 관리자와 강사가
+ * 다른 그림을 봤다. 판단 기준이 갈리면 안 된다.
  *
  * 데이터 출처
- *  · 과정 이름       window._serverInstructorDashboard.courses[].name   ← 서버 실제 값
- *  · 처리할 일 건수  window._serverInstructorDashboard.kpi              ← 서버 실제 값
- *  · 진도·기간·이수  아직 서버가 내려주지 않는다 → 화면에 "표본" 이라고 밝힌다
- *
- * 예전에 여기 있던 차트는 고정 시드 난수로 만든 가짜였고, 코딩시간·이탈률처럼
- * 이 시스템이 수집하지도 않는 지표였다. 지금은 최소한 **과정 이름은 진짜**이고,
- * 아직 없는 수치는 없다고 표시한다.
+ *  · 진도·기간·이수  window._serverDashboardMetrics   (DashboardMetricsService)
+ *  · 처리할 일 건수  window._serverInstructorDashboard.kpi
  */
 (function () {
     'use strict';
 
     document.addEventListener('DOMContentLoaded', function () {
-        var d = window._serverInstructorDashboard;
-        if (!d || !window.DashCharts) return;
+        if (!window.DashCharts) return;
 
-        renderWorklist(d.kpi);
-        draw(d);
+        var d = window._serverInstructorDashboard;
+        if (d) renderWorklist(d.kpi);
+
+        draw();
 
         var t;
         window.addEventListener('resize', function () {
             clearTimeout(t);
-            t = setTimeout(function () { draw(d); }, 200);
+            t = setTimeout(draw, 200);
         });
     });
 
-    function draw(d) {
+    function draw() {
         var m = window._serverDashboardMetrics;
+        if (!m) return;   // 서버 값이 없으면 아무것도 그리지 않는다 — 가짜로 채우지 않는다
 
-        // 서버 지표가 있으면 그것만 쓴다 (담당 과정 범위로 계산돼 내려온다)
-        if (m) {
-            window.DashCharts.courseProgress('courseProgressChart', m.courses,
-                '수강생이 배정된 담당 과정이 없습니다');
-            window.DashCharts.completion('completionChart', m.completion,
-                '담당 과정에 이수 판정 이력이 없습니다');
-            return;   // 표본 배지도 달지 않는다
-        }
-
-        // 서버 지표가 없을 때만 표본 (과정 이름은 실제 값)
-        var courses = (d.courses || []).filter(function (c) { return c.name; });
-        var rows = courses.map(function (c, i) {
-            var p = SAMPLE_PROGRESS[i % SAMPLE_PROGRESS.length];
-            return { name: c.name, progress: p.progress, elapsed: p.elapsed };
-        });
-        window.DashCharts.courseProgress('courseProgressChart', rows, '담당 과정이 없습니다');
-        mark('courseProgressChart');
-
-        var total = countTrainees(courses);
-        window.DashCharts.completion('completionChart',
-            total ? sampleCompletion(total) : [], '이수 판정 이력이 없습니다');
-        if (total) mark('completionChart');
-    }
-
-    /** 담당 과정 수강 인원 합계 — courses[].progress 가 "수강생 N명" 문자열이다. */
-    function countTrainees(courses) {
-        return courses.reduce(function (a, c) {
-            var m = String(c.progress || '').match(/\d+/);
-            return a + (m ? parseInt(m[0], 10) : 0);
-        }, 0);
-    }
-
-    var SAMPLE_PROGRESS = [
-        { progress: 62, elapsed: 58 },
-        { progress: 41, elapsed: 70 },
-        { progress: 88, elapsed: 84 },
-        { progress: 25, elapsed: 46 }
-    ];
-
-    function sampleCompletion(total) {
-        return [
-            { label: '진도 충족', done: Math.round(total * 0.75), total: total },
-            { label: '출석 충족', done: Math.round(total * 0.88), total: total },
-            { label: '성적 충족', done: Math.round(total * 0.58), total: total },
-            { label: '전체 충족', done: Math.round(total * 0.50), total: total }
-        ];
-    }
-
-    /**
-     * 아직 서버 값이 아닌 차트에는 표시를 남긴다.
-     * 표본을 실제 수치로 착각하면 잘못된 판단을 하게 된다.
-     */
-    function mark(canvasId) {
-        var cv = document.getElementById(canvasId);
-        if (!cv || cv.parentNode.querySelector('.sample-mark')) return;
-        var tag = document.createElement('span');
-        tag.className = 'sample-mark';
-        tag.textContent = '표본';
-        tag.title = '서버 연동 전 표본 값입니다. 과정 이름만 실제 데이터입니다.';
-        cv.parentNode.insertBefore(tag, cv);
+        window.DashCharts.courseProgress('courseProgressChart', m.courses,
+            '수강생이 배정된 담당 과정이 없습니다');
+        window.DashCharts.completion('completionChart', m.completion,
+            '담당 과정에 이수 판정 이력이 없습니다');
     }
 
     /**

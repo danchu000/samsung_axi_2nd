@@ -47,6 +47,17 @@ services:
       db:
         condition: service_healthy
 
+  # Cloudflare Tunnel — lms.samsungax.com 외부 공개 (docs/deploy-remote-2026-07-29.md)
+  # 아웃바운드 연결이라 포트포워딩·방화벽 인바운드 불필요. 토큰 없으면 기동 실패(외부 공개 필수 전제).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN 을 .env 에 설정하세요}
+    depends_on:
+      - app
+
 volumes:
   lxp-dbdata:
   lxp-uploads:

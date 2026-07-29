@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/dashboard.js" defer></script>
     <script src="/static/js/ai-widget.js" defer></script>
+    <script src="/static/js/dashboard-charts-common.js" defer></script>
     <script src="/static/js/instructor/dashboard-charts.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
@@ -791,31 +792,34 @@
           <div class="panel-grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
             <div class="panel">
               <div class="panel-header">
-                <h3>👥 과정별 수강 인원</h3>
+                <h3>📚 담당 과정 진행 현황</h3>
+                <span class="muted">기간 경과 대비 진도</span>
               </div>
               <div class="panel-body">
                 <canvas id="courseProgressChart" height="220" style="width:100%;"></canvas>
-                <p class="muted" style="margin:6px 0 0;">담당 과정의 수강생 수</p>
+                <p class="muted" style="margin:6px 0 0;">■ 진도율 &nbsp;│ 기간 경과 — 진도가 기간보다 낮으면 지연</p>
               </div>
             </div>
 
             <div class="panel">
               <div class="panel-header">
-                <h3>🎓 과정별 평균 출결률</h3>
+                <h3>🎓 이수 요건 충족 현황</h3>
+                <span class="muted">담당 과정 훈련생</span>
               </div>
               <div class="panel-body">
-                <canvas id="attendanceChart" height="220" style="width:100%;"></canvas>
-                <p class="muted" style="margin:6px 0 0;">출결이 낮은 과정은 이수 위험</p>
+                <canvas id="completionChart" height="220" style="width:100%;"></canvas>
+                <p class="muted" style="margin:6px 0 0;">요건별 충족 인원</p>
               </div>
             </div>
 
+            <!-- 대기 업무는 건수가 0~2건이라 막대로는 아무것도 안 보인다. 체크리스트가 맞다. -->
             <div class="panel">
               <div class="panel-header">
-                <h3>🗂️ 내 처리 대기 업무</h3>
+                <h3>🗂️ 오늘 처리할 일</h3>
+                <span class="muted" id="workloadSummary"></span>
               </div>
               <div class="panel-body">
-                <canvas id="myWorkloadChart" height="220" style="width:100%;"></canvas>
-                <p class="muted" style="margin:6px 0 0;">채점·응답·감독 대기 건수</p>
+                <ul class="worklist" id="myWorklist"></ul>
               </div>
             </div>
           </div>

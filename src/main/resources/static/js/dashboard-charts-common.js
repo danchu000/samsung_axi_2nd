@@ -38,7 +38,10 @@
         if (!cv) return null;
         var dpr = global.devicePixelRatio || 1;
         var w = cv.clientWidth || cv.parentNode.clientWidth || 420;
-        var h = Number(cv.getAttribute('height')) || 240;
+        // 아래 cv.height 대입이 height 속성을 dpr 배 값으로 덮어쓴다 — 매번 다시 읽으면
+        // HiDPI(배율>100%) 화면에서 리사이즈할 때마다 높이가 dpr 배씩 자란다. 원본을 한 번만 저장한다.
+        var h = Number(cv.dataset.baseHeight || cv.getAttribute('height')) || 240;
+        cv.dataset.baseHeight = h;
         cv.width = w * dpr;
         cv.height = h * dpr;
         cv.style.height = h + 'px';

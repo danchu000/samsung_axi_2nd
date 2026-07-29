@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/dashboard.js" defer></script>
     <script src="/static/js/ai-widget.js" defer></script>
+    <!-- 차트 지표 주입 (담당 과정 범위). 소비 스크립트보다 앞에 둔다 -->
+    <script th:inline="javascript">
+        window._serverDashboardMetrics = /*[[${metrics}]]*/ null;
+    </script>
     <script src="/static/js/dashboard-charts-common.js" defer></script>
     <script src="/static/js/instructor/dashboard-charts.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>

@@ -31,9 +31,19 @@
     });
 
     function draw(d) {
-        var courses = (d.courses || []).filter(function (c) { return c.name; });
+        var m = window._serverDashboardMetrics;
 
-        // 진도·기간은 서버가 아직 안 준다. 과정 이름은 실제 값이고 수치만 표본이다.
+        // 서버 지표가 있으면 그것만 쓴다 (담당 과정 범위로 계산돼 내려온다)
+        if (m) {
+            window.DashCharts.courseProgress('courseProgressChart', m.courses,
+                '수강생이 배정된 담당 과정이 없습니다');
+            window.DashCharts.completion('completionChart', m.completion,
+                '담당 과정에 이수 판정 이력이 없습니다');
+            return;   // 표본 배지도 달지 않는다
+        }
+
+        // 서버 지표가 없을 때만 표본 (과정 이름은 실제 값)
+        var courses = (d.courses || []).filter(function (c) { return c.name; });
         var rows = courses.map(function (c, i) {
             var p = SAMPLE_PROGRESS[i % SAMPLE_PROGRESS.length];
             return { name: c.name, progress: p.progress, elapsed: p.elapsed };

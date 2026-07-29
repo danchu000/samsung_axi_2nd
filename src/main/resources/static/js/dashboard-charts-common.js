@@ -82,11 +82,13 @@
                 ctx.fillStyle = '#f3f4f6';
                 rrect(ctx, padL, y, full, barH, 7);
 
-                var late = r.elapsed != null && r.progress < r.elapsed - 5;
+                // 서버는 날짜가 없는 과정에 elapsed = -1 을 준다 — 없는 기준선을 그리면 거짓말이 된다
+                var hasElapsed = r.elapsed != null && r.elapsed >= 0;
+                var late = hasElapsed && r.progress < r.elapsed - 5;
                 ctx.fillStyle = late ? AMBER : NAVY;
                 rrect(ctx, padL, y, full * Math.min(r.progress, 100) / 100, barH, 7);
 
-                if (r.elapsed != null) {
+                if (hasElapsed) {
                     var ex = padL + full * Math.min(r.elapsed, 100) / 100;
                     ctx.strokeStyle = SUB; ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.moveTo(ex, y - 3); ctx.lineTo(ex, y + barH + 3); ctx.stroke();

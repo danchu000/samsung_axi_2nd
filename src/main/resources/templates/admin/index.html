@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="/static/css/ai-common.css">
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/ai-widget.js" defer></script>
+    <!-- ===== 차트 지표 주입 =====
+         DashboardMetrics(com.ssa.lms.dashboard.dto). 대입은 소비 스크립트보다 **앞에** 둔다 —
+         뒤에 두면 서버 값이 영원히 표본에 가려진다 (CLAUDE.md 규칙 4). -->
+    <script th:inline="javascript">
+        window._serverDashboardMetrics = /*[[${metrics}]]*/ null;
+    </script>
     <script src="/static/js/dashboard-charts-common.js" defer></script>
     <script src="/static/js/admin/dashboard-charts.js" defer></script>
     

@@ -2,6 +2,7 @@ package com.ssa.lms.web;
 
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.dashboard.service.AdminDashboardService;
+import com.ssa.lms.dashboard.service.DashboardMetricsService;
 import com.ssa.lms.dashboard.service.InstructorDashboardService;
 import com.ssa.lms.dashboard.service.TraineeDashboardService;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,13 @@ public class ModuleHomeController {
     private final AdminDashboardService adminDashboardService;
     private final InstructorDashboardService instructorDashboardService;
     private final TraineeDashboardService traineeDashboardService;
+    private final DashboardMetricsService dashboardMetricsService;
 
     @GetMapping("/admin")
     public String adminHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
         model.addAttribute("dashboard", adminDashboardService.load(loginUser.getId()));
+        // 차트용 지표 — 관리자는 전체 과정 범위
+        model.addAttribute("metrics", dashboardMetricsService.forAdmin());
         return "admin/index";
     }
 
@@ -37,6 +41,8 @@ public class ModuleHomeController {
     public String instructorHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
         model.addAttribute("dashboard",
                 instructorDashboardService.load(loginUser.getId(), loginUser.getName()));
+        // 같은 계산을 담당 과정 범위로만 — 관리자와 숫자가 갈리면 안 된다
+        model.addAttribute("metrics", dashboardMetricsService.forInstructor(loginUser.getId()));
         return "instructor/index";
     }
 

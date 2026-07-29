@@ -48,7 +48,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', function () {
-        var d = window._serverAdminCharts || DUMMY;
+        var d = merge(window._serverAdminCharts || DUMMY, window._serverDashboardMetrics);
         drawAll(d);
 
         // 폭이 바뀌면 canvas 픽셀 크기가 어긋나 흐려진다 — 다시 그린다
@@ -58,6 +58,24 @@
             t = setTimeout(function () { drawAll(d); }, 200);
         });
     });
+
+    /**
+     * 서버가 실제로 준 지표를 표본 위에 덮어쓴다.
+     * 아직 서버가 안 주는 항목(주간 추이·요구 역량)은 표본을 그대로 쓰고,
+     * 준 항목은 표본을 버린다 — 실제 값이 있는데 표본을 보여주면 안 된다.
+     */
+    function merge(base, m) {
+        if (!m) return base;
+        var out = Object.assign({}, base);
+        out.serverCourses = !!(m.courses && m.courses.length);
+        out.serverCompletion = !!(m.completion && m.completion.length);
+        if (out.serverCourses) out.courses = m.courses;
+        if (out.serverCompletion) out.completion = m.completion;
+        // 서버가 "판정 이력 없음"을 알려준 경우: 표본으로 채우지 않고 비운다
+        else if (m.completion) out.completion = [];
+        if (m.courses && !m.courses.length) out.courses = [];
+        return out;
+    }
 
     function drawAll(d) {
         // 그리기는 공용 모듈(dashboard-charts-common.js)에 맡긴다.
@@ -70,8 +88,11 @@
         C.completion('completionChart', d.completion);
         C.hbar('aiDemandChart', d.demand);
 
-        ['courseProgressChart', 'weeklyActivityChart', 'completionChart', 'aiDemandChart']
-            .forEach(mark);
+        // 서버 값을 쓴 차트에는 "표본" 배지를 달지 않는다
+        if (!d.serverCourses) mark('courseProgressChart');
+        if (!d.serverCompletion) mark('completionChart');
+        mark('weeklyActivityChart');
+        mark('aiDemandChart');
     }
 
     /**

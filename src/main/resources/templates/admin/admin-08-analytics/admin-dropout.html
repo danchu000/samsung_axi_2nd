@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+    <link rel="stylesheet" href="/static/css/dashboard-visual.css">
+    <!-- ===== 예측 데이터 주입 =====
+         DropoutPredictionView(com.ssa.lms.dashboard.dto). 대입은 소비 스크립트보다 **앞에** 둔다 —
+         뒤에 두면 서버 값이 영원히 가려진다 (CLAUDE.md 규칙 4). -->
+    <script th:inline="javascript">
+        window._serverDropout = /*[[${prediction}]]*/ null;
+    </script>
+    <script src="/static/js/dashboard-charts-common.js" defer></script>
+    <script src="/static/js/admin/dropout-charts.js" defer></script>
+
+    <script src="/static/js/sidebar-function.js" defer></script>
+    <script src="/static/js/common-funtion.js" defer></script>
+    <title>Samsung Academy LXP - 이탈 예측</title>
+    <style>
+        /* ===== 레이아웃 — admin/index.html 대시보드와 같은 골격 ===== */
+        .dashboard-wrap { display: flex; flex-direction: column; gap: 16px; }
+
+        .dash-header {
+            display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+            padding: 12px 16px; background: #fff;
+            border: 1px solid var(--color-line-gray); border-radius: 10px;
+        }
+        .dash-header h2 { margin: 0; font-size: 20px; color: #222; }
+        .dash-header p { margin: 6px 0 0 0; font-size: 13px; color: #777; }
+
+        /* 표본 안내 — 이 화면 전체가 모델 연동 전 표본임을 가장 먼저 알린다.
+           표본을 실제 수치로 착각하면 엉뚱한 훈련생에게 개입하게 된다. */
+        .sample-banner {
+            display: flex; align-items: center; gap: 10px;
+            background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px;
+            padding: 12px 16px; font-size: 13.5px; color: #b45309; line-height: 1.5;
+        }
+        .sample-banner b { flex: none; }
+
+        /* KPI */
+        .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+        .kpi-card {
+            background: #fff; border: 1px solid var(--color-line-gray); border-radius: 12px;
+            padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 120px;
+        }
+        .kpi-title { font-size: 14px; color: #333; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .kpi-main { display: flex; flex-direction: column; gap: 6px; }
+        .kpi-main .big { font-size: 18px; color: #222; line-height: 1.1; }
+        .kpi-main .sub { font-size: 12px; color: #777; line-height: 1.4; }
+        .kpi-actions { margin-top: auto; display: flex; justify-content: flex-end; }
+        /* 위험 인원 수치만 경고색 — 제목의 라벨·아이콘이 의미를 들고 있고 색은 보조다 */
+        .kpi-card.risk-high .kpi-main .big { color: #b91c1c !important; }
+        .kpi-card.risk-mid  .kpi-main .big { color: #b45309 !important; }
+
+        /* 패널 */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .panel {
+            background: #fff; border: 1px solid var(--color-line-gray); border-radius: 12px;
+            overflow: hidden; display: flex; flex-direction: column; min-height: 160px;
+        }
+        .panel-header {
+            padding: 14px 16px; background: #fafafa; border-bottom: 1px solid var(--color-line-gray);
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .panel-header h3 { margin: 0; font-size: 15px; color: #333; }
+        .panel-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+        .muted { color: #777; font-size: 12px; }
+        .text-strong { color: #222; }
+
+        /* 판정 기준 안내 */
+        .criteria-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .criteria-list li {
+            display: flex; align-items: baseline; gap: 10px;
+            padding: 10px 12px; border: 1px solid #eee; border-radius: 10px; font-size: 13px; color: #333;
+        }
+        .criteria-list .badge { flex: none; }
+
+        /* 위험 학습자 표 */
+        .mini-table { border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+        .mini-head, .mini-row {
+            display: grid; gap: 12px; align-items: center; padding: 12px;
+            grid-template-columns: 1.1fr 1.4fr 1.7fr 0.8fr 2.1fr 0.9fr 0.7fr;
+        }
+        .mini-head { background: #f5f5f5; font-size: 12px; color: #666; }
+        .mini-row { border-top: 1px solid #eee; font-size: 13px; color: #333; }
+        .mini-row:hover { background: #fafafa; }
+
+        .badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 5px 10px; border-radius: 999px; font-size: 12px; white-space: nowrap;
+            background: #f5f5f5; color: #666;
+        }
+        .badge.risk-high { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge.risk-mid  { background: #fff7ed; color: #b45309; border: 1px solid #fed7aa; }
+
+        /* 위험도 막대 — 숫자만으로는 줄 세워 비교가 안 된다 */
+        .risk-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .risk-bar { flex: 1; height: 10px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+        .risk-bar > span { display: block; height: 100%; border-radius: 999px; background: #f59e0b; }
+        .risk-bar > span.high { background: #ef4444; }
+        .risk-pct { flex: none; font-size: 13px; font-weight: 700; color: #101828; width: 36px; text-align: right; }
+
+        .btn-sm { padding: 6px 10px !important; font-size: 12px !important; border-radius: 8px !important; white-space: nowrap; }
+
+        @media (max-width: 1400px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (max-width: 1100px) {
+            .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .two-col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 720px) { .kpi-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body data-user-role="admin">
+    <header th:replace="~{fragments/admin :: header('학습 분석 > 이탈 예측')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('analytics-dropout')}"/>
+
+    <main class="main-content">
+        <section class="main-content-inner">
+        <div class="dashboard-wrap">
+
+            <div class="dash-header">
+                <div>
+                    <h2>학습자 이탈 예측</h2>
+                    <p>접속·진도·출결·제출 이력으로 중도탈락 위험을 예측해, 개입이 필요한 학습자를 먼저 보여줍니다.</p>
+                </div>
+            </div>
+
+            <!-- 표본 배너 — 서버가 sample=false 를 내려주는 순간 자동으로 사라진다 -->
+            <div class="sample-banner" th:if="${prediction.sample}">
+                <b>📋 표본</b>
+                <span th:text="${prediction.modelNote}">예측 모델 연동 전 표본 화면입니다.</span>
+            </div>
+
+            <!-- KPI — 서버에서 그대로 렌더한다. JS 가 죽어도 인원수는 보여야 한다 -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">👥 분석 대상</div>
+                    <div class="kpi-main">
+                        <div class="big"><span th:text="${prediction.summary.totalTrainees}">0</span>명</div>
+                        <div class="sub">수강 중 훈련생 전체</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card risk-high">
+                    <div class="kpi-title">🚨 고위험</div>
+                    <div class="kpi-main">
+                        <div class="big"><span th:text="${prediction.summary.highRisk}">0</span>명</div>
+                        <div class="sub">위험도 70% 이상 — 즉시 개입 권장</div>
+                    </div>
+                    <div class="kpi-actions">
+                        <button class="btn btn-gray btn-sm" type="button" onclick="document.getElementById('riskTraineePanel').scrollIntoView({behavior:'smooth'})">명단 보기</button>
+                    </div>
+                </div>
+
+                <div class="kpi-card risk-mid">
+                    <div class="kpi-title">⚠️ 중위험</div>
+                    <div class="kpi-main">
+                        <div class="big"><span th:text="${prediction.summary.midRisk}">0</span>명</div>
+                        <div class="sub">위험도 40~69% — 관찰 필요</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-title">✅ 안정</div>
+                    <div class="kpi-main">
+                        <div class="big"><span th:text="${prediction.summary.stable}">0</span>명</div>
+                        <div class="sub">위험도 40% 미만</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-title">📊 평균 위험도</div>
+                    <div class="kpi-main">
+                        <div class="big"><span th:text="${prediction.summary.avgRisk}">0</span>%</div>
+                        <div class="sub">전체 학습자 평균 이탈 위험도</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 추이 + 과정별 위험도 -->
+            <div class="two-col">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>📈 주간 위험군 비율 추이</h3>
+                        <span class="muted">전체 학습자 대비 %</span>
+                    </div>
+                    <div class="panel-body">
+                        <canvas id="dropoutTrendChart" height="240" style="width:100%;"></canvas>
+                        <span class="muted">고위험 비율이 오르는 주는 개입 시점을 놓친 것입니다 — 추세가 꺾이는지 확인하세요.</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>📚 과정별 평균 이탈 위험도</h3>
+                        <span class="muted">60% 이상 빨강 · 40% 이상 주황</span>
+                    </div>
+                    <div class="panel-body">
+                        <canvas id="courseRiskChart" height="240" style="width:100%;"></canvas>
+                        <span class="muted">과정 단위 위험도가 높으면 개인이 아니라 운영(난이도·일정) 문제일 수 있습니다.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 요인 + 판정 기준 -->
+            <div class="two-col">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>🔎 위험 요인 기여도</h3>
+                        <span class="muted">예측에 기여한 비중 %</span>
+                    </div>
+                    <div class="panel-body">
+                        <canvas id="factorChart" height="220" style="width:100%;"></canvas>
+                        <span class="muted">모델 연동 후에는 학습된 변수 중요도(feature importance)가 표시됩니다.</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>ℹ️ 위험 등급 판정 기준</h3>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="criteria-list">
+                            <li><span class="badge risk-high">고위험</span>
+                                <span>이탈 위험도 <b>70% 이상</b> — 상담·독려 등 즉시 개입을 권장합니다.</span></li>
+                            <li><span class="badge risk-mid">중위험</span>
+                                <span>이탈 위험도 <b>40~69%</b> — 접속·제출 이력을 주기적으로 확인합니다.</span></li>
+                            <li><span class="badge">안정</span>
+                                <span>이탈 위험도 <b>40% 미만</b> — 별도 조치가 필요하지 않습니다.</span></li>
+                        </ul>
+                        <span class="muted">위험도는 최근 접속 간격, 기간 경과 대비 진도 지연, 출석률, 과제 미제출·시험 미응시 이력을 종합해 산정합니다.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 위험 학습자 명단 — 차트는 경향을, 이 표는 "누구에게 개입할지"를 답한다 -->
+            <div class="panel" id="riskTraineePanel">
+                <div class="panel-header">
+                    <h3>🧑‍🎓 위험 학습자 명단</h3>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="muted">위험도 높은 순 · 상위 8명 표시</span>
+                        <button class="btn btn-gray btn-sm" type="button" onclick="location.href='/admin/users/trainees'">훈련생 관리로 이동</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="mini-table">
+                        <div class="mini-head">
+                            <div>학습자</div>
+                            <div>과정</div>
+                            <div>이탈 위험도</div>
+                            <div>등급</div>
+                            <div>주요 요인</div>
+                            <div>최근 접속</div>
+                            <div>진도율</div>
+                        </div>
+                        <div class="mini-row" th:each="t : ${prediction.riskTrainees}">
+                            <div>
+                                <div class="text-strong" th:text="${t.name}">이름</div>
+                                <div class="muted" th:text="${t.loginId}">loginId</div>
+                            </div>
+                            <div th:text="${t.courseName}">과정명</div>
+                            <div class="risk-cell">
+                                <div class="risk-bar">
+                                    <span th:classappend="${t.riskScore >= 70} ? 'high'" th:style="'width:' + ${t.riskScore} + '%'"></span>
+                                </div>
+                                <span class="risk-pct" th:text="${t.riskScore} + '%'">0%</span>
+                            </div>
+                            <div><span class="badge" th:classappend="${t.riskScore >= 70} ? 'risk-high' : 'risk-mid'" th:text="${t.level}">등급</span></div>
+                            <div class="muted" th:text="${t.mainFactor}">요인</div>
+                            <div th:text="${t.lastAccess}">-</div>
+                            <div th:text="${t.progressRate} + '%'">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -8,7 +8,7 @@
     <th:block th:replace="~{fragments/admin :: sidebar('user-trainee')}"/>
 
   sidebar() 의 active 키:
-    dashboard | user-trainee | user-instructor | user-admin | contents
+    dashboard | analytics-dropout(이탈 예측) | user-trainee | user-instructor | user-admin | contents
     | courses | schedule | eval-exam(시험 관리) | eval-assignment | eval-grading(시험 채점) | eval-monitoring
     | att-status | att-graduate | att-survey | support-tutoring | support-response
     | notice | alarm
@@ -41,6 +41,10 @@
             <li data-page="/admin" onclick="handleMenuClick(this, '/admin')">
                 <img src="/static/icons/01-dashboard.svg" alt="dashboard icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'dashboard'} ? 'active_menu'">대시보드</span>
+            </li>
+            <li data-page="/admin/analytics/dropout" onclick="handleMenuClick(this, '/admin/analytics/dropout')">
+                <img src="/static/icons/08-analytics.svg" alt="analytics icon" style="width: 26px; margin-left:-2px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
+                <span class="menu-text" th:classappend="${active == 'analytics-dropout'} ? 'active_menu'">이탈 예측</span>
             </li>
             <li data-page="/admin/users/trainees" onclick="handleMenuClick(this, '/admin/users/trainees')">
                 <img src="/static/icons/02-user.svg" alt="user icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">

@@ -24,11 +24,19 @@
     ];
 
     /*
-     * 강사 전달 내역은 아직 서버에 저장되지 않는다(전달 버튼도 안내만 띄운다).
-     * 예시 행을 넣어 두면 실제로 전달된 질문처럼 보여서, 답변을 기다리다 놓치게 된다.
-     * 서버가 붙으면 window._serverEscalated 로 채운다.
+     * 강사에게 전달한 질문 — **실제 Q&A 데이터**(QnaListRow).
+     * 서버 필드명이 화면과 다르므로 여기서 한 번에 맞춘다. 그대로 꽂으면 예외 없이
+     * 빈 칸만 그려진다 — 제일 알아채기 어려운 고장이다.
      */
-    var ESCALATED = window._serverEscalated || [];
+    var ESCALATED = (window._serverEscalated || []).map(function (r) {
+        return {
+            id: r.id,
+            q: r.title,
+            teacher: r.assigneeName || '배정 전',
+            status: r.statusLabel,
+            date: r.createdAtShort || r.createdAt
+        };
+    });
 
     var log, input, busy = false;
 
@@ -94,14 +102,72 @@
             restore();
         });
 
-        document.getElementById('btnEscalate').addEventListener('click', function () {
-            if (!log.querySelector('.ai-msg.me')) {
-                alert('전달할 대화가 없어요. 먼저 질문을 입력해 주세요.');
-                return;
-            }
-            alert('담당 강사님께 전달되었어요.\n답변이 등록되면 알림으로 알려드려요.\n\n(서버 연동 준비 중)');
-        });
+        document.getElementById('btnEscalate').addEventListener('click', escalate);
     });
+
+    /**
+     * AI 로 해결이 안 된 대화를 강사에게 <b>실제로</b> 전달한다.
+     *
+     * 이전에는 안내 문구만 띄우고 아무 데도 저장하지 않았다. 훈련생은 답변을 기다리는데
+     * 강사에게는 아무것도 안 갔다 — AI 도우미에서 가장 나쁜 고장이다.
+     * 이제 서버가 기존 Q&A 로 등록하고, 등록된 글로 바로 갈 수 있게 링크를 준다.
+     */
+    function escalate() {
+        var btn = document.getElementById('btnEscalate');
+        if (!log.querySelector('.ai-msg.me')) {
+            alert('전달할 대화가 없어요. 먼저 질문을 입력해 주세요.');
+            return;
+        }
+
+        var courseSelect = document.getElementById('courseSelect');
+        var courseId = courseSelect ? courseSelect.value : '';
+        if (!courseId) {
+            alert('질문할 과정을 먼저 선택해 주세요.');
+            return;
+        }
+
+        // 저장된 대화를 그대로 보낸다 — 화면에서 긁어모으면 말풍선 장식까지 섞인다
+        var turns = loadHistory().map(function (h) {
+            return { who: h.who, text: h.text };
+        });
+        if (!turns.length) {
+            alert('전달할 대화가 없어요.');
+            return;
+        }
+
+        // 두 번 눌러 같은 질문이 두 건 등록되는 것을 막는다
+        btn.disabled = true;
+        var label = btn.textContent;
+        btn.textContent = '전달 중…';
+
+        var headers = { 'Content-Type': 'application/json' };
+        var t = (document.querySelector('meta[name="_csrf"]') || {}).content;
+        var h = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+        if (t && h) headers[h] = t;
+
+        fetch('/trainee/ai/qna/escalate', {
+            method: 'POST', headers: headers, credentials: 'same-origin',
+            body: JSON.stringify({ courseId: Number(courseId), turns: turns })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (d) {
+                if (!d.ok) { alert(d.message); return; }
+                if (confirm(d.message + '\n\n전달한 질문을 지금 확인할까요?')) {
+                    window.location.href = '/trainee/qna/' + d.qnaId;
+                }
+            })
+            .catch(function () {
+                // 실패를 성공처럼 보이게 하면 오지 않을 답을 기다리게 된다
+                alert('전달하지 못했어요. 잠시 후 다시 시도하거나 Q&A 화면에서 직접 남겨 주세요.');
+            })
+            .finally(function () {
+                btn.disabled = false;
+                btn.textContent = label;
+            });
+    }
 
     /** 저장된 대화를 되살린다. 없으면 인사말부터 시작. */
     function restore() {
@@ -145,8 +211,12 @@
         }
         body.innerHTML = ESCALATED.map(function (r) {
             var cls = r.status === '답변완료' ? 'low' : 'mid';
+            // 제목을 눌러 실제 Q&A 글로 갈 수 있어야 한다 — 목록만 보여주면 답변을 못 읽는다
+            var title = r.id
+                ? '<a href="/trainee/qna/' + encodeURIComponent(r.id) + '">' + esc(r.q) + '</a>'
+                : esc(r.q);
             return '<tr>' +
-                '<td>' + esc(r.q) + '</td>' +
+                '<td>' + title + '</td>' +
                 '<td>' + esc(r.teacher) + '</td>' +
                 '<td><span class="ai-level ' + cls + '">' + esc(r.status) + '</span></td>' +
                 '<td>' + esc(r.date) + '</td></tr>';

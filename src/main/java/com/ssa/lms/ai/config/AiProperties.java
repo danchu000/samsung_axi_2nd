@@ -41,7 +41,7 @@ public class AiProperties {
     private String apiVersion = "2023-06-01";
 
     /** 응답 최대 토큰. 너무 길면 비용도 늘고 화면에서 읽히지도 않는다. */
-    private int maxOutputTokens = 1024;
+    private int maxOutputTokens = 600;
 
     private Duration timeout = Duration.ofSeconds(30);
 
@@ -49,10 +49,10 @@ public class AiProperties {
      * 하루 호출 상한(전체 기준). 0 이면 무제한.
      * 상한에 걸리면 호출하지 않고 안내 문구를 돌려준다 — 조용히 실패하면 원인을 못 찾는다.
      */
-    private int dailyRequestLimit = 500;
+    private int dailyRequestLimit = 200;
 
     /** 사용자 1인당 하루 호출 상한. 0 이면 무제한. */
-    private int dailyRequestLimitPerUser = 50;
+    private int dailyRequestLimitPerUser = 20;
 
     /** 키가 실제로 준비됐는지. 켜져 있어도 키가 없으면 호출할 수 없다. */
     public boolean isUsable() {

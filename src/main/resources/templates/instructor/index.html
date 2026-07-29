@@ -697,7 +697,8 @@
             </div>
             <div class="kpi-sub">튜터링/QnA 답변이 필요해요</div>
             <div class="kpi-actions">
-              <button class="btn btn-primary" type="button" onclick="alert('준비 중인 기능입니다.')">응답하기</button>
+              <!-- /admin/support/** 는 SecurityConfig 상 강사도 접근 가능한 영역이다 -->
+              <a class="btn btn-primary" href="/admin/support/qna">응답하기</a>
             </div>
           </div>
 
@@ -748,7 +749,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>📚 담당 과정 요약</h3>
-                <button class="btn btn-gray" type="button" onclick="alert('준비 중인 기능입니다.')">전체보기</button>
+                <a class="btn btn-gray" href="/instructor/courses">전체보기</a>
               </div>
               <div class="panel-body">
                 <div class="list" id="courseList">
@@ -777,7 +778,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>💬 응답현황 (튜터링/QnA)</h3>
-                <button class="btn btn-gray" type="button" onclick="alert('준비 중인 기능입니다.')">전체보기</button>
+                <a class="btn btn-gray" href="/admin/support/qna">전체보기</a>
               </div>
               <div class="panel-body">
                 <div class="list" id="supportList">

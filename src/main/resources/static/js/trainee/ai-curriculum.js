@@ -61,6 +61,7 @@
         recommend: [
             {
                 name: '클라우드 인프라 입문 (AWS)',
+                courseCode: 'COURSE-2026-003',   // 실제 모집중 과정
                 round: '1기',
                 period: '2026-08-28 ~ 2026-12-29',
                 seats: '정원 20명 · 모집중',
@@ -73,6 +74,7 @@
             },
             {
                 name: '데이터 분석 실무 (Python/Pandas)',
+                courseCode: 'COURSE-2026-002',   // 실제 모집중 과정 (이미 신청함)
                 round: '2기',
                 period: '2026-08-12 ~ 2026-11-29',
                 seats: '정원 25명 · 신청 접수됨',
@@ -155,20 +157,20 @@
                     c.reasons.map(function (r) { return '· ' + esc(r); }).join('<br>') +
                 '</div>' +
                 '<div style="margin-top:14px; text-align:right;">' +
-                    '<button type="button" class="btn btn-gray btn-sm js-detail">과정 상세</button> ' +
-                    '<button type="button" class="btn btn-primary btn-sm js-apply">수강 신청</button>' +
+                    '<a class="btn btn-primary btn-sm" href="/trainee/my-course">수강 신청 화면으로</a>' +
                 '</div>' +
             '</div>';
         }).join('');
 
-        // 서버 연동 전이므로 이동 대신 안내만 — 조용히 아무 일도 안 일어나면 고장으로 보인다
-        box.addEventListener('click', function (e) {
-            if (e.target.classList.contains('js-apply')) {
-                alert('수강 신청 화면으로 연결될 예정이에요. (서버 연동 준비 중)');
-            } else if (e.target.classList.contains('js-detail')) {
-                alert('과정 상세 화면으로 연결될 예정이에요. (서버 연동 준비 중)');
-            }
-        });
+        /*
+         * 예전에는 두 버튼이 "연결될 예정이에요" 안내만 띄웠다. 추천을 보고 신청하려는
+         * 훈련생이 갈 곳이 없었다 — 추천 기능의 존재 이유가 사라진다.
+         *
+         * 지금은 실제 수강신청 화면(/trainee/my-course)으로 보낸다. 개별 과정으로 바로
+         * 보내지 않는 이유는, 추천 목록이 아직 시연용이라 courseId 를 신뢰할 수 없기
+         * 때문이다. 없는 과정으로 보내 404 를 띄우느니 목록에서 고르게 하는 편이 낫다.
+         * 추천 엔진이 붙어 실제 courseId 가 오면 그때 직접 링크로 바꾼다.
+         */
     }
 
     function renderLater() {

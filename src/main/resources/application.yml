@@ -35,11 +35,15 @@ lms:
     enabled: ${LMS_AI_ENABLED:false}
     api-key: ${ANTHROPIC_API_KEY:}
     model: ${LMS_AI_MODEL:claude-sonnet-5}
-    max-output-tokens: 1024
+    # 답변 길이 상한. 학습 도우미 답변은 5문장 이내로 지시하므로 이 이상 필요 없다.
+    # 출력 토큰이 입력보다 비싸서, 여기를 줄이는 게 비용에 가장 크게 듣는다.
+    max-output-tokens: ${LMS_AI_MAX_TOKENS:600}
     timeout: 30s
-    # 비용 안전장치 — 무한 루프나 반복 호출로 요금이 터지는 것을 막는다
-    daily-request-limit: ${LMS_AI_DAILY_LIMIT:500}
-    daily-request-limit-per-user: ${LMS_AI_DAILY_LIMIT_PER_USER:50}
+    # 비용 안전장치 — 무한 루프나 반복 호출로 요금이 터지는 것을 막는다.
+    # 훈련생 7명 기준 하루 최대 140건이면 넉넉하다. 필요해지면 올리면 되지만,
+    # 처음부터 크게 잡으면 사고가 났을 때 금액이 커진 뒤에야 알게 된다.
+    daily-request-limit: ${LMS_AI_DAILY_LIMIT:200}
+    daily-request-limit-per-user: ${LMS_AI_DAILY_LIMIT_PER_USER:20}
 
   # [기능 1] 채용공고 주 1회 수집 (사람인 오픈 API).
   # 액세스 키는 여기 적지 말고 환경변수 또는 .env 로만 주입한다.

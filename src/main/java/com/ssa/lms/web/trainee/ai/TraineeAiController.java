@@ -1,9 +1,11 @@
 package com.ssa.lms.web.trainee.ai;
 
 import com.ssa.lms.ai.dto.AiQnaAnswer;
+import com.ssa.lms.ai.service.AiEscalationService;
 import com.ssa.lms.ai.service.AiQnaService;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.job.service.RoadmapService;
+import com.ssa.lms.support.service.QnaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -41,6 +43,8 @@ public class TraineeAiController {
 
     private final AiQnaService aiQnaService;
     private final RoadmapService roadmapService;
+    private final AiEscalationService escalationService;
+    private final QnaService qnaService;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
@@ -49,6 +53,12 @@ public class TraineeAiController {
                 aiQnaService.askableCourses(me == null ? null : me.getId()));
         // 키가 없거나 꺼져 있으면 화면이 미리 안내한다 — 질문을 다 쓰고 나서 실패하면 허탈하다
         model.addAttribute("aiAvailable", aiQnaService.available());
+        /*
+         * 전달한 질문 목록 — 실제 Q&A 에서 가져온다.
+         * 전달은 저장되는데 목록이 비어 있으면 "전달됐다"는 말을 여전히 못 믿는다.
+         */
+        model.addAttribute("escalated",
+                me == null ? java.util.List.of() : qnaService.findMine(me.getId(), null));
         return "trainee/ai-qna";
     }
 
@@ -70,6 +80,38 @@ public class TraineeAiController {
 
     /** 화면에서 받는 요청 본문. */
     public record AskRequest(Long courseId, String question) {}
+
+    /**
+     * AI 로 해결이 안 된 대화를 강사에게 전달한다.
+     *
+     * <p><b>이전에는 화면이 안내만 띄우고 아무 데도 저장하지 않았다.</b>
+     * 훈련생은 답변을 기다리는데 강사에게는 아무것도 안 갔다. 이제 실제 Q&amp;A 로 등록된다.</p>
+     */
+    @PostMapping("/qna/escalate")
+    @ResponseBody
+    public EscalateResult escalate(@AuthenticationPrincipal LoginUser me,
+                                   @RequestBody EscalateRequest req) {
+        if (req == null || req.courseId() == null) {
+            return new EscalateResult(false, null, "질문할 과정을 먼저 선택해 주세요.");
+        }
+        if (req.turns() == null || req.turns().isEmpty()) {
+            return new EscalateResult(false, null, "전달할 대화가 없어요.");
+        }
+        try {
+            Long id = escalationService.escalate(me.getId(), req.courseId(), req.turns());
+            return new EscalateResult(true, id,
+                    "담당 강사님께 전달했어요. 답변이 등록되면 알림으로 알려드려요.");
+        } catch (Exception e) {
+            // 전달 실패를 성공처럼 보이게 하면 훈련생이 오지 않을 답을 기다린다
+            return new EscalateResult(false, null,
+                    "전달하지 못했어요. 잠시 후 다시 시도하거나 Q&A 화면에서 직접 남겨 주세요.");
+        }
+    }
+
+    public record EscalateRequest(Long courseId, java.util.List<AiEscalationService.Turn> turns) {}
+
+    /** @param qnaId 등록된 Q&A id — 화면이 "전달한 질문 보기" 링크를 만들 수 있다 */
+    public record EscalateResult(boolean ok, Long qnaId, String message) {}
 
     /** 맞춤 커리큘럼 추천 — 추천 대상은 원내 개설 과정으로 한정한다. */
     @GetMapping("/curriculum")

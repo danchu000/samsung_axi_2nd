@@ -56,11 +56,41 @@ lms:
     count-per-group: 100
     # 이보다 오래된 공고는 집계에서 뺀다. 지난 시장을 근거로 삼으면 안 된다
     freshness-days: 90
-    # 직무 그룹 → 검색 키워드. 그룹 키는 화면 탭 id 라 함부로 바꾸면 기존 데이터와 끊긴다
+    # 직무 그룹 — 개발 직군 중심.
+    # 그룹 키(backend 등)는 화면 탭 id 이자 DB job_group 값이라, 바꾸면 이미 수집한
+    # 공고와 연결이 끊긴다. 추가는 자유롭게, 이름 변경은 신중히.
+    # 검색어가 너무 좁으면 표본(5건)이 안 모여 해당 탭이 통째로 안 나온다.
     groups:
-      backend: 백엔드 자바 스프링
-      frontend: 프론트엔드 리액트
-      data: 데이터분석 파이썬
+      backend:
+        name: 백엔드 개발자
+        keywords: 백엔드 개발자 자바 스프링
+      frontend:
+        name: 프론트엔드 개발자
+        keywords: 프론트엔드 개발자 리액트
+      fullstack:
+        name: 풀스택 개발자
+        keywords: 풀스택 개발자
+      mobile:
+        name: 모바일 앱 개발자
+        keywords: 안드로이드 iOS 앱개발
+      devops:
+        name: 데브옵스·인프라
+        keywords: 데브옵스 인프라 쿠버네티스 AWS
+      data:
+        name: 데이터 엔지니어·분석가
+        keywords: 데이터 엔지니어 분석 파이썬 SQL
+      ai:
+        name: AI·머신러닝 개발자
+        keywords: 인공지능 머신러닝 딥러닝 개발자
+      security:
+        name: 정보보안 담당자
+        keywords: 정보보안 보안관제 취약점진단
+      qa:
+        name: QA·테스트 엔지니어
+        keywords: QA 테스트 엔지니어 품질관리
+      game:
+        name: 게임 개발자
+        keywords: 게임 개발 유니티 언리얼
 
 logging:
   level:

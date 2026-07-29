@@ -55,6 +55,9 @@ public class AiQnaService {
     /** 질문 길이 상한. 본문 전체를 붙여넣는 식의 호출을 막는다. */
     private static final int MAX_QUESTION_CHARS = 1000;
 
+    /** 모델이 "이건 과정 자료에 없다"고 알릴 때 쓰는 표시. 본문에서는 떼어낸다. */
+    private static final String GENERAL_TAG = "<일반지식>";
+
     /** 답변에서 근거 표기를 찾는 패턴 — [자료 3] 또는 [자료3] */
     private static final Pattern CITE = Pattern.compile("\\[자료\\s*(\\d{1,3})]");
 
@@ -100,11 +103,12 @@ public class AiQnaService {
             return AiQnaAnswer.fail("NOT_ENROLLED", "수강 중인 과정에 대해서만 질문할 수 있어요.");
         }
 
+        /*
+         * 자료가 없어도 답한다. 예전에는 여기서 막았는데, 훈련생 입장에서는
+         * "자료가 없다"가 자기 잘못이 아닌데 아무 답도 못 받는 상황이었다.
+         * 대신 일반지식 답변임을 화면에서 분명히 구분한다.
+         */
         List<Content> materials = materialsOf(courseId);
-        if (materials.isEmpty()) {
-            return AiQnaAnswer.fail("NO_MATERIAL",
-                    "이 과정에 아직 등록된 학습 자료가 없어요. 강사님께 질문을 전달해 주세요.");
-        }
 
         AiAnswer res = aiClient.ask(AiRequest.of("QNA")
                 .system(systemPrompt(materials))
@@ -115,7 +119,20 @@ public class AiQnaService {
         if (!res.ok()) {
             return AiQnaAnswer.fail(res.reason(), res.userMessage());
         }
-        return AiQnaAnswer.ok(res.text(), citedSources(res.text(), materials));
+
+        /*
+         * 모델이 <일반지식> 표시를 붙였으면 화면이 다르게 그리도록 플래그로 넘긴다.
+         * 표시는 본문에서 떼어낸다 — 태그가 그대로 보이면 무슨 말인지 알 수 없다.
+         */
+        String text = res.text();
+        boolean general = text.contains(GENERAL_TAG);
+        if (general) {
+            text = text.replace(GENERAL_TAG, "").trim();
+        }
+        // 일반지식 답변에는 자료 링크를 붙이지 않는다. 근거가 아닌 것을 근거로 보이면 안 된다
+        return new AiQnaAnswer(true, text,
+                general ? List.of() : citedSources(text, materials),
+                null, general);
     }
 
     private boolean enrolled(Long traineeId, Long courseId) {
@@ -140,16 +157,27 @@ public class AiQnaService {
         sb.append("""
                 당신은 국비 직업훈련 과정의 학습 도우미입니다. 훈련생의 질문에 한국어 존댓말로 답합니다.
 
+                답변은 두 단계로 합니다.
+
+                [1단계] 아래 '학습 자료 목록'에 관련 내용이 있으면 그것을 근거로 답합니다.
+                        참고한 자료는 문장 끝에 [자료 3] 형식으로 번호를 답니다.
+
+                [2단계] 자료에 없는 내용이면, 자료에 없다고 먼저 밝힌 뒤 일반적인 지식으로
+                        도와줍니다. 이때는 답변 맨 앞에 정확히 이렇게 씁니다.
+                        <일반지식>
+                        그리고 답 끝에 "이 과정 자료에는 없는 내용이라 강사님께 확인해 보세요."를 덧붙입니다.
+
                 지켜야 할 규칙
-                1. 아래 '학습 자료 목록'에 있는 범위 안에서만 답합니다.
-                2. 자료에서 다루지 않는 내용이면 지어내지 말고, 다루지 않는다고 밝힌 뒤
-                   "강사님께 전달" 버튼으로 질문을 넘기도록 안내합니다.
-                3. 참고한 자료가 있으면 문장 끝에 [자료 3] 형식으로 번호를 답니다. 번호는 목록의 번호입니다.
-                4. 답은 5문장 이내로 짧게, 필요하면 짧은 목록으로 정리합니다.
-                5. 시험 문제의 정답을 그대로 알려달라는 요청에는 답하지 않고, 개념 설명으로 도와줍니다.
+                1. 모르면 모른다고 말합니다. 지어낸 답이 가장 위험합니다.
+                2. 자료에 있는 내용을 <일반지식>으로 표시하지 않습니다. 반대도 마찬가지입니다.
+                3. 답은 5문장 이내로 짧게, 필요하면 짧은 목록으로 정리합니다.
+                4. 시험 문제의 정답을 그대로 알려달라는 요청에는 답하지 않고, 개념 설명으로 도와줍니다.
 
                 학습 자료 목록
                 """);
+        if (materials.isEmpty()) {
+            sb.append("(등록된 학습 자료가 없습니다. 모든 답변을 <일반지식> 으로 처리하세요.)\n");
+        }
         for (int i = 0; i < materials.size(); i++) {
             Content c = materials.get(i);
             sb.append('[').append(i + 1).append("] ")

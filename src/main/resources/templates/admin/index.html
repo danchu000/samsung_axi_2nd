@@ -494,10 +494,84 @@
                 </div>
                 <div class="panel-body">
                 <div class="ai-grid ai-grid-3" id="adminAiCards"></div>
-                <canvas id="aiDemandChart" height="150" style="width:100%; margin-top:12px;"></canvas>
-                <div class="chart-filters" style="justify-content:flex-start;">
-                    <span class="muted">채용공고 요구 역량 TOP — 과정 개편 검토용</span>
                 </div>
+            </div>
+
+            <!--
+              ═══════════════════════════════════════════════════════════
+               [기능 1-관리자] 채용공고 수집 현황          ★ 실데이터 ★
+              ═══════════════════════════════════════════════════════════
+
+              관리자가 알아야 할 것은 두 가지다.
+                1) 언제 수집됐나 — 멈춘 것을 아무도 모르면 훈련생이 몇 주째
+                   지난 시장을 보게 된다. 2주 넘으면 경고를 띄운다.
+                2) 뭐가 요구되고 있나 — 과정 개편·수업 보완의 근거.
+
+              수집 전에는 숫자를 지어내지 않고 "아직 수집 전"만 보여준다.
+            -->
+            <div class="panel">
+                <div class="panel-header">
+                <h3>📮 채용공고 수집 현황</h3>
+                <span class="muted" th:if="${jobSummary.collectedAt() != null}"
+                      th:classappend="${jobSummary.isStale()} ? 'sample-note' : ''"
+                      th:text="${jobSummary.isStale()}
+                               ? '⚠ ' + ${jobSummary.staleDays()} + '일째 갱신 없음 — 수집기 확인 필요'
+                               : ${#temporals.format(jobSummary.collectedAt(), 'yyyy-MM-dd')} + ' 수집 · 총 ' + ${jobSummary.totalCount()} + '건'">수집일</span>
+                <span class="muted sample-note" th:if="${jobSummary.collectedAt() == null}"
+                      th:text="${jobSummary.enabled()}
+                               ? '아직 수집 전 — 다음 월요일 03:00 에 첫 수집됩니다'
+                               : '수집 꺼짐 — 사람인 액세스 키를 등록하면 시작됩니다'">상태</span>
+                </div>
+
+                <div class="panel-body">
+                    <!-- 수집 전에는 표를 그리지 않는다. 빈 표는 고장으로 보인다 -->
+                    <div th:if="${jobSummary.collectedAt() == null}" class="ai-empty">
+                        수집된 채용공고가 없습니다.<br>
+                        <span th:if="${!jobSummary.enabled()}">
+                            <code>.env</code> 에 <b>SARAMIN_ACCESS_KEY</b> 를 넣고 재시작하세요.
+                        </span>
+                    </div>
+
+                    <div th:if="${jobSummary.collectedAt() != null}">
+                        <!-- 전 직무 통합 요구 역량 — 어느 과정을 열어야 할지의 근거 -->
+                        <p class="muted" style="margin:0 0 8px;">요구 역량 TOP (전 직무 합산 · 공고 대비 %)</p>
+                        <div class="ai-tags" style="margin-bottom:16px;">
+                            <span class="ai-tag" th:each="sk : ${jobSummary.topSkills()}"
+                                  th:text="${sk.label()} + ' ' + ${sk.percent()} + '%'">역량</span>
+                            <span class="ai-empty" th:if="${#lists.isEmpty(jobSummary.topSkills())}"
+                                  style="padding:4px;">집계할 키워드가 없습니다.</span>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table class="ai-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:180px;">직무</th>
+                                        <th style="width:90px;">공고 수</th>
+                                        <th style="width:110px;">훈련생 노출</th>
+                                        <th>많이 요구된 역량</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="g : ${jobSummary.groups()}">
+                                        <td th:text="${g.name()}">직무</td>
+                                        <td th:text="${g.postingCount()} + '건'">0건</td>
+                                        <td>
+                                            <!-- 수집은 됐는데 표본이 모자라 안 보이는 경우를 구분해 준다 -->
+                                            <span class="ai-level low" th:if="${g.analyzable()}">노출 중</span>
+                                            <span class="ai-level mid" th:unless="${g.analyzable()}"
+                                                  title="표본 5건 미만이면 비율을 말할 수 없어 화면에서 제외됩니다">표본 부족</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${#lists.isEmpty(g.topSkills())}" class="muted">—</span>
+                                            <span th:each="sk, i : ${g.topSkills()}"
+                                                  th:text="${sk.label()} + ' (' + ${sk.percent()} + '%)' + (${i.last} ? '' : ' · ')">역량</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             </div>

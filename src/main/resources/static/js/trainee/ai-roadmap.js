@@ -247,9 +247,14 @@
              * 표본을 진짜 채용 시장으로 착각하면 진로를 잘못 정하게 된다 —
              * 여기는 반드시 구분해서 말한다.
              */
+            /*
+             * 훈련생에게 "미연동" 같은 개발자 말을 보여주지 않는다.
+             * 훈련생이 할 수 있는 일이 없는데 고장으로만 읽힌다.
+             * 대신 지금 보는 것이 무엇이고 언제 진짜가 되는지를 말한다.
+             */
             stamp.textContent = data.sample
-                ? '표본 데이터 (채용공고 수집 미연동)'
-                : '마지막 수집: ' + data.collectedAt;
+                ? '예시 화면 · 실제 채용공고는 매주 월요일 반영돼요'
+                : '최근 채용공고 기준 · ' + data.collectedAt + ' 수집';
             stamp.className = stamp.className.replace(/\s*sample-note/g, '')
                 + (data.sample ? ' sample-note' : '');
         }

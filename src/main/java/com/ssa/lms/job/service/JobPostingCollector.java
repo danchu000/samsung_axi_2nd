@@ -79,9 +79,9 @@ public class JobPostingCollector {
 
         LocalDate today = LocalDate.now();
         int saved = 0;
-        for (Map.Entry<String, String> g : props.getGroups().entrySet()) {
+        for (Map.Entry<String, SaraminProperties.Group> g : props.getGroups().entrySet()) {
             try {
-                saved += collectGroup(g.getKey(), g.getValue(), today);
+                saved += collectGroup(g.getKey(), g.getValue().getKeywords(), today);
             } catch (Exception e) {
                 // 한 직무의 저장 실패가 나머지 직무 수집을 막으면 안 된다
                 log.error("[공고수집] {} 저장 실패 — 건너뛰고 계속한다 cause={}",

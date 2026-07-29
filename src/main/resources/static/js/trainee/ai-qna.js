@@ -180,7 +180,7 @@
         }
 
         list.forEach(function (m) {
-            push(m.who, m.text, m.sources || [], m.time, false);
+            push(m.who, m.text, m.sources || [], m.time, false, m.general);
         });
 
         // 이어서 대화하는 것임을 알려준다 — 지난 대화가 방금 한 것처럼 보이면 혼란스럽다
@@ -241,8 +241,9 @@
         sendToServer(text, function (res) {
             typing.remove();
             var at = now();
-            push('ai', res.answer, res.sources, at);
-            appendHistory({ who: 'ai', text: res.answer, sources: res.sources, time: at });
+            push('ai', res.answer, res.sources, at, true, res.general);
+            appendHistory({ who: 'ai', text: res.answer, sources: res.sources,
+                            time: at, general: res.general });
             busy = false;
         });
     }
@@ -281,7 +282,7 @@
                 return res.json();
             })
             .then(function (data) {
-                done({ answer: data.answer, sources: data.sources || [] });
+                done({ answer: data.answer, sources: data.sources || [], general: data.general });
             })
             .catch(function () {
                 done({
@@ -292,7 +293,7 @@
             });
     }
 
-    function push(who, text, sources, time, scroll) {
+    function push(who, text, sources, time, scroll, general) {
         var wrap = document.createElement('div');
         wrap.className = 'ai-msg' + (who === 'me' ? ' me' : '');
 
@@ -302,7 +303,22 @@
 
         var body = document.createElement('div');
         body.className = 'ai-msg-body';
-        body.textContent = text;
+
+        /*
+         * 과정 자료가 아니라 모델의 일반 지식으로 답한 경우.
+         * 표시 없이 섞이면 훈련생이 "수업에서 배운 내용"으로 오해한다 —
+         * 시험 답으로 쓰거나 강사에게 "자료에 있다더라"고 말하게 된다.
+         */
+        if (general) {
+            var badge = document.createElement('div');
+            badge.className = 'ai-general-badge';
+            badge.textContent = '💡 과정 자료 밖의 일반 지식이에요';
+            body.appendChild(badge);
+        }
+
+        var textNode = document.createElement('div');
+        textNode.textContent = text;
+        body.appendChild(textNode);
 
         if (sources && sources.length) {
             var src = document.createElement('div');

@@ -117,15 +117,37 @@ class AiQnaServiceTest {
     }
 
     @Test
-    @DisplayName("학습 자료가 없으면 모델을 부르지 않는다 — 근거 없이 지어낼 여지를 없앤다")
-    void 자료_없으면_호출_안함() {
+    @DisplayName("학습 자료가 없어도 답한다 — 단, 일반 지식임을 표시한다")
+    void 자료_없으면_일반지식으로_답한다() {
         enrolled(EnrollmentStatus.APPROVED);
         materials();
+        modelSays("<일반지식>\n트랜잭션은 하나의 작업 단위입니다.");
 
-        AiQnaAnswer a = service.ask(ME, COURSE, "질문");
+        AiQnaAnswer a = service.ask(ME, COURSE, "트랜잭션이 뭔가요?");
 
-        assertThat(a.reason()).isEqualTo("NO_MATERIAL");
-        verify(aiClient, never()).ask(any());
+        assertThat(a.ok())
+                .as("자료가 없는 건 훈련생 잘못이 아닌데 아무 답도 못 받으면 안 된다")
+                .isTrue();
+        assertThat(a.general()).isTrue();
+        assertThat(a.answer())
+                .as("태그가 그대로 보이면 무슨 말인지 알 수 없다")
+                .doesNotContain("<일반지식>");
+        assertThat(a.sources())
+                .as("일반 지식 답변에 자료 링크를 달면 근거가 아닌 것을 근거로 보이게 한다")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("자료로 답한 경우에는 일반지식 표시가 붙지 않는다")
+    void 자료_기반_답변은_일반지식이_아니다() {
+        enrolled(EnrollmentStatus.APPROVED);
+        materials(material(101, "3주차 트랜잭션"));
+        modelSays("3주차에서 다뤘어요 [자료 1].");
+
+        AiQnaAnswer a = service.ask(ME, COURSE, "트랜잭션이 뭔가요?");
+
+        assertThat(a.general()).isFalse();
+        assertThat(a.sources()).hasSize(1);
     }
 
     @Test

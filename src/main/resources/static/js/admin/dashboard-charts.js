@@ -38,14 +38,12 @@
             { label: '성적 충족', done: 14, total: 24 },
             { label: '전체 충족', done: 12, total: 24 }
         ],
-        demand: [
-            { label: 'Docker', value: 74 },
-            { label: 'AWS', value: 71 },
-            { label: '테스트 코드', value: 68 },
-            { label: 'CI/CD', value: 52 },
-            { label: 'Redis', value: 39 }
-        ]
     };
+    /*
+     * 'demand'(채용공고 요구 역량) 표본을 지웠다.
+     * 이제 [기능 1] 수집 현황 패널이 **실제 수집한 공고**에서 센 값을 보여준다.
+     * 표본과 실데이터가 같은 화면에 있으면 어느 쪽이 진짜인지 알 수 없다.
+     */
 
     document.addEventListener('DOMContentLoaded', function () {
         var d = merge(window._serverAdminCharts || DUMMY, window._serverDashboardMetrics);
@@ -86,13 +84,11 @@
         C.courseProgress('courseProgressChart', d.courses, '진행 중인 과정이 없습니다');
         C.weekly('weeklyActivityChart', d.weeks, d.series);
         C.completion('completionChart', d.completion);
-        C.hbar('aiDemandChart', d.demand);
 
         // 서버 값을 쓴 차트에는 "표본" 배지를 달지 않는다
         if (!d.serverCourses) mark('courseProgressChart');
         if (!d.serverCompletion) mark('completionChart');
         mark('weeklyActivityChart');
-        mark('aiDemandChart');
     }
 
     /**

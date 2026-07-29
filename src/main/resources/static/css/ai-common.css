@@ -444,3 +444,18 @@
 }
 .ai-field-label:first-child { margin-top: 0; }
 .ai-modal .form-input { width: 100%; }
+
+
+/* 과정 자료가 아닌 일반 지식 답변임을 알리는 표시.
+   답변 본문과 확실히 구분돼야 한다 — 섞이면 수업 내용으로 오해한다. */
+.ai-general-badge {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 600;
+}

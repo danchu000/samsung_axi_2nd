@@ -30,14 +30,30 @@ public class SaraminProperties {
     private String baseUrl = "https://oapi.saramin.co.kr";
 
     /**
-     * 직무 그룹 → 검색 키워드.
-     * 그룹 id 는 화면 탭 id 이므로 함부로 바꾸면 기존 데이터와 연결이 끊긴다.
+     * 직무 그룹 id → 표기명·검색어.
+     *
+     * <p>그룹 id 는 화면 탭 id 이자 DB 의 {@code job_group} 값이다.
+     * <b>함부로 바꾸면 이미 수집한 공고와 연결이 끊긴다.</b></p>
+     *
+     * <p>표기명을 검색어와 <b>같은 곳</b>에 둔다. 예전엔 표기명이 자바 코드에
+     * 따로 박혀 있어서, 설정에 직무를 추가해도 화면에는 id 가 그대로 나왔다.</p>
      */
-    private Map<String, String> groups = new LinkedHashMap<>(Map.of(
-            "backend", "백엔드 자바 스프링",
-            "frontend", "프론트엔드 리액트",
-            "data", "데이터분석 파이썬"
-    ));
+    private Map<String, Group> groups = new LinkedHashMap<>();
+
+    /**
+     * @param name     화면에 보일 직무 이름
+     * @param keywords 사람인 검색어. 너무 좁으면 표본이 안 모이고, 너무 넓으면 딴 직무가 섞인다
+     */
+    public static class Group {
+        private String name;
+        private String keywords;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getKeywords() { return keywords; }
+        public void setKeywords(String keywords) { this.keywords = keywords; }
+    }
 
     /** 그룹당 한 번에 가져올 공고 수. 사람인 API 상한이 110 이라 그 아래로 둔다. */
     private int countPerGroup = 100;
@@ -61,8 +77,14 @@ public class SaraminProperties {
     public String getBaseUrl() { return baseUrl; }
     public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
 
-    public Map<String, String> getGroups() { return groups; }
-    public void setGroups(Map<String, String> groups) { this.groups = groups; }
+    public Map<String, Group> getGroups() { return groups; }
+    public void setGroups(Map<String, Group> groups) { this.groups = groups; }
+
+    /** 표기명이 비어 있으면 id 라도 보여준다 — 빈 탭보다는 낫다. */
+    public String nameOf(String groupId) {
+        Group g = groups.get(groupId);
+        return (g == null || g.getName() == null || g.getName().isBlank()) ? groupId : g.getName();
+    }
 
     public int getCountPerGroup() { return countPerGroup; }
     public void setCountPerGroup(int countPerGroup) { this.countPerGroup = countPerGroup; }

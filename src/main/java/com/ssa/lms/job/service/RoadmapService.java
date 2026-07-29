@@ -7,6 +7,7 @@ import com.ssa.lms.course.entity.Enrollment;
 import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.EnrollmentRepository;
 import com.ssa.lms.job.config.SaraminProperties;
+import com.ssa.lms.job.dto.JobCollectionSummary;
 import com.ssa.lms.job.dto.RoadmapView;
 import com.ssa.lms.job.entity.JobPosting;
 import com.ssa.lms.job.repository.JobPostingRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -60,13 +62,6 @@ public class RoadmapService {
     private static final Set<EnrollmentStatus> LEARNED =
             EnumSet.of(EnrollmentStatus.APPROVED, EnrollmentStatus.COMPLETED);
 
-    /** 직무 그룹 id → 화면 표기명. 설정의 그룹 키와 맞춘다. */
-    private static final Map<String, String> GROUP_NAMES = Map.of(
-            "backend", "백엔드 개발자",
-            "frontend", "프론트엔드 개발자",
-            "data", "데이터 분석가"
-    );
-
     private final JobPostingRepository jobPostingRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ContentRepository contentRepository;
@@ -94,22 +89,75 @@ public class RoadmapService {
         return new RoadmapView(collectedAt.get(), jobs);
     }
 
-    private Optional<RoadmapView.Job> analyze(String group, LocalDate since, Set<String> mySkills) {
-        List<JobPosting> postings = jobPostingRepository.findRecent(group, since);
-        if (postings.size() < MIN_SAMPLE) {
-            return Optional.empty();   // 표본이 작으면 비율을 말하지 않는다
+    /**
+     * [기능 1-관리자] 수집 현황 요약.
+     *
+     * <p>훈련생 화면과 <b>같은 집계 함수</b>를 쓴다. 관리자와 훈련생이 다른 숫자를 보면
+     * 어느 쪽도 못 믿는다. 다른 것은 "보유/부족" 판정뿐이다 — 그건 개인별이라
+     * 관리자 화면에는 의미가 없다.</p>
+     */
+    public JobCollectionSummary collectionSummary() {
+        Optional<LocalDate> last = jobPostingRepository.findLastCollectedAt();
+        long total = jobPostingRepository.count();
+
+        if (last.isEmpty()) {
+            return new JobCollectionSummary(props.isUsable(), null, null, total,
+                    List.of(), List.of());
         }
 
-        /*
-         * 한 공고 안에 같은 키워드가 두 번 나와도 1건으로 센다.
-         * 등장 횟수를 세면 키워드를 많이 나열한 공고 하나가 순위를 흔든다.
-         */
+        LocalDate since = LocalDate.now().minusDays(props.getFreshnessDays());
+        int stale = (int) ChronoUnit.DAYS.between(last.get(), LocalDate.now());
+
+        List<JobCollectionSummary.GroupSummary> groups = new ArrayList<>();
+        Map<String, Integer> allSkills = new LinkedHashMap<>();
+        int allPostings = 0;
+
+        for (String group : props.getGroups().keySet()) {
+            List<JobPosting> postings = jobPostingRepository.findRecent(group, since);
+            Map<String, Integer> counts = countKeywords(postings);
+            allPostings += postings.size();
+            counts.forEach((k, v) -> allSkills.merge(k, v, Integer::sum));
+
+            groups.add(new JobCollectionSummary.GroupSummary(
+                    group, props.nameOf(group), postings.size(),
+                    postings.size() >= MIN_SAMPLE,
+                    topSkills(counts, postings.size(), 3)));
+        }
+
+        return new JobCollectionSummary(props.isUsable(), last.get(), stale, total,
+                groups, topSkills(allSkills, allPostings, 10));
+    }
+
+    /** 한 공고 안의 중복 키워드는 1건으로 센다 — 나열이 많은 공고 하나가 순위를 흔든다. */
+    private Map<String, Integer> countKeywords(List<JobPosting> postings) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (JobPosting p : postings) {
             for (String kw : distinct(p.keywordList())) {
                 counts.merge(kw, 1, Integer::sum);
             }
         }
+        return counts;
+    }
+
+    private List<JobCollectionSummary.SkillCount> topSkills(Map<String, Integer> counts,
+                                                            int total, int limit) {
+        if (total <= 0) return List.of();
+        return counts.entrySet().stream()
+                .sorted((a, b) -> b.getValue() - a.getValue())
+                .limit(limit)
+                .map(e -> new JobCollectionSummary.SkillCount(
+                        e.getKey(), e.getValue(),
+                        (int) Math.round(e.getValue() * 100.0 / total)))
+                .toList();
+    }
+
+    private Optional<RoadmapView.Job> analyze(String group, LocalDate since, Set<String> mySkills) {
+        List<JobPosting> postings = jobPostingRepository.findRecent(group, since);
+        if (postings.size() < MIN_SAMPLE) {
+            return Optional.empty();   // 표본이 작으면 비율을 말하지 않는다
+        }
+
+        Map<String, Integer> counts = countKeywords(postings);
 
         int total = postings.size();
         List<RoadmapView.Demand> demands = counts.entrySet().stream()
@@ -137,7 +185,7 @@ public class RoadmapService {
                 .toList();
 
         return Optional.of(new RoadmapView.Job(
-                group, GROUP_NAMES.getOrDefault(group, group),
+                group, props.nameOf(group),
                 total, matchRate, topExperience(postings), have, lack,
                 demands, steps(demands), shown));
     }

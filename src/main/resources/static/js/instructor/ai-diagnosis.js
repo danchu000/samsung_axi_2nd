@@ -46,6 +46,7 @@
      *  · 인원 수     : 담당 과정 2개 · 실제 수강 인원과 맞춘 규모로 적는다.
      */
     var DUMMY = {
+        sample: true,   // 화면에 '예시' 표기를 하게 한다
         analyzedAt: '2026-07-29',
         summary: [
             { label: '분석 대상 훈련생', value: '7명', sub: '담당 과정 2개' },
@@ -149,11 +150,67 @@
         ]
     };
 
-    var data = window._serverDiagnosis || DUMMY;
+    /*
+     * 서버(DiagnosisView) 모양 → 화면 모양.
+     *
+     * 서버는 훈련생 질문에서 뽑은 실제 진단을 준다. 필드 이름이 화면과 달라
+     * 여기서 맞춘다 — 그대로 꽂으면 예외 없이 빈 표만 그려진다.
+     *
+     * 서버 값이 없다 = 기간 내 훈련생 질문이 0건이라 모델을 부르지 않았다는 뜻이다.
+     * 그때는 시연용 표본을 그리고 화면에 '예시'라고 밝힌다.
+     */
+    function adapt(sv) {
+        var max = 0;
+        (sv.topics || []).forEach(function (t) { if (t.count > max) max = t.count; });
+
+        return {
+            sample: false,
+            analyzedAt: sv.analyzedAt,
+            summary: [
+                { label: '분석한 질문', value: sv.questionCount + '건', sub: '최근 2주' },
+                { label: '보완 필요', value: (sv.rows || []).length + '명',
+                  sub: '시급도 높음 ' + (sv.rows || []).filter(function (r) {
+                      return r.level === 'high'; }).length + '명' },
+                { label: '질문이 몰린 주제', value: (sv.topics || []).length + '개',
+                  sub: '수업 보완 검토' }
+            ],
+            topics: (sv.topics || []).map(function (t) {
+                return {
+                    label: t.label,
+                    // 막대 길이는 최다 주제를 100 기준으로 환산한다
+                    value: max === 0 ? 0 : Math.round(t.count * 100 / max),
+                    count: t.count,
+                    students: t.students,
+                    // 서버는 정답률·질문자 명단을 아직 계산하지 않는다. 지어내지 않는다
+                    correctRate: null,
+                    askedBy: []
+                };
+            }),
+            rows: (sv.rows || []).map(function (r) {
+                return {
+                    id: r.traineeId, name: r.name,
+                    courseId: r.courseId, course: r.course,
+                    level: r.level, levelLabel: r.levelLabel,
+                    weak: r.weak || [], evidence: r.evidence, task: r.task
+                };
+            })
+        };
+    }
+
+    var data = window._serverDiagnosis ? adapt(window._serverDiagnosis) : DUMMY;
 
     document.addEventListener('DOMContentLoaded', function () {
         var stamp = document.querySelector('.js-analyzed-at');
-        if (stamp) stamp.textContent = '분석 기준: ' + data.analyzedAt;
+        if (stamp) {
+            /*
+             * 표본을 실제 진단으로 착각하면, 있지도 않은 취약점으로 과제를 배부한다.
+             * "질문 없음"과 "분석 결과 없음"을 구분해 말한다.
+             */
+            stamp.textContent = data.sample
+                ? '예시 화면 · 훈련생 질문이 쌓이면 실제 진단이 표시돼요'
+                : '분석 기준: ' + data.analyzedAt + ' · 질문 ' + (data.summary[0] || {}).value;
+            if (data.sample) stamp.className += ' sample-note';
+        }
 
         renderSummary();
         renderTopics();
@@ -178,11 +235,12 @@
         document.getElementById('btnFilter').addEventListener('click', applyFilter);
         initDraft();
 
-        document.getElementById('checkAll').addEventListener('change', function (e) {
-            document.querySelectorAll('#diagBody .js-pick').forEach(function (c) {
-                c.checked = e.target.checked;
-            });
-        });
+        /*
+         * 전체 선택 체크박스를 뺐다.
+         * 과제 배부는 훈련생 한 명 한 명에게 실제로 과제가 늘어나는 일이다.
+         * 한 번의 클릭으로 전원이 선택되면 시급도 '낮음'인 훈련생까지 딸려 들어가고,
+         * 잘못 배부된 과제는 되돌리기 번거롭다. 한 명씩 고르게 둔다.
+         */
 
         document.getElementById('btnAssign').addEventListener('click', function () {
             var picked = Array.prototype.slice.call(document.querySelectorAll('#diagBody .js-pick:checked'));
@@ -217,7 +275,6 @@
         });
         renderRows(filtered);
         renderTaskGroups(filtered);
-        document.getElementById('checkAll').checked = false;
     }
 
     function renderSummary() {
@@ -243,17 +300,31 @@
     function renderTopicTable() {
         var body = document.getElementById('topicBody');
         if (!body) return;
+        if (!data.topics.length) {
+            body.innerHTML = '<tr><td colspan="5" class="ai-empty">아직 분석할 질문이 없어요.</td></tr>';
+            return;
+        }
         body.innerHTML = data.topics.map(function (t) {
-            // 정답률이 낮을수록 시급하다 — 질문이 많아도 정답률이 높으면 관심일 뿐이다
-            var cls = t.correctRate < 45 ? 'high' : (t.correctRate < 60 ? 'mid' : 'low');
+            /*
+             * 정답률은 서버가 아직 계산하지 않는다(평가 연동 전).
+             * null 을 그대로 쓰면 화면에 "null%"가 찍히고, 0으로 채우면
+             * "정답률 0%"라는 없는 사실이 된다. 그래서 '—' 로 비운다.
+             */
+            var hasRate = typeof t.correctRate === 'number';
+            var cls = !hasRate ? 'low'
+                    : (t.correctRate < 45 ? 'high' : (t.correctRate < 60 ? 'mid' : 'low'));
+            var rate = hasRate ? t.correctRate + '%' : '—';
+
             return '<tr>' +
                 '<td><b>' + esc(t.label) + '</b></td>' +
                 '<td>' + t.count + '건</td>' +
                 '<td>' + t.students + '명</td>' +
-                '<td><span class="ai-level ' + cls + '">' + t.correctRate + '%</span></td>' +
-                '<td>' + (t.askedBy || []).map(function (n) {
-                    return '<span class="ai-tag partial" style="margin:2px 3px 2px 0; display:inline-block;">' + esc(n) + '</span>';
-                }).join('') + '</td>' +
+                '<td><span class="ai-level ' + cls + '">' + rate + '</span></td>' +
+                '<td>' + ((t.askedBy || []).length
+                    ? t.askedBy.map(function (n) {
+                        return '<span class="ai-tag partial" style="margin:2px 3px 2px 0; display:inline-block;">' + esc(n) + '</span>';
+                      }).join('')
+                    : '<span class="ai-card-sub">—</span>') + '</td>' +
             '</tr>';
         }).join('');
     }

@@ -6,7 +6,7 @@ import com.ssa.lms.content.repository.ContentRepository;
 import com.ssa.lms.course.entity.Enrollment;
 import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.EnrollmentRepository;
-import com.ssa.lms.job.config.SaraminProperties;
+import com.ssa.lms.job.config.JobProperties;
 import com.ssa.lms.job.dto.JobCollectionSummary;
 import com.ssa.lms.job.dto.RoadmapView;
 import com.ssa.lms.job.entity.JobPosting;
@@ -65,7 +65,7 @@ public class RoadmapService {
     private final JobPostingRepository jobPostingRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ContentRepository contentRepository;
-    private final SaraminProperties props;
+    private final JobProperties props;
 
     /**
      * 훈련생의 로드맵.

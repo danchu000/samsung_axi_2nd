@@ -17,7 +17,14 @@ public record AiRequest(
         String system,
         List<Message> messages,
         Integer maxOutputTokens,
-        Long userId
+        Long userId,
+        /** 진단 기록용 — 어느 과정에 대한 질문인지. 해당 없으면 null */
+        Long courseId,
+        /**
+         * 사용량 기록에 <b>암호화해서</b> 남길 질문 본문. null 이면 남기지 않는다.
+         * 훈련생 Q&A 만 채운다 — 강사·배치 호출은 진단 대상이 아니다.
+         */
+        String logQuestion
 ) {
 
     /** role = "user" | "assistant" */
@@ -36,6 +43,8 @@ public record AiRequest(
         private final List<Message> messages = new ArrayList<>();
         private Integer maxOutputTokens;
         private Long userId;
+        private Long courseId;
+        private String logQuestion;
 
         private Builder(String purpose) { this.purpose = purpose; }
 
@@ -45,9 +54,13 @@ public record AiRequest(
         public Builder messages(List<Message> m) { this.messages.addAll(m); return this; }
         public Builder maxOutputTokens(Integer n) { this.maxOutputTokens = n; return this; }
         public Builder userId(Long id) { this.userId = id; return this; }
+        public Builder courseId(Long id) { this.courseId = id; return this; }
+        /** 진단용으로 질문을 기록에 남긴다(암호화 저장). 남기지 않으려면 부르지 않는다. */
+        public Builder logQuestion(String q) { this.logQuestion = q; return this; }
 
         public AiRequest build() {
-            return new AiRequest(purpose, system, List.copyOf(messages), maxOutputTokens, userId);
+            return new AiRequest(purpose, system, List.copyOf(messages),
+                    maxOutputTokens, userId, courseId, logQuestion);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.ssa.lms.job.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ssa.lms.job.config.SaraminProperties;
+import com.ssa.lms.job.config.JobProperties;
 import com.ssa.lms.job.entity.JobPosting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 사람인 채용정보 오픈 API 호출. [기능 1] 직무 로드맵 수집기의 바깥쪽.
+ * 사람인 채용정보 오픈 API 호출. [기능 1] 보조 수집처.
+ *
+ * <p>기본 수집처는 워크넷({@link WorkNetSource})이다. 사람인은 <b>기업회원 가입과 승인</b>이
+ * 필요해 바로 쓸 수 없지만, <b>기술 키워드 필드({@code keyword})를 준다</b>는 장점이 있다 —
+ * "Docker 68%" 같은 세부 기술 통계는 이 출처가 있어야 나온다.</p>
  *
  * <p>GET {@code /job-search?access-key=…&keywords=…&count=…}
  * 응답은 {@code {"jobs":{"job":[…]}}} 모양이다.</p>
@@ -30,16 +34,26 @@ import java.util.List;
  * </ul>
  */
 @Component
-public class SaraminClient {
+public class SaraminSource implements JobPostingSource {
 
-    private static final Logger log = LoggerFactory.getLogger(SaraminClient.class);
+    private static final Logger log = LoggerFactory.getLogger(SaraminSource.class);
 
-    private final SaraminProperties props;
+    private final JobProperties props;
     private final RestClient rest;
 
-    public SaraminClient(SaraminProperties props, RestClient.Builder builder) {
+    public SaraminSource(JobProperties props, RestClient.Builder builder) {
         this.props = props;
-        this.rest = builder.baseUrl(props.getBaseUrl()).build();
+        this.rest = builder.baseUrl(props.getSaraminBaseUrl()).build();
+    }
+
+    @Override
+    public String name() {
+        return "사람인";
+    }
+
+    @Override
+    public boolean usable() {
+        return props.hasSaramin();
     }
 
     /**
@@ -47,13 +61,14 @@ public class SaraminClient {
      *
      * @return 파싱된 공고. 실패하거나 결과가 없으면 빈 목록 (예외를 던지지 않는다)
      */
+    @Override
     public List<JobPosting> search(String jobGroup, String keywords, LocalDate collectedAt) {
-        if (!props.isUsable()) return List.of();
+        if (!usable()) return List.of();
 
         try {
             JsonNode res = rest.get()
                     .uri(uri -> uri.path("/job-search")
-                            .queryParam("access-key", props.getAccessKey())
+                            .queryParam("access-key", props.getSaraminKey())
                             .queryParam("keywords", keywords)
                             .queryParam("count", props.getCountPerGroup())
                             .queryParam("sr", "directhire")   // 헤드헌팅·파견 제외

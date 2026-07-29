@@ -3,6 +3,7 @@ package com.ssa.lms.web;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.dashboard.service.AdminDashboardService;
 import com.ssa.lms.dashboard.service.DashboardMetricsService;
+import com.ssa.lms.ai.service.AiUsageStatsService;
 import com.ssa.lms.job.service.RoadmapService;
 import com.ssa.lms.dashboard.service.InstructorDashboardService;
 import com.ssa.lms.dashboard.service.TraineeDashboardService;
@@ -30,6 +31,7 @@ public class ModuleHomeController {
     private final TraineeDashboardService traineeDashboardService;
     private final DashboardMetricsService dashboardMetricsService;
     private final RoadmapService roadmapService;
+    private final AiUsageStatsService aiUsageStatsService;
 
     @GetMapping("/admin")
     public String adminHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
@@ -39,6 +41,8 @@ public class ModuleHomeController {
         // [기능 1-관리자] 채용공고 수집 현황 — 언제 수집됐고 무엇이 요구되는지.
         // 수집이 멈춘 것을 아무도 모르면 훈련생이 몇 주째 지난 시장을 보게 된다.
         model.addAttribute("jobSummary", roadmapService.collectionSummary());
+        // [기능 5] AI 이용 현황 — 이미 기록 중이던 AiUsageLog 를 세기만 하면 된다
+        model.addAttribute("aiUsage", aiUsageStatsService.qnaStats());
         return "admin/index";
     }
 

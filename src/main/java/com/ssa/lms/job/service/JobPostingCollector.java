@@ -1,7 +1,7 @@
 package com.ssa.lms.job.service;
 
-import com.ssa.lms.job.client.SaraminClient;
-import com.ssa.lms.job.config.SaraminProperties;
+import com.ssa.lms.job.client.JobPostingSource;
+import com.ssa.lms.job.config.JobProperties;
 import com.ssa.lms.job.entity.JobPosting;
 import com.ssa.lms.job.repository.JobPostingRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +49,9 @@ public class JobPostingCollector {
 
     private static final Logger log = LoggerFactory.getLogger(JobPostingCollector.class);
 
-    private final SaraminProperties props;
-    private final SaraminClient client;
+    private final JobProperties props;
+    /** 키가 있는 수집처만 실제로 부른다. 스프링이 구현체를 전부 주입한다. */
+    private final List<JobPostingSource> sources;
     private final JobPostingRepository repository;
 
     /**
@@ -79,7 +81,7 @@ public class JobPostingCollector {
 
         LocalDate today = LocalDate.now();
         int saved = 0;
-        for (Map.Entry<String, SaraminProperties.Group> g : props.getGroups().entrySet()) {
+        for (Map.Entry<String, JobProperties.Group> g : props.getGroups().entrySet()) {
             try {
                 saved += collectGroup(g.getKey(), g.getValue().getKeywords(), today);
             } catch (Exception e) {
@@ -94,7 +96,17 @@ public class JobPostingCollector {
 
     /** 직무 그룹 하나. saveAll 이 자기 트랜잭션으로 커밋하므로 여기서 실패해도 앞 그룹은 남는다. */
     private int collectGroup(String group, String keywords, LocalDate today) {
-        List<JobPosting> fetched = client.search(group, keywords, today);
+        /*
+         * 키가 있는 수집처를 모두 돌아 합친다. 한 곳이 비어도 다른 곳 결과는 살린다 —
+         * 워크넷만 있으면 워크넷만, 사람인 키도 넣으면 표본이 그만큼 커진다.
+         */
+        List<JobPosting> fetched = new ArrayList<>();
+        for (JobPostingSource src : sources) {
+            if (!src.usable()) continue;
+            List<JobPosting> got = src.search(group, keywords, today);
+            log.debug("[공고수집] {} · {} — {}건", group, src.name(), got.size());
+            fetched.addAll(got);
+        }
         if (fetched.isEmpty()) {
             log.warn("[공고수집] {} — 받은 공고 없음 (키워드: {})", group, keywords);
             return 0;
@@ -104,9 +116,11 @@ public class JobPostingCollector {
         Set<String> existing = repository.findExistingExternalIds(
                 fetched.stream().map(JobPosting::getExternalId).toList());
 
+        // 이번에 받은 목록 안에서도 중복이 있을 수 있다 — 같은 공고가 두 수집처에 다 있을 때
+        Set<String> seen = new HashSet<>(existing);
         List<JobPosting> fresh = new ArrayList<>();
         for (JobPosting p : fetched) {
-            if (!existing.contains(p.getExternalId())) fresh.add(p);
+            if (seen.add(p.getExternalId())) fresh.add(p);
         }
 
         repository.saveAll(fresh);

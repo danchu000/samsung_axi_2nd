@@ -16,25 +16,26 @@ import jakarta.annotation.PostConstruct;
  * <p>액세스 키 값은 절대 로그에 남기지 않는다. 준비 여부만 남긴다.</p>
  */
 @Configuration
-@EnableConfigurationProperties(SaraminProperties.class)
+@EnableConfigurationProperties(JobProperties.class)
 public class JobConfig {
 
     private static final Logger log = LoggerFactory.getLogger(JobConfig.class);
 
-    private final SaraminProperties props;
+    private final JobProperties props;
 
-    public JobConfig(SaraminProperties props) {
+    public JobConfig(JobProperties props) {
         this.props = props;
     }
 
     @PostConstruct
     void announce() {
         if (props.isUsable()) {
-            log.info("[공고수집] 활성 — 직무 {}종, 그룹당 {}건, 최근 {}일 기준",
-                    props.getGroups().size(), props.getCountPerGroup(), props.getFreshnessDays());
+            log.info("[공고수집] 활성 — 수집처 {} · 직무 {}종, 그룹당 {}건, 최근 {}일 기준",
+                    props.enabledSources(), props.getGroups().size(),
+                    props.getCountPerGroup(), props.getFreshnessDays());
         } else {
             log.warn("[공고수집] 비활성 — {}. 직무 로드맵은 '아직 수집 전'으로 표시됩니다.",
-                    props.isEnabled() ? "lms.job.enabled=true 이지만 액세스 키가 비어 있음"
+                    props.isEnabled() ? "lms.job.enabled=true 이지만 인증키가 하나도 없음(워크넷/사람인)"
                                       : "lms.job.enabled=false");
         }
     }

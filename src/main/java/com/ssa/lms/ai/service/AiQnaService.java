@@ -114,6 +114,10 @@ public class AiQnaService {
                 .system(systemPrompt(materials))
                 .user(question.trim())
                 .userId(traineeId)
+                // 진단([기능 4])이 "무엇을 어려워하는가"를 보려면 질문이 남아야 한다.
+                // 암호화 저장이고 보존기간이 지나면 내용만 지워진다
+                .courseId(courseId)
+                .logQuestion(question.trim())
                 .build());
 
         if (!res.ok()) {

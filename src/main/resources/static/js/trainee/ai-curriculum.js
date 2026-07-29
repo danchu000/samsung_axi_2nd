@@ -45,6 +45,7 @@
      *    누르면 실제로 신청할 수 있는 과정이어야 추천이 의미가 있다.
      */
     var DUMMY = {
+        sample: true,   // 화면에 '예시' 표기를 하게 한다
         analyzedAt: '2026-07-29',
         stats: [
             { label: '평균 진도율', value: '55%', sub: '클라우드 기반 풀스택 과정' },
@@ -99,11 +100,44 @@
         ]
     };
 
-    var data = window._serverCurriculum || DUMMY;
+    /*
+     * 서버(CurriculumAdvice) 모양 → 화면 모양.
+     * 필드 이름이 달라 그대로 꽂으면 예외 없이 **빈 칸만** 그려진다 —
+     * 제일 알아채기 어려운 고장이라 여기서 한 번에 맞춘다.
+     */
+    function adapt(sv) {
+        return {
+            sample: false,
+            analyzedAt: sv.analyzedAt,
+            stats: sv.stats || [],
+            // 서버는 취약 영역을 아직 계산하지 않는다. 없는 값을 지어내지 않고 비워 둔다
+            weak: [],
+            recommend: (sv.recommend || []).map(function (r) {
+                return {
+                    courseId: r.courseId,
+                    name: r.name,
+                    round: r.applied ? '신청 접수됨' : '모집중',
+                    period: r.period,
+                    seats: r.seats,
+                    fit: r.fit,
+                    reasons: r.reasons || []
+                };
+            }),
+            later: []
+        };
+    }
+
+    var data = window._serverCurriculum ? adapt(window._serverCurriculum) : DUMMY;
 
     document.addEventListener('DOMContentLoaded', function () {
         var stamp = document.querySelector('.js-analyzed-at');
-        if (stamp) stamp.textContent = '분석 기준: ' + data.analyzedAt;
+        if (stamp) {
+            // 표본을 실제 분석 결과로 착각하면 없는 과정을 신청하러 간다
+            stamp.textContent = data.sample
+                ? '예시 화면 · 실제 추천은 AI 연결 후 표시돼요'
+                : '분석 기준: ' + data.analyzedAt;
+            if (data.sample) stamp.className += ' sample-note';
+        }
 
         renderStats();
         renderWeak();
@@ -121,7 +155,13 @@
     }
 
     function renderWeak() {
-        document.getElementById('weakMeters').innerHTML =
+        var box = document.getElementById('weakMeters');
+        if (!data.weak || !data.weak.length) {
+            // 서버가 아직 취약 영역을 계산하지 않는다. 빈 제목만 남기면 고장으로 보인다
+            box.style.display = 'none';
+            return;
+        }
+        box.innerHTML =
             '<p class="ai-item-title" style="margin-bottom:12px;">영역별 이해도</p>' +
             data.weak.map(function (m) {
                 var cls = m.value >= 70 ? '' : (m.value >= 45 ? 'warn' : 'danger');

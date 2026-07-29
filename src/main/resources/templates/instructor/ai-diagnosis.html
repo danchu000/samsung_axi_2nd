@@ -27,6 +27,19 @@
     <th:block th:replace="~{fragments/instructor :: sidebar('ai-diagnosis')}"></th:block>
 
     <!-- 메인 콘텐츠 -->
+    <!--
+      [기능 4] 서버 진단 결과. 훈련생 질문이 없으면 rows 가 비어 대입하지 않는다
+      → 화면은 시연용 표본을 그린다(모델을 부르지 않았다는 뜻이다).
+    -->
+    <script th:if="${diagnosis != null and !diagnosis.isEmpty()}" th:inline="javascript">
+        window._serverDiagnosis = {
+            analyzedAt: /*[[${#temporals.format(diagnosis.analyzedAt(), 'yyyy-MM-dd')}]]*/ '',
+            questionCount: /*[[${diagnosis.questionCount()}]]*/ 0,
+            topics: /*[[${diagnosis.topics()}]]*/ [],
+            rows: /*[[${diagnosis.rows()}]]*/ []
+        };
+    </script>
+
     <main class="main-content">
         <section class="main-content-inner">
 
@@ -148,7 +161,7 @@
                     <table class="ai-table">
                         <thead>
                             <tr>
-                                <th style="width:44px;"><input type="checkbox" id="checkAll" aria-label="전체 선택"></th>
+                                <th style="width:44px;"><span class="sr-only">선택</span></th>
                                 <th style="width:100px;">훈련생</th>
                                 <th style="width:96px;">시급도</th>
                                 <th style="width:190px;">취약 영역</th>

@@ -95,7 +95,8 @@ public class ClaudeAiClient implements AiClient {
             }
 
             record(AiUsageLog.success(request.purpose(), request.userId(), props.getModel(),
-                    in, out, elapsed, promptChars, text.length()));
+                            in, out, elapsed, promptChars, text.length())
+                    .withQuestion(request.courseId(), request.logQuestion()));
             return AiAnswer.success(text, in, out);
 
         } catch (Exception e) {

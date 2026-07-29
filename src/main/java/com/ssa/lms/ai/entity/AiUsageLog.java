@@ -1,5 +1,6 @@
 package com.ssa.lms.ai.entity;
 
+import com.ssa.lms.common.converter.CryptoConverter;
 import com.ssa.lms.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -19,9 +20,18 @@ import java.time.LocalDateTime;
  *       확인할 수 있어야 한다</li>
  * </ol>
  *
- * <p><b>개인정보 주의:</b> 질문 본문에 이름·연락처가 섞여 들어올 수 있어
- * {@code prompt}/{@code answer} 는 저장하지 않고 <b>길이만</b> 남긴다.
- * 내용까지 보관하려면 암호화 컨버터를 붙이고 보존기간을 정한 뒤에 해야 한다.</p>
+ * <p><b>개인정보 처리</b><br>
+ * 답변 본문은 저장하지 않는다(길이만). 질문 본문은 <b>학습 진단([기능 4])에 필요해</b>
+ * 저장하되 다음을 지킨다.
+ * <ul>
+ *   <li>{@code CryptoConverter}(AES-256/GCM)로 <b>암호문 저장</b> — DB 를 직접 열어도 읽히지 않는다</li>
+ *   <li>훈련생 질문({@code purpose=QNA})만 저장한다. 배치·강사 호출은 남기지 않는다</li>
+ *   <li>{@link #MAX_QUESTION_CHARS} 를 넘으면 잘라 담는다 — 진단에는 앞부분이면 충분하다</li>
+ *   <li>보존기간이 지난 기록은 {@code AiUsageLogCleaner} 가 질문 본문만 지운다.
+ *       통계(건수·토큰)는 남기고 <b>내용만</b> 지운다</li>
+ * </ul>
+ * 암호문이라 <b>이 컬럼으로 DB 검색은 불가능</b>하다 (CLAUDE.md 규칙 7).
+ * 진단은 하루치를 읽어 자바에서 처리한다.</p>
  *
  * <p>이력 테이블이라 soft delete 를 쓰지 않는다 — 지워지면 기록의 의미가 없다.</p>
  */
@@ -76,6 +86,21 @@ public class AiUsageLog extends BaseEntity {
     @Column(name = "answer_chars", nullable = false)
     private int answerChars;
 
+    /** 질문 대상 과정. 진단은 과정 단위로 하므로 필요하다. */
+    @Column(name = "course_id")
+    private Long courseId;
+
+    /**
+     * 훈련생 질문 본문 (암호화 저장). 진단 대상이 아닌 호출은 null.
+     * 답변은 저장하지 않는다 — 진단에 필요한 것은 "무엇을 어려워하는가"이지 답이 아니다.
+     */
+    @Convert(converter = CryptoConverter.class)
+    @Column(name = "question", columnDefinition = "TEXT")
+    private String question;
+
+    /** 진단에 쓸 만큼만 담는다. 길게 담아도 분류 정확도는 안 올라가고 저장량만 는다. */
+    public static final int MAX_QUESTION_CHARS = 500;
+
     private AiUsageLog(String purpose, Long userId, String model, boolean success,
                        String failReason, int inputTokens, int outputTokens,
                        long elapsedMs, int promptChars, int answerChars) {
@@ -103,5 +128,24 @@ public class AiUsageLog extends BaseEntity {
                                      String failReason, long elapsedMs, int promptChars) {
         return new AiUsageLog(purpose, userId, model, false, failReason,
                 0, 0, elapsedMs, promptChars, 0);
+    }
+
+    /**
+     * 진단용 질문 본문을 붙인다. 훈련생 Q&A 에서만 호출한다.
+     * 길면 잘라 담는다 — 저장량이 늘어날 뿐 분류가 정확해지지는 않는다.
+     */
+    public AiUsageLog withQuestion(Long courseId, String question) {
+        this.courseId = courseId;
+        if (question != null && !question.isBlank()) {
+            String q = question.trim();
+            this.question = q.length() > MAX_QUESTION_CHARS
+                    ? q.substring(0, MAX_QUESTION_CHARS) : q;
+        }
+        return this;
+    }
+
+    /** 보존기간이 지난 기록의 <b>내용만</b> 지운다. 통계는 남긴다. */
+    public void forgetQuestion() {
+        this.question = null;
     }
 }

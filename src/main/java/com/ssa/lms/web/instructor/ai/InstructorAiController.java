@@ -2,6 +2,7 @@ package com.ssa.lms.web.instructor.ai;
 
 import com.ssa.lms.ai.dto.AssignmentDraft;
 import com.ssa.lms.ai.service.AiAssignmentDraftService;
+import com.ssa.lms.ai.service.AiDiagnosisService;
 import com.ssa.lms.auth.LoginUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,12 +38,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class InstructorAiController {
 
     private final AiAssignmentDraftService draftService;
+    private final AiDiagnosisService diagnosisService;
 
     @GetMapping("/diagnosis")
-    public String diagnosis(Model model) {
+    public String diagnosis(@AuthenticationPrincipal LoginUser me, Model model) {
         // 키가 없으면 화면이 [AI로 과제 만들기] 버튼을 비활성으로 그린다 —
         // 눌러 놓고 기다렸다 실패하면 허탈하다
         model.addAttribute("aiAvailable", draftService.available());
+        // 훈련생 질문이 없으면 모델을 부르지 않고 빈 결과가 온다 (비용 방어)
+        model.addAttribute("diagnosis",
+                diagnosisService.forInstructor(me == null ? null : me.getId()));
         return "instructor/ai-diagnosis";
     }
 

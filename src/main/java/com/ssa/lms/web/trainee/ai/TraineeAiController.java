@@ -2,6 +2,7 @@ package com.ssa.lms.web.trainee.ai;
 
 import com.ssa.lms.ai.dto.AiQnaAnswer;
 import com.ssa.lms.ai.service.AiEscalationService;
+import com.ssa.lms.ai.service.AiCurriculumService;
 import com.ssa.lms.ai.service.AiQnaService;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.job.service.RoadmapService;
@@ -45,6 +46,7 @@ public class TraineeAiController {
     private final RoadmapService roadmapService;
     private final AiEscalationService escalationService;
     private final QnaService qnaService;
+    private final AiCurriculumService curriculumService;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
@@ -113,9 +115,17 @@ public class TraineeAiController {
     /** @param qnaId 등록된 Q&A id — 화면이 "전달한 질문 보기" 링크를 만들 수 있다 */
     public record EscalateResult(boolean ok, Long qnaId, String message) {}
 
-    /** 맞춤 커리큘럼 추천 — 추천 대상은 원내 개설 과정으로 한정한다. */
+    /**
+     * 맞춤 커리큘럼 추천 — 추천 대상은 <b>원내 개설 과정</b>으로 한정한다.
+     *
+     * <p>모델이 없는 과정을 지어낼 수 있어, 서비스가 실제 과정 id 와 대조해 거른 뒤 내려준다.
+     * 실패하면 {@code ok=false} 로 오고 화면은 안내 문구를 보여준다 — 가짜로 채우지 않는다.</p>
+     */
     @GetMapping("/curriculum")
-    public String curriculum() {
+    public String curriculum(@AuthenticationPrincipal LoginUser me, Model model) {
+        model.addAttribute("advice",
+                curriculumService.recommend(me == null ? null : me.getId()));
+        model.addAttribute("aiAvailable", curriculumService.available());
         return "trainee/ai-curriculum";
     }
 

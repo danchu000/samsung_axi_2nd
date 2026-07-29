@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/trainee/index.css">
     <link rel="stylesheet" href="/static/css/chatbot.css">
+    <link rel="stylesheet" href="/static/css/ai-common.css">
     <script src="/static/js/chatbot.js" defer></script>
     <script src="/static/js/trainee/index.js" defer></script>
+    <script src="/static/js/ai-widget.js" defer></script>
 
     <!-- ===== 서버 데이터 주입 =====
          TraineeDashboardView(com.ssa.lms.dashboard.dto)를 그대로 내려받는다.
@@ -85,6 +87,17 @@
                   <div class="card section" style="flex:1;" id="heart-area">
                     <img src="/static/img/trainee.png" alt="cheerup">
                   </div>
+                </div>
+
+                <!-- AI 학습지원 요약 — 상세는 AI 학습지원 메뉴에서 -->
+                <div class="card section ai-widget">
+                    <div class="section-head">
+                    <div>
+                        <h3 class="section-title">AI 학습지원 <span class="ai-badge">AI</span></h3>
+                        <p class="section-desc">내 학습 데이터를 분석한 결과예요.</p>
+                    </div>
+                    </div>
+                    <div class="ai-grid ai-grid-3" id="hpAiCards"></div>
                 </div>
 
                 <!-- 진행중 과정 -->

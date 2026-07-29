@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- 공통 -->
+<link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
+<link rel="stylesheet" href="/static/css/btn-style.css" />
+<link rel="stylesheet" href="/static/css/ai-common.css" />
+<script src="/static/js/trainee/ai-roadmap.js" defer></script>
+
+<title>Samsung Academy LXP</title>
+</head>
+<!-- ********************************************************************************************************* -->
+<body>
+    <header th:replace="~{fragments/trainee :: header('ai')}"></header>
+
+    <main>
+        <section class="main-content-top">
+            <div class="main-wrap">
+                <h2>직무 로드맵</h2>
+            </div>
+        </section>
+
+        <div class="main-wrap">
+
+            <p class="ai-page-desc">
+                목표 직무를 고르면 <b>최근 채용공고에서 실제로 요구한 자격·기술</b>을 정리해 보여줘요.
+                내 학습 기록과 비교해 아직 채우지 못한 부분을 알려드려요.
+            </p>
+
+            <!-- AI 산출물임을 명시. 사람이 확정한 값과 섞이면 안 된다. -->
+            <div class="ai-disclaimer">
+                <span>ⓘ</span>
+                <span>
+                    이 화면은 채용공고를 <b>주 1회 수집</b>해 AI가 정리한 참고 자료예요.
+                    실제 채용 조건은 기업 공고 원문을 확인해 주세요.
+                    <b class="js-collected-at">마지막 수집: 2026-07-27</b>
+                </span>
+            </div>
+
+            <!-- ===== 직무 선택 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">목표 직무</h3>
+                        <p class="ai-card-sub">직무를 바꾸면 아래 내용이 함께 바뀌어요.</p>
+                    </div>
+                    <span class="ai-badge">AI 분석</span>
+                </div>
+
+                <div class="filter-row" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                    <div class="field field-grow" style="min-width:240px;">
+                        <label for="jobSelect">직무</label>
+                        <select id="jobSelect" class="form-select"></select>
+                    </div>
+                    <div class="btn-row">
+                        <button type="button" class="btn btn-primary" id="btnAnalyze">분석하기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 요약 ===== -->
+            <div class="ai-grid ai-grid-3" id="summaryGrid"></div>
+
+            <!-- ===== 요구 역량 vs 내 역량 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">요구 역량 대비 내 현황</h3>
+                        <p class="ai-card-sub">채용공고에서 많이 요구한 순서예요.</p>
+                    </div>
+                </div>
+
+                <div class="ai-grid ai-grid-2">
+                    <div>
+                        <p class="ai-item-title" style="margin-bottom:10px;">✅ 갖춘 역량</p>
+                        <div class="ai-tags" id="skillsHave"></div>
+                    </div>
+                    <div>
+                        <p class="ai-item-title" style="margin-bottom:10px;">⚠️ 보완이 필요한 역량</p>
+                        <div class="ai-tags" id="skillsLack"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top:22px;" id="skillMeters"></div>
+            </div>
+
+            <!-- ===== 단계별 로드맵 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">단계별 학습 로드맵</h3>
+                        <p class="ai-card-sub">지금 위치에서 목표 직무까지 순서대로 정리했어요.</p>
+                    </div>
+                </div>
+                <ul class="ai-list" id="roadmapList"></ul>
+            </div>
+
+            <!-- ===== 최근 채용공고 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">이 역량을 요구한 최근 공고</h3>
+                        <p class="ai-card-sub">주 1회 수집된 공고 중 최신순이에요.</p>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="ai-table">
+                        <thead>
+                            <tr>
+                                <th style="width:150px;">기업</th>
+                                <th>공고명</th>
+                                <th style="width:300px;">주요 요구 역량</th>
+                                <th style="width:110px;">등록일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postingBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/trainee :: footer}"></footer>
+</body>
+</html>

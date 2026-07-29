@@ -8,7 +8,7 @@
     <footer th:replace="~{fragments/trainee :: footer}"></footer>
 
   header() 의 active 키 (상단 GNB 대분류):
-    my-course | contents | test | support | notices | attendance
+    my-course | contents | test | support | ai | notices | attendance
 
   구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28). 아직 컨트롤러가 없는 화면
   (출결현황/이수관리/알림/내 정보)은 "준비 중" alert 처리 — 구현 시 이 파일만 수정.
@@ -44,6 +44,15 @@
                 <ul>
                     <li><a href="/trainee/qna/tutoring">튜터링</a></li>
                     <li><a href="/trainee/qna">Q&amp;A</a></li>
+                </ul>
+            </li>
+            <!-- AI 학습지원 — 기존 학습지원(사람이 답하는 튜터링·Q&A)과 구분해 따로 둔다 -->
+            <li th:classappend="${active == 'ai'} ? 'active_menu'">
+                <span><a href="/trainee/ai/qna">AI 학습지원</a></span>
+                <ul>
+                    <li><a href="/trainee/ai/qna">AI 학습 도우미</a></li>
+                    <li><a href="/trainee/ai/curriculum">맞춤 커리큘럼 추천</a></li>
+                    <li><a href="/trainee/ai/roadmap">직무 로드맵</a></li>
                 </ul>
             </li>
             <li th:classappend="${active == 'notices'} ? 'active_menu'">

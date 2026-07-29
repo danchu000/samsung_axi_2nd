@@ -10,7 +10,7 @@
   sidebar() 의 active 키:
     dashboard | trainees | contents | courses | scheduler
     | eval-assignment | eval-exam | eval-monitoring
-    | att-status | att-graduate | notices | tutoring
+    | att-status | att-graduate | notices | tutoring | ai-diagnosis
 
   구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28). 아직 컨트롤러가 없는 화면
   (훈련생/과정·일정/출결·이수/튜터링/알림/내 정보)은 "준비 중" alert 처리 — 구현 시 이 파일만 수정.
@@ -84,6 +84,11 @@
                     <a href="/instructor/notice"><li th:classappend="${active == 'notices'} ? 'active_menu'">공지사항</li></a>
                     <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'tutoring'} ? 'active_menu'">튜터링/Q&amp;A</li></a>
                 </ul>
+            </li>
+            <!-- AI 학습진단 — 훈련생의 AI 질문·평가 결과로 취약 영역을 진단하고 과제를 추천한다 -->
+            <li onclick="handleMenuClick(this, '/instructor/ai/diagnosis')">
+                <img src="/static/icons/01-dashboard.svg" alt="ai icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
+                <span class="menu-text" th:classappend="${active == 'ai-diagnosis'} ? 'active_menu'">AI 학습진단</span>
             </li>
         </ul>
     </nav>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- 공통 -->
+<link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
+<link rel="stylesheet" href="/static/css/btn-style.css" />
+<link rel="stylesheet" href="/static/css/ai-common.css" />
+<script src="/static/js/trainee/ai-curriculum.js" defer></script>
+
+<title>Samsung Academy LXP</title>
+</head>
+<!-- ********************************************************************************************************* -->
+<body>
+    <header th:replace="~{fragments/trainee :: header('ai')}"></header>
+
+    <main>
+        <section class="main-content-top">
+            <div class="main-wrap">
+                <h2>맞춤 커리큘럼 추천</h2>
+            </div>
+        </section>
+
+        <div class="main-wrap">
+
+            <p class="ai-page-desc">
+                지금까지의 <b>학습 진도 · 출결 · 평가 결과</b>를 분석해서
+                <b>우리 학원에서 열리는 과정 중</b> 다음에 들으면 좋을 과정을 추천해 드려요.
+            </p>
+
+            <div class="ai-disclaimer">
+                <span>ⓘ</span>
+                <span>
+                    AI가 학습 데이터를 바탕으로 추천한 결과예요. 수강 신청 전에
+                    담당 강사님과 상의하시면 더 좋아요.
+                    <b class="js-analyzed-at">분석 기준: 2026-07-29</b>
+                </span>
+            </div>
+
+            <!-- ===== 내 학습 현황 요약 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">추천에 사용된 내 학습 데이터</h3>
+                        <p class="ai-card-sub">아래 값을 근거로 추천했어요.</p>
+                    </div>
+                    <span class="ai-badge">AI 분석</span>
+                </div>
+                <div class="ai-grid ai-grid-3" id="statGrid"></div>
+                <div style="margin-top:20px;" id="weakMeters"></div>
+            </div>
+
+            <!-- ===== 추천 과정 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">추천 과정</h3>
+                        <p class="ai-card-sub">적합도가 높은 순서예요.</p>
+                    </div>
+                </div>
+                <div id="recommendList"></div>
+            </div>
+
+            <!-- ===== 지금은 권하지 않는 과정 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">아직은 이른 과정</h3>
+                        <p class="ai-card-sub">선수 학습이 더 필요해요. 위 과정을 먼저 들으면 좋아요.</p>
+                    </div>
+                </div>
+                <ul class="ai-list" id="laterList"></ul>
+            </div>
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/trainee :: footer}"></footer>
+</body>
+</html>

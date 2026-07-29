@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="/static/css/common-style.css">
     <link rel="stylesheet" href="/static/css/sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
+    <link rel="stylesheet" href="/static/css/ai-common.css">
+    <script src="/static/js/ai-widget.js" defer></script>
     
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
@@ -374,6 +376,16 @@
                 <button class="btn btn-gray btn-sm" type="button" onclick="location.href='/admin/support/response'">응답현황</button>
                 </div>
             </div>
+            </div>
+
+            <!-- AI 분석 요약 — 훈련생 AI 이용 현황과 시장 수요 -->
+            <div class="panel ai-widget" style="margin-bottom:16px;">
+                <div class="panel-header">
+                <h3>🤖 AI 분석 요약 <span class="ai-badge">AI</span></h3>
+                </div>
+                <div class="panel-body">
+                <div class="ai-grid ai-grid-3" id="adminAiCards"></div>
+                </div>
             </div>
 
             <!-- Alerts + Trend -->

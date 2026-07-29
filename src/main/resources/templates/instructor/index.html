@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="/static/css/i-sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/ai-common.css">
     <script src="/static/js/dashboard.js" defer></script>
+    <script src="/static/js/ai-widget.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
 
@@ -713,6 +715,17 @@
 
         <!-- 2x2 panels -->
         <div class="panel-grid">
+          <!-- AI 학습진단 요약 — 상세는 AI 학습진단 메뉴 -->
+          <div class="panel ai-widget" style="margin-bottom:16px;">
+            <div class="panel-header">
+              <h3>🤖 AI 학습진단 <span class="ai-badge">AI</span></h3>
+              <button class="btn btn-gray btn-sm" type="button" onclick="location.href='/instructor/ai/diagnosis'">전체보기</button>
+            </div>
+            <div class="panel-body">
+              <div class="ai-grid ai-grid-3" id="instAiCards"></div>
+            </div>
+          </div>
+
           <!-- Row 1 -->
           <div class="panel-row-1">
             <!-- Courses -->

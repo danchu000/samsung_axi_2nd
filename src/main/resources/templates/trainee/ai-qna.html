@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- 공통 -->
+<link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
+<link rel="stylesheet" href="/static/css/btn-style.css" />
+<link rel="stylesheet" href="/static/css/ai-common.css" />
+<script src="/static/js/trainee/ai-qna.js" defer></script>
+
+<title>Samsung Academy LXP</title>
+</head>
+<!-- ********************************************************************************************************* -->
+<body>
+    <header th:replace="~{fragments/trainee :: header('ai')}"></header>
+
+    <main>
+        <section class="main-content-top">
+            <div class="main-wrap">
+                <h2>AI 학습 도우미</h2>
+            </div>
+        </section>
+
+        <div class="main-wrap">
+
+            <p class="ai-page-desc">
+                수업에서 배운 <b>학습 자료를 바탕으로</b> 바로 답해 드려요.
+                강사님 답변을 기다리지 않아도 돼요.
+            </p>
+
+            <div class="ai-disclaimer">
+                <span>ⓘ</span>
+                <span>
+                    AI 답변은 <b>참고용</b>이에요. 내용이 정확하지 않을 수 있으니
+                    중요한 내용은 근거 자료를 함께 확인해 주세요.
+                    해결되지 않으면 아래 <b>강사님께 전달</b> 버튼을 눌러 주세요.
+                </span>
+            </div>
+
+            <!-- ===== 과정 선택 ===== -->
+            <div class="ai-card" style="padding:14px 18px;">
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <label for="courseSelect" style="font-size:13px; color:#374151; font-weight:600;">질문할 과정</label>
+                    <select id="courseSelect" class="form-select" style="min-width:280px;">
+                        <option value="1">클라우드 기반 풀스택 개발자 양성과정</option>
+                        <option value="2">데이터 분석 실무 과정</option>
+                    </select>
+                    <span class="ai-card-sub" style="margin:0;">선택한 과정의 학습 자료에서 답을 찾아요.</span>
+                </div>
+            </div>
+
+            <!-- ===== 채팅 ===== -->
+            <div class="ai-chat-wrap">
+                <div class="ai-chat-log" id="chatLog" aria-live="polite"></div>
+
+                <div class="ai-chat-input">
+                    <textarea id="chatInput" rows="1"
+                              placeholder="궁금한 내용을 입력하세요.  (Enter 전송 · Shift+Enter 줄바꿈)"
+                              aria-label="질문 입력"></textarea>
+                    <button type="button" class="btn btn-primary" id="btnSend">전송</button>
+                </div>
+            </div>
+
+            <!-- AI 로 안 되면 사람에게 — 항상 보이는 자리에 둔다 -->
+            <div class="ai-escalate">
+                <span>답변이 충분하지 않나요? 지금까지의 대화를 담당 강사님께 전달할 수 있어요.</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnEscalate">강사님께 전달</button>
+            </div>
+
+            <!-- ===== 자주 묻는 질문 ===== -->
+            <div class="ai-card" style="margin-top:18px;">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">이런 걸 물어보세요</h3>
+                    </div>
+                </div>
+                <div class="ai-tags" id="suggestBox"></div>
+            </div>
+
+            <!-- ===== 강사에게 전달한 내역 ===== -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <div>
+                        <h3 class="ai-card-title">강사님께 전달한 질문</h3>
+                        <p class="ai-card-sub">AI로 해결되지 않아 전달한 질문이에요.</p>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="ai-table">
+                        <thead>
+                            <tr>
+                                <th>질문</th>
+                                <th style="width:150px;">담당 강사</th>
+                                <th style="width:110px;">상태</th>
+                                <th style="width:110px;">전달일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="escalatedBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/trainee :: footer}"></footer>
+</body>
+</html>

@@ -715,6 +715,22 @@
 
         <!-- 2x2 panels -->
         <div class="panel-grid">
+          <!--
+            오늘 처리할 일 — 화면 맨 위.
+            예전에는 7번째 블록이라 스크롤해야 보였다. 강사가 대시보드를 여는 이유는
+            "지금 뭘 해야 하나"를 알기 위해서다. 현황은 그 다음이다.
+            건수가 0~2건이라 막대로는 아무것도 안 보여 체크리스트로 둔다.
+          -->
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header">
+              <h3>🗂️ 오늘 처리할 일</h3>
+              <span class="muted" id="workloadSummary"></span>
+            </div>
+            <div class="panel-body">
+              <ul class="worklist" id="myWorklist"></ul>
+            </div>
+          </div>
+
           <!-- AI 학습진단 요약 — 상세는 AI 학습진단 메뉴 -->
           <div class="panel ai-widget" style="margin-bottom:16px;">
             <div class="panel-header">
@@ -793,7 +809,8 @@
             코딩시간·이탈률은 이 시스템이 수집하지 않는 값이다.
             실제로 가진 데이터(담당 과정 진도·미이수 인원, 채점 대기, 응답 대기)로 바꿨다.
           -->
-          <div class="panel-grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <!-- 처리할 일을 위로 올려 이제 2개다. 3칸 그리드로 두면 오른쪽이 비어 보인다 -->
+          <div class="panel-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="panel">
               <div class="panel-header">
                 <h3>📚 담당 과정 진행 현황</h3>
@@ -816,16 +833,6 @@
               </div>
             </div>
 
-            <!-- 대기 업무는 건수가 0~2건이라 막대로는 아무것도 안 보인다. 체크리스트가 맞다. -->
-            <div class="panel">
-              <div class="panel-header">
-                <h3>🗂️ 오늘 처리할 일</h3>
-                <span class="muted" id="workloadSummary"></span>
-              </div>
-              <div class="panel-body">
-                <ul class="worklist" id="myWorklist"></ul>
-              </div>
-            </div>
           </div>
           
         </div>

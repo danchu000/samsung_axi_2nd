@@ -329,6 +329,61 @@
             <div class="dash-date" id="todayText">오늘: -</div>
             </div>
 
+            <!--
+              오늘 조치할 일 — 화면 맨 위.
+              예전에는 "운영 알림/리스크"가 3번째 블록에 있어 스크롤해야 보였다.
+              대시보드에서 가장 먼저 답해야 할 질문은 "그래서 지금 뭘 해야 하나"다.
+              집계(KPI)는 그 다음이다.
+
+              값은 서버에서 그대로 렌더한다 — JS 가 죽어도 조치 항목은 보여야 한다.
+            -->
+            <div class="action-strip">
+                <div class="action-strip-head">
+                    <h3>오늘 조치할 일</h3>
+                    <span class="muted">처리가 필요한 항목만 모았습니다</span>
+                </div>
+
+                <div class="action-items">
+                    <a class="action-item" th:if="${dashboard.kpi.attendance.pendingConfirm != '0'}"
+                       href="/admin/completion">
+                        <span class="action-dot warn"></span>
+                        <span class="action-label">이수 확정 대기</span>
+                        <span class="action-count" th:text="${dashboard.kpi.attendance.pendingConfirm}">0</span>
+                    </a>
+
+                    <a class="action-item" th:if="${dashboard.kpi.support.unanswered != '0'}"
+                       href="/admin/support/response">
+                        <span class="action-dot warn"></span>
+                        <span class="action-label">미응답 문의</span>
+                        <span class="action-count" th:text="${dashboard.kpi.support.unanswered}">0</span>
+                    </a>
+
+                    <!-- SLA 위험은 시간이 지나면 되돌릴 수 없다 — 가장 높은 단계로 표시 -->
+                    <a class="action-item" th:if="${dashboard.kpi.support.slaRisk != '0'}"
+                       href="/admin/support/response">
+                        <span class="action-dot danger"></span>
+                        <span class="action-label">응답 기한 임박</span>
+                        <span class="action-count" th:text="${dashboard.kpi.support.slaRisk}">0</span>
+                    </a>
+
+                    <a class="action-item" th:if="${not #lists.isEmpty(dashboard.risks)}"
+                       href="/admin/notice/alarms">
+                        <span class="action-dot danger"></span>
+                        <span class="action-label">운영 위험 신호</span>
+                        <span class="action-count" th:text="${#lists.size(dashboard.risks)}">0</span>
+                    </a>
+
+                    <!-- 조치할 게 없으면 빈 줄을 두지 않고 그렇다고 말한다 -->
+                    <div class="action-clear"
+                         th:if="${dashboard.kpi.attendance.pendingConfirm == '0'
+                                  and dashboard.kpi.support.unanswered == '0'
+                                  and dashboard.kpi.support.slaRisk == '0'
+                                  and #lists.isEmpty(dashboard.risks)}">
+                        지금 조치가 필요한 항목이 없습니다.
+                    </div>
+                </div>
+            </div>
+
             <!-- KPI -->
             <div class="kpi-grid">
             <div class="kpi-card">

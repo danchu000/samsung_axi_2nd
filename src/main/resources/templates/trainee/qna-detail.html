@@ -88,52 +88,9 @@
       </div>
 
       <!--
-        Q&A 스레드. 도메인 모델상 '댓글' = QnaAnswer 라 위 답변 카드와 같은 데이터를 시간순으로 보여준다.
-        권한정의서(1) 26행: Q&A 답변 작성(C)은 관리자·강사만 가능하므로 훈련생 화면에는 작성 UI 를 두지 않는다.
+        답변 이력 섹션 제거: 위 '답변' 카드가 이미 detail.answers 전체를 시간순으로 렌더링하므로
+        동일 데이터를 아래에서 다시 반복하면 답변이 두 번 노출됐다(김지민 QA). 답변 카드로 일원화한다.
       -->
-      <div class="detail-card comment-section">
-
-        <div class="card-title">
-          답변 이력
-          <span class="comment-count"
-                th:text="|${#lists.size(detail.answers)}개|">
-            2개
-          </span>
-        </div>
-
-        <div class="comment-list">
-
-          <div class="comment-item"
-              th:each="answer : ${detail.answers}">
-
-            <div class="comment-meta">
-              <span class="comment-writer"
-                    th:text="|${answer.responderName} (${answer.responderRole})|">
-                홍길동
-              </span>
-              <div>
-                <span class="comment-date"
-                      th:text="${answer.createdAt}">
-                  2026-01-26
-                </span>
-              </div>
-            </div>
-
-            <div class="comment-body"
-                th:text="${answer.content}">
-              답변 내용이 표시됩니다.
-            </div>
-
-          </div>
-
-          <div class="muted"
-              th:if="${#lists.isEmpty(detail.answers)}">
-            아직 등록된 답변이 없습니다.
-          </div>
-
-        </div>
-
-      </div>
 
       <!-- 상단: 뒤로가기 + 액션 -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 30px; margin-bottom:14px;">

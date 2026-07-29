@@ -227,6 +227,9 @@
 
   .chat-window {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     padding: 16px;
     overflow-y: auto;
     background: #ffffff;
@@ -246,37 +249,45 @@
     border-radius: 999px;
   }
 
-  .msg {
+  /* 메시지 말풍선. 템플릿(tutoring.html)이 .msg-row + me/tutor, .msg-bubble, .msg-meta 를
+     렌더링하므로 클래스명을 그것에 맞춘다. (tutor = 튜터 답변 좌측, me = 내 질문 우측) */
+  .msg-row {
     display: flex;
-    margin-bottom: 10px;
+    flex-direction: column;
+    max-width: 75%;
+    margin: 0;
   }
-  .msg.left { justify-content: flex-start; }
-  .msg.right { justify-content: flex-end; }
+  .msg-row.tutor {
+    align-self: flex-start;
+  }
+  .msg-row.me {
+    align-self: flex-end;
+    text-align: right;
+  }
 
-  .bubble {
-    max-width: 74%;
+  .msg-bubble {
     padding: 10px 12px;
-    border-radius: 14px;
-    border: 1px solid #e8e8e8;
-    background: #fbfbfb;
-    color: #222;
     font-size: 13px;
     line-height: 1.45;
     white-space: pre-wrap;
     word-break: break-word;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
-
-  .msg.right .bubble {
+  .msg-row.tutor .msg-bubble {
+    background: #eeeeee;
+    color: #333;
+    border-radius: 14px 14px 14px 4px;
+  }
+  .msg-row.me .msg-bubble {
     background: #eaf2ff;
-    border-color: #cfe0ff;
+    color: #1a1a1a;
+    border-radius: 14px 14px 4px 14px;
   }
 
-  .bubble-meta {
+  .msg-meta {
     margin-top: 6px;
     font-size: 11px;
     color: #777;
-    display: flex;
-    gap: 10px;
   }
 
   /* 로딩 말풍선 */

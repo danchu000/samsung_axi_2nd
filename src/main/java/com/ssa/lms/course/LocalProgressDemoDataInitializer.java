@@ -4,6 +4,11 @@ import com.ssa.lms.course.entity.Enrollment;
 import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.CourseRepository;
 import com.ssa.lms.course.repository.EnrollmentRepository;
+import com.ssa.lms.user.entity.Role;
+import com.ssa.lms.user.entity.User;
+import com.ssa.lms.user.entity.UserStatus;
+import com.ssa.lms.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +17,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +52,13 @@ public class LocalProgressDemoDataInitializer {
             "클라우드 기반 풀스택", 70
     );
 
+    /** 트랙이 그럴듯하게 보이려면 최소 이 인원은 있어야 한다. */
+    private static final int MIN_TRAINEES = 6;
+
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /** 기동 5초 뒤 한 번만. {@code fixedDelay} 를 크게 잡아 두 번 돌지 않게 한다. */
     @Scheduled(initialDelay = 5_000, fixedDelay = Long.MAX_VALUE)
@@ -56,6 +67,9 @@ public class LocalProgressDemoDataInitializer {
         courseRepository.findAll().forEach(course -> {
             Integer target = targetOf(course.getCourseName());
             if (target == null) return;
+
+            // 트랙에 주자가 2명뿐이면 "달리기"로 안 보인다. 시연용으로 채운다
+            padTrainees(course.getId());
 
             List<Enrollment> rows = enrollmentRepository
                     .findByCourseIdOrderByAppliedAtDesc(course.getId()).stream()
@@ -87,6 +101,39 @@ public class LocalProgressDemoDataInitializer {
 
             log.info("[시드] 진도율 채움 — {} : 평균 {}% ({}명)", course.getCourseName(), target, n);
         });
+    }
+
+    /**
+     * 수강생이 모자라면 시연용으로 채운다.
+     * 계정은 로그인할 일이 없지만 형식은 실제와 같게 만든다 — 비밀번호도 인코딩해 둔다.
+     */
+    private void padTrainees(Long courseId) {
+        long now = enrollmentRepository.findByCourseIdOrderByAppliedAtDesc(courseId).stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED
+                        || e.getStatus() == EnrollmentStatus.COMPLETED)
+                .count();
+        if (now >= MIN_TRAINEES) return;
+
+        String[] names = {"김서연", "박도윤", "이하은", "정민준", "최지우", "한소율"};
+        for (int i = 0; (now + i) < MIN_TRAINEES; i++) {
+            String loginId = "demo_t" + courseId + "_" + i;
+            if (userRepository.findByLoginId(loginId).isPresent()) continue;
+
+            User u = userRepository.save(User.builder()
+                    .loginId(loginId)
+                    .password(passwordEncoder.encode("1234"))
+                    .name(names[i % names.length])
+                    .role(Role.TRAINEE)
+                    .status(UserStatus.ACTIVE)
+                    .build());
+
+            enrollmentRepository.save(Enrollment.builder()
+                    .trainee(u).course(courseRepository.getReferenceById(courseId))
+                    .status(EnrollmentStatus.APPROVED)
+                    .appliedAt(LocalDateTime.now().minusDays(7))
+                    .build());
+        }
+        enrollmentRepository.flush();
     }
 
     private Integer targetOf(String courseName) {

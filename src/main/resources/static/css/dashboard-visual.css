@@ -474,92 +474,141 @@ main {
 .race-card {
     display: flex;
     flex-direction: column;
-    gap: 4px;
 }
 
 .race-rank {
     display: flex;
     align-items: baseline;
     gap: 4px;
-    margin: 6px 0 2px;
+    margin: 8px 0 2px;
 }
 
 .race-rank-num {
-    font-size: 40px;
+    font-size: 44px;
     font-weight: 800;
     color: var(--dash-navy);
     line-height: 1;
     letter-spacing: -.03em;
 }
 
-.race-rank-unit { font-size: 18px; font-weight: 700; color: var(--dash-navy); }
+.race-rank-unit { font-size: 19px; font-weight: 700; color: var(--dash-navy); }
 .race-rank-total { font-size: 14px; color: #667085; margin-left: 4px; }
 
-.race-track { margin: 14px 0 6px; }
+.race-track { margin: 18px 0 4px; }
 
-/* 트랙 — 점선이 레인 표시. 0% 출발, 100% 결승 */
+/* 트랙 — 안쪽 여백을 둬서 0%·100% 주자가 잘리지 않게 한다 */
 .race-lane {
     position: relative;
-    height: 52px;
-    background: linear-gradient(180deg, #f7f8fc 0%, #eef1f8 100%);
+    height: 96px;
+    padding: 0 30px;
+    background:
+        repeating-linear-gradient(90deg, #eef1f8 0 2px, transparent 2px 40px),
+        linear-gradient(180deg, #f8f9fd 0%, #eef1f8 100%);
     border: 1px solid #e2e6f0;
-    border-radius: 26px;
-    margin-bottom: 6px;
+    border-radius: 14px;
 }
 
-.race-lane::before {
+/* 레인 — 주자가 달리는 선 */
+.race-lane::after {
     content: '';
     position: absolute;
-    left: 14px; right: 14px; top: 50%;
-    border-top: 2px dashed #d6dbe8;
+    left: 30px; right: 30px; top: 62%;
+    border-top: 3px dashed #d9dfec;
 }
 
-.race-finish {
+.race-start, .race-finish {
     position: absolute;
-    right: 6px; top: 50%;
+    top: 62%;
     transform: translateY(-50%);
-    font-size: 20px;
+    font-size: 18px;
+    z-index: 2;
 }
 
-/* 주자 — left 를 진도율(%)로 잡는다. 양끝에서 잘리지 않게 안쪽으로 살짝 민다 */
+.race-start { left: 6px; }
+.race-finish { right: 6px; }
+
+/*
+ * 주자 좌표계.
+ * left 를 % 로 잡되 트랙 안쪽(padding 30px)만 쓰도록 calc 로 보정한다 —
+ * 그냥 left:100% 면 결승선 밖으로 나가고, left:0% 면 출발 깃발과 겹친다.
+ */
 .race-runner {
     position: absolute;
-    top: 50%;
+    top: 62%;
     transform: translate(-50%, -50%);
-    font-size: 22px;
     line-height: 1;
-    transition: left .5s ease;
-    max-width: 0;              /* 위치만 잡고 폭은 아이콘이 결정 */
-    display: flex;
-    justify-content: center;
+    transition: left .6s ease;
     white-space: nowrap;
+}
+
+.race-runner.other {
+    font-size: 20px;
+    opacity: .4;
+    filter: grayscale(.6);
+    z-index: 1;
 }
 
 /* 나 — 가장 크고 진하게. 내 위치가 먼저 보여야 한다 */
 .race-runner.me {
-    font-size: 30px;
-    z-index: 3;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
+    z-index: 3;
 }
+
+.race-me-icon { font-size: 30px; }
+
+/*
+ * 🏃 이모지는 대부분의 폰트에서 **왼쪽을 보고** 있다.
+ * 트랙은 왼→오른쪽으로 달리므로 그대로 두면 거꾸로 뛰는 것처럼 보인다.
+ */
+.race-runner .race-me-icon,
+.race-runner.other { display: inline-block; transform: scaleX(-1); }
+.race-runner.other { transform: translate(-50%, -50%) scaleX(-1); }
 
 .race-me-badge {
     background: var(--dash-navy);
     color: #fff;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 800;
-    padding: 2px 7px;
+    padding: 3px 9px;
     border-radius: 999px;
     line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(19, 29, 65, .25);
 }
 
-/* 앞·뒤 주자 — 익명이라 흐리게. 나를 가리지 않는다 */
-.race-runner.ahead,
-.race-runner.behind {
-    opacity: .45;
-    filter: grayscale(.5);
-    z-index: 1;
+/* 반 평균 기준선 — 내가 평균보다 앞인지 뒤인지가 한눈에 보여야 한다 */
+.race-avg {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    transform: translateX(-50%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.race-avg i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-left: 2px dashed #b9c2d8;
+}
+
+.race-avg em {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-style: normal;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #7a869f;
+    background: #fff;
+    border: 1px solid #e2e6f0;
+    border-radius: 999px;
+    padding: 1px 7px;
+    white-space: nowrap;
 }
 
 .race-axis {
@@ -567,14 +616,34 @@ main {
     justify-content: space-between;
     font-size: 11.5px;
     color: #98a2b3;
-    padding: 0 4px;
+    padding: 6px 4px 0;
 }
 
 .race-msg {
-    margin: 6px 0 0;
+    margin: 10px 0 0;
     font-size: 13.5px;
     color: #475467;
     line-height: 1.6;
 }
 
 .race-msg b { color: var(--dash-navy); }
+
+/* 빈 자리를 숫자로 채우지 않고, 판단에 쓰는 값만 셋 */
+.race-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: auto;      /* 카드가 길면 아래에 붙어 빈 공간을 메운다 */
+    padding-top: 16px;
+}
+
+.race-stat {
+    background: #f8f9fd;
+    border: 1px solid #eef1f8;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+}
+
+.race-stat .k { display: block; font-size: 12px; color: #667085; margin-bottom: 3px; }
+.race-stat .v { display: block; font-size: 18px; font-weight: 800; color: var(--dash-navy); }

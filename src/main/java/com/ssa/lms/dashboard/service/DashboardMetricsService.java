@@ -101,6 +101,14 @@ public class DashboardMetricsService {
         }
         if (myIdx < 0) return Optional.empty();
 
+        final int mine = myIdx;
+        // 나를 뺀 나머지 — 이름은 담지 않는다. 트랙에 함께 그려야 달리기로 보인다
+        List<Integer> others = new ArrayList<>();
+        for (int i = 0; i < rows.size(); i++) {
+            if (i != mine) others.add(pct(rows.get(i)));
+        }
+        int avg = (int) Math.round(rows.stream().mapToDouble(Enrollment::getProgressRate).average().orElse(0));
+
         return Optional.of(new CoursePaceView(
                 course.getCourseName(),
                 myIdx + 1,
@@ -108,7 +116,9 @@ public class DashboardMetricsService {
                 pct(rows.get(myIdx)),
                 myIdx > 0 ? pct(rows.get(myIdx - 1)) : null,
                 myIdx < rows.size() - 1 ? pct(rows.get(myIdx + 1)) : null,
-                pct(rows.get(0))));
+                pct(rows.get(0)),
+                avg,
+                others));
     }
 
     private int pct(Enrollment e) {

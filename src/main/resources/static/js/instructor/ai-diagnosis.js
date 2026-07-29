@@ -27,6 +27,7 @@
             {
                 id: 1,
                 name: '김훈련',
+                courseId: 1,
                 course: '클라우드 기반 풀스택 개발자 양성과정',
                 level: 'high',
                 levelLabel: '높음',
@@ -37,6 +38,7 @@
             {
                 id: 2,
                 name: '이수강',
+                courseId: 1,
                 course: '클라우드 기반 풀스택 개발자 양성과정',
                 level: 'high',
                 levelLabel: '높음',
@@ -47,6 +49,7 @@
             {
                 id: 3,
                 name: '박학생',
+                courseId: 2,
                 course: '데이터 분석 실무 과정',
                 level: 'high',
                 levelLabel: '높음',
@@ -57,6 +60,7 @@
             {
                 id: 4,
                 name: '최교육',
+                courseId: 1,
                 course: '클라우드 기반 풀스택 개발자 양성과정',
                 level: 'mid',
                 levelLabel: '보통',
@@ -67,6 +71,7 @@
             {
                 id: 5,
                 name: '정연수',
+                courseId: 1,
                 course: '클라우드 기반 풀스택 개발자 양성과정',
                 level: 'mid',
                 levelLabel: '보통',
@@ -77,6 +82,7 @@
             {
                 id: 6,
                 name: '한지원',
+                courseId: 2,
                 course: '데이터 분석 실무 과정',
                 level: 'low',
                 levelLabel: '낮음',
@@ -87,6 +93,7 @@
             {
                 id: 7,
                 name: '오민서',
+                courseId: 1,
                 course: '클라우드 기반 풀스택 개발자 양성과정',
                 level: 'low',
                 levelLabel: '낮음',
@@ -121,9 +128,22 @@
                 alert('과제를 배부할 훈련생을 선택해 주세요.');
                 return;
             }
-            var names = picked.map(function (c) { return c.dataset.name; }).join(', ');
-            alert('선택한 훈련생에게 추천 과제를 배부합니다.\n\n대상 ' + picked.length + '명: ' + names +
-                  '\n\n과제 등록 화면으로 연결될 예정입니다. (서버 연동 준비 중)');
+
+            // 여러 명을 한 번에 고르면 추천 과제가 서로 다를 수 있다.
+            // 배정 화면은 과제 하나를 다루므로, 같은 과제인 경우에만 묶어서 넘긴다.
+            var tasks = {};
+            picked.forEach(function (c) { tasks[c.dataset.task] = true; });
+            var kinds = Object.keys(tasks);
+
+            if (kinds.length > 1) {
+                alert('선택한 훈련생들의 추천 과제가 서로 달라요.\n\n' +
+                      kinds.map(function (t) { return '· ' + t; }).join('\n') +
+                      '\n\n같은 과제를 추천받은 훈련생끼리 나눠서 배부해 주세요.');
+                return;
+            }
+
+            goAssign(kinds[0], picked.map(function (c) { return c.dataset.name; }),
+                     picked[0].dataset.courseId);
         });
     });
 
@@ -163,21 +183,38 @@
         }
         body.innerHTML = rows.map(function (r) {
             return '<tr>' +
-                '<td><input type="checkbox" class="js-pick" data-id="' + r.id + '" data-name="' + esc(r.name) + '" aria-label="' + esc(r.name) + ' 선택"></td>' +
+                '<td><input type="checkbox" class="js-pick" data-id="' + r.id + '" data-name="' + esc(r.name) + '"' +
+                    ' data-task="' + esc(r.task) + '" data-course-id="' + r.courseId + '"' +
+                    ' aria-label="' + esc(r.name) + ' 선택"></td>' +
                 '<td><b>' + esc(r.name) + '</b></td>' +
                 '<td><span class="ai-level ' + r.level + '">' + esc(r.levelLabel) + '</span></td>' +
                 '<td>' + r.weak.map(function (w) { return '<span class="ai-tag lack" style="margin:2px 3px 2px 0; display:inline-block;">' + esc(w) + '</span>'; }).join('') + '</td>' +
                 '<td style="font-size:12.5px; color:#475569; line-height:1.7;">' + esc(r.evidence) + '</td>' +
                 '<td>' + esc(r.task) +
-                    '<div style="margin-top:7px;"><button type="button" class="btn btn-gray btn-sm js-one" data-name="' + esc(r.name) + '">이 훈련생만 배부</button></div>' +
+                    '<div style="margin-top:7px;"><button type="button" class="btn btn-gray btn-sm js-one"' +
+                        ' data-name="' + esc(r.name) + '" data-task="' + esc(r.task) + '" data-course-id="' + r.courseId + '">이 훈련생만 배부</button></div>' +
                 '</td></tr>';
         }).join('');
 
         body.querySelectorAll('.js-one').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                alert(btn.dataset.name + ' 훈련생에게 추천 과제를 배부합니다.\n\n과제 등록 화면으로 연결될 예정입니다. (서버 연동 준비 중)');
+                goAssign(btn.dataset.task, [btn.dataset.name], btn.dataset.courseId);
             });
         });
+    }
+
+    /**
+     * 과제 배정 화면으로 넘긴다 — 평가 관리 > 과제 채점 > 과제 배정.
+     *
+     * 배정 화면이 스스로 "AI 추천으로 왔다"를 알 수 있도록 값을 쿼리로 넘긴다.
+     * 그 화면의 폼 바인딩(th:field)은 건드리지 않고, 배정 화면 쪽 스크립트가
+     * 이 값을 읽어 제목을 채우고 안내 배너를 띄운다.
+     */
+    function goAssign(task, names, courseId) {
+        var q = '?aiTask=' + encodeURIComponent(task) +
+                '&aiTrainees=' + encodeURIComponent(names.join(',')) +
+                (courseId ? '&aiCourseId=' + encodeURIComponent(courseId) : '');
+        window.location.href = '/admin/evaluation/assignments/new' + q;
     }
 
     function esc(s) {

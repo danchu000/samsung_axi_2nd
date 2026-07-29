@@ -1,0 +1,64 @@
+# v* 태그 푸시 → GitHub 러너에서 테스트 → 통과 시 서버(self-hosted 러너)가 배포.
+# 집에서는 `git push origin main && git push origin v0.1.x-draft` 만 하면 된다.
+# 러너 설치/운영은 docs/deploy-remote-2026-07-29.md §11 참고.
+name: deploy
+
+on:
+  push:
+    tags: ['v*']
+  # 수동 재배포용 — Actions 탭에서 태그를 골라 실행
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: 테스트 (GitHub 호스트 러너)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: gradlew CRLF 정리 + 실행권한
+        run: sed -i 's/\r$//' gradlew && chmod +x gradlew
+      - name: 전체 테스트
+        run: ./gradlew test --no-daemon
+
+  deploy:
+    name: 서버 배포 (self-hosted 러너)
+    needs: test
+    runs-on: self-hosted
+    steps:
+      # actions/checkout 을 쓰지 않고 기존 ~/lxp 에서 배포한다.
+      # compose 프로젝트명·볼륨(lxp-dbdata, lxp-uploads)이 ~/lxp 디렉터리에 묶여 있어서
+      # 러너 워크스페이스에서 compose up 을 하면 빈 DB 로 새 스택이 떠 버린다.
+      - name: ~/lxp 를 태그로 갱신 후 compose up
+        run: |
+          set -e
+          cd ~/lxp
+          git fetch --tags --force origin
+          # --force: 서버에 남은 임시 수정을 버리고 태그 상태로 맞춘다 (서버 수기 수정 금지 원칙)
+          git checkout --force "${{ github.ref_name }}"
+          git log --oneline -1
+          docker compose up -d --build
+
+      - name: 기동 확인 (/login 200 대기)
+        run: |
+          cd ~/lxp
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/login || true)
+            if [ "$code" = "200" ]; then
+              echo "OK — ${i}번째 시도에서 200"
+              docker compose ps
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "150초 안에 앱이 응답하지 않음 — app 로그:"
+          docker compose logs --tail=100 app
+          exit 1

@@ -338,3 +338,54 @@ INF Registered tunnel connection connIndex=2 ... location=icn05 protocol=quic
 INF Registered tunnel connection connIndex=3 ... location=icn06 protocol=quic
 ```
 (로그가 멈춘 것처럼 보여도 정상 — 트래픽 없으면 조용함. `Ctrl+C` 로 빠져나와도 컨테이너는 계속 동작)
+
+---
+
+## 11. CI/CD — GitHub Actions 자동 배포 (2026-07-29 도입)
+
+`.github/workflows/deploy.yml`. **집에서는 태그 푸시만 하면 됨** — §6-2 의 RDP 수동 배포는 러너 장애 시의 비상 수단으로 강등.
+
+```
+[집] git push origin main && git push origin v0.1.x-draft
+        ↓ 자동
+GitHub 호스트 러너: ./gradlew test  (실패 시 배포 중단)
+        ↓ 통과 시 자동
+서버 self-hosted 러너: cd ~/lxp → fetch --tags → checkout --force <태그> → compose up -d --build
+        ↓ 자동
+/login 이 200 반환할 때까지 대기(최대 150초) → 실패 시 app 로그를 Actions 화면에 출력
+```
+
+- 진행 상황·로그: GitHub 저장소 → **Actions 탭**
+- `checkout --force` 라서 **서버 수기 수정은 배포 때마다 날아감** (원래 금지 원칙을 강제하는 효과)
+- `.env` 는 지금처럼 서버에만 둠 — 러너가 서버 안에서 돌므로 GitHub 에 비밀값 불필요
+- 수동 재배포: Actions 탭 → deploy → Run workflow (태그 선택)
+
+### 러너 설치 (서버 WSL, 최초 1회)
+
+1. GitHub 저장소 → Settings → Actions → Runners → **New self-hosted runner** → Linux x64
+   — 화면에 나오는 다운로드 URL·`--token` 값 사용 (토큰 유효 1시간)
+2. WSL 에서:
+   ```bash
+   mkdir ~/actions-runner && cd ~/actions-runner
+   curl -o runner.tar.gz -L <화면의 다운로드 URL>
+   tar xzf runner.tar.gz
+   ./config.sh --url https://github.com/woongscoding/axi_project --token <토큰> \
+     --name lxp-server --labels lxp --unattended
+   sudo ./svc.sh install sejong     # systemd 서비스 등록 (재부팅 생존)
+   sudo ./svc.sh start
+   sudo ./svc.sh status             # active (running) 확인
+   ```
+3. **재부팅 생존 전제**: Windows 자동 로그인 + Docker Desktop 자동 시작 + WSL 기동.
+   WSL 배포판이 안 떠 있으면 러너도 없음 → Windows 시작 프로그램(`shell:startup`)에
+   `wsl.exe -d Ubuntu-24.04 --exec true` 바로가기를 두면 로그인 시 배포판이 깨어남.
+   (§9-2 재부팅 생존 테스트에 러너 생존 확인 포함할 것)
+
+### 러너 상태 확인 / 장애 시
+
+```bash
+sudo ~/actions-runner/svc.sh status    # 러너 서비스
+systemctl is-system-running            # WSL systemd 동작 여부 (degraded 도 OK)
+```
+
+- GitHub → Settings → Actions → Runners 에서 `lxp-server` 가 **Idle** 이면 정상, Offline 이면 위 명령으로 서비스 확인
+- 러너가 죽어도 §6-2 수동 배포는 그대로 가능 (같은 ~/lxp 를 쓰므로 충돌 없음)

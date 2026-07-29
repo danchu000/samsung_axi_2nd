@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/dashboard.js" defer></script>
     <script src="/static/js/ai-widget.js" defer></script>
+    <script src="/static/js/instructor/dashboard-charts.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
 
@@ -630,18 +631,11 @@
             };
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            // 더미 데이터 생성 및 차트 그리기
-            // 시험 패널: 기존 산점도/꺾은선그래프 유지
-            const examData = generateCourseCodingData(3, 18);
-            drawCourseScatterChart("assignmentTrendChart", examData);
-            const dropoutData = generateDropoutLineData(3, 7);
-            drawDropoutLineChart("examTrendChart", dropoutData);
-  
-            // 과제 패널: 상위 20%/하위 30% 학습시간 비교 바차트로 변경
-            const topBottomData = generateTopBottomCodingData(3, 30);
-            drawTopBottomBarChart("supportTrendChart", topBottomData);
-        });
+        // 여기서 위의 generate 계열 함수로 더미 차트를 그렸었다 — 지금은 부르지 않는다.
+        // 고정 시드 난수로 만든 값이었고, 코딩시간·이탈률은 이 시스템이 수집하지 않는
+        // 지표라 화면만 그럴듯하고 판단은 틀어졌다.
+        // 실제 데이터 기반 차트는 static/js/instructor/dashboard-charts.js 가 그린다.
+        // (위 generate/draw 함수들은 지표가 실제로 생기면 참고하도록 남겨 둔다)
     </script>
     <title>Samsung Academy LXP - 강사</title>
     <style>
@@ -787,32 +781,41 @@
         </div>
 
         <div class="panel-triple">
+          <!--
+            여기 있던 차트 3개(코딩시간 대비 푼 문제 수 / 진행률 대비 이탈률 /
+            상위20%·하위30% 학습시간)는 전부 **지어낸 값**이었다.
+            고정 시드 난수로 만든 데이터에 이름도 "홍길동1-1" 이었고, 무엇보다
+            코딩시간·이탈률은 이 시스템이 수집하지 않는 값이다.
+            실제로 가진 데이터(담당 과정 진도·미이수 인원, 채점 대기, 응답 대기)로 바꿨다.
+          -->
           <div class="panel-grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-            <!-- 과제 해결 추이 -->
             <div class="panel">
               <div class="panel-header">
-                <h3>📈 과정별 과제 해결 추이</h3>
+                <h3>👥 과정별 수강 인원</h3>
               </div>
               <div class="panel-body">
-                <canvas id="assignmentTrendChart" style="width: 100%; height: 220px;"></canvas>
+                <canvas id="courseProgressChart" height="220" style="width:100%;"></canvas>
+                <p class="muted" style="margin:6px 0 0;">담당 과정의 수강생 수</p>
               </div>
             </div>
-            <!-- 시험 해결 추이 -->
+
             <div class="panel">
               <div class="panel-header">
-                <h3>🧪 각 과정 진행률 대비 이탈률 추이</h3>
+                <h3>🎓 과정별 평균 출결률</h3>
               </div>
               <div class="panel-body">
-                <canvas id="examTrendChart" style="width: 100%; height: 220px;"></canvas>
+                <canvas id="attendanceChart" height="220" style="width:100%;"></canvas>
+                <p class="muted" style="margin:6px 0 0;">출결이 낮은 과정은 이수 위험</p>
               </div>
             </div>
-            <!-- 문의 해결 추이 -->
+
             <div class="panel">
               <div class="panel-header">
-                <h3>💬 학습시간 비교그래프</h3>
+                <h3>🗂️ 내 처리 대기 업무</h3>
               </div>
               <div class="panel-body">
-                <canvas id="supportTrendChart" style="width: 100%; height: 220px;"></canvas>
+                <canvas id="myWorkloadChart" height="220" style="width:100%;"></canvas>
+                <p class="muted" style="margin:6px 0 0;">채점·응답·감독 대기 건수</p>
               </div>
             </div>
           </div>

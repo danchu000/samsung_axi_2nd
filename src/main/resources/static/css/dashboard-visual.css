@@ -1,0 +1,241 @@
+/**
+ * 대시보드 시각 보강 (관리자·강사·훈련생 공용).
+ *
+ * "정보는 다 있는데 눈에 안 들어온다"를 고치는 파일이다.
+ * 기존 HTML 은 한 줄도 바꾸지 않고, 이미 쓰이는 클래스에 스타일만 얹는다.
+ * 그래서 이 파일을 빼면 원래 화면으로 정확히 돌아간다.
+ *
+ * 고친 것
+ *  1. 숫자를 키운다 — 대시보드에서 가장 먼저 읽어야 할 것은 수치다
+ *  2. 카드마다 색을 가진 상단 띠 — 훑을 때 구역이 구분된다
+ *  3. 패널 제목에 왼쪽 강조선 — 어디서 새 블록이 시작되는지 보인다
+ *  4. 여백을 넓힌다 — 빽빽하면 읽히지 않는다
+ *  5. 마우스를 올리면 살짝 뜬다 — 누를 수 있다는 신호
+ */
+
+/* ===== 페이지 배경 — 순백은 눈이 피로하고 카드가 안 떠 보인다 ===== */
+.main-content,
+main {
+    background: #f6f7fb;
+}
+
+/* ===== 상단 인사/요약 줄 ===== */
+.dash-header {
+    background: linear-gradient(120deg, #eef2ff 0%, #f5f3ff 45%, #fdf2f8 100%) !important;
+    border: 1px solid #e0e7ff !important;
+    border-radius: 14px !important;
+    padding: 20px 24px !important;
+}
+
+.dash-header h2,
+.dash-title {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #1e1b4b !important;
+    letter-spacing: -.01em;
+}
+
+.dash-header p { color: #4c4a6a !important; }
+
+/* ===== KPI 카드 ===== */
+.kpi-grid { gap: 14px !important; }
+
+.kpi-card {
+    position: relative;
+    border-radius: 14px !important;
+    padding: 16px 16px 14px !important;
+    border: 1px solid #e9ecf5 !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    transition: transform .14s ease, box-shadow .14s ease;
+    overflow: hidden;
+}
+
+/* 상단 색 띠 — 카드마다 다른 색이라 위치 기억이 쉬워진다 */
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: #6366f1;
+}
+
+.kpi-card:nth-child(2)::before { background: #06b6d4; }
+.kpi-card:nth-child(3)::before { background: #10b981; }
+.kpi-card:nth-child(4)::before { background: #f59e0b; }
+.kpi-card:nth-child(5)::before { background: #ef4444; }
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 24, 40, .09);
+}
+
+.kpi-title,
+.kpi-label {
+    font-size: 13px !important;
+    color: #667085 !important;
+    font-weight: 600 !important;
+}
+
+/* 숫자를 키운다 — 대시보드의 주인공 */
+.kpi-main .big {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #101828 !important;
+    letter-spacing: -.02em;
+}
+
+.kpi-main .sub { color: #667085 !important; }
+
+/* ===== 패널 ===== */
+.panel {
+    border-radius: 14px !important;
+    border: 1px solid #e9ecf5 !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.panel-header {
+    background: #fff !important;
+    border-bottom: 1px solid #eef0f6 !important;
+    padding: 15px 18px !important;
+}
+
+/* 제목 왼쪽 강조선 — 블록의 시작점이 보인다 */
+.panel-header h3 {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #101828 !important;
+    position: relative;
+    padding-left: 11px;
+}
+
+.panel-header h3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 15px;
+    border-radius: 2px;
+    background: #6366f1;
+}
+
+.panel-body { padding: 16px 18px !important; }
+
+.two-col { gap: 14px !important; }
+
+/* ===== 표 ===== */
+.mini-head {
+    background: #f8f9fc !important;
+    color: #667085 !important;
+    font-weight: 700 !important;
+}
+
+.mini-row { transition: background .12s ease; }
+.mini-row:hover { background: #f6f7fb !important; }
+.text-strong { font-weight: 700 !important; color: #101828 !important; }
+
+/* ===== 배지 — 상태가 색으로 즉시 구분되게 ===== */
+.badge {
+    font-weight: 700 !important;
+    border: 1px solid transparent;
+}
+
+.badge.warn { background: #fff7ed !important; color: #c2410c !important; border-color: #fed7aa; }
+.badge.ok   { background: #ecfdf5 !important; color: #047857 !important; border-color: #a7f3d0; }
+.badge.info { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe; }
+
+/* ===== 알림/리스크 항목 — 클릭 대상임을 알린다 ===== */
+.alert-item,
+.note-item {
+    border-radius: 10px !important;
+    border-color: #eef0f6 !important;
+    transition: border-color .12s ease, background .12s ease;
+}
+
+.alert-item:hover,
+.note-item:hover {
+    background: #fafbff !important;
+    border-color: #c7d2fe !important;
+}
+
+.alert-title,
+.note-title { font-weight: 700 !important; color: #101828 !important; }
+
+/* ===== 훈련생 대시보드 ===== */
+.hero {
+    background: linear-gradient(120deg, #eef2ff 0%, #ede9fe 50%, #fce7f3 100%) !important;
+    border-radius: 18px !important;
+    border: 1px solid #e0e7ff !important;
+}
+
+.hero-title {
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: #1e1b4b !important;
+    letter-spacing: -.01em;
+}
+
+.hero-sub { color: #4c4a6a !important; }
+
+.card.section {
+    border-radius: 14px !important;
+    border: 1px solid #e9ecf5 !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.section-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #101828 !important;
+    position: relative;
+    padding-left: 11px;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 15px;
+    border-radius: 2px;
+    background: #6366f1;
+}
+
+.section-desc { color: #667085 !important; }
+
+/* 오늘 할 일 — 마우스를 올리면 왼쪽에 색선이 생겨 "누를 수 있다"를 알린다 */
+.todo-list > * {
+    border-radius: 10px !important;
+    transition: background .12s ease, box-shadow .12s ease;
+}
+
+.todo-list > *:hover {
+    background: #fafbff !important;
+    box-shadow: inset 3px 0 0 #6366f1;
+}
+
+/* 빈 상태가 초라해 보이지 않게 */
+.empty-state {
+    background: #fafbff;
+    border: 1px dashed #dfe3f0;
+    border-radius: 12px;
+    padding: 26px 18px;
+}
+
+.empty-title { font-weight: 700; color: #475467; }
+.empty-desc { color: #98a2b3; }
+
+/* ===== AI 위젯이 대시보드에서 묻히지 않게 ===== */
+.ai-widget {
+    border-radius: 14px !important;
+    box-shadow: 0 1px 2px rgba(79, 70, 229, .06);
+}
+
+/* AI 카드는 흰 배경 위에 얹혀야 글이 읽힌다 */
+.ai-widget .ai-card {
+    background: rgba(255, 255, 255, .92);
+    border-color: #e0e7ff;
+}

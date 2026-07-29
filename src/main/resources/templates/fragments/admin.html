@@ -97,6 +97,7 @@
                 <ul>
                     <li class="submenu" th:classappend="${active == 'notice'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/notice'">공지 관리</li>
                     <li class="submenu" th:classappend="${active == 'alarm'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/notice/alarms'">알림 관리</li>
+                    <li class="submenu" th:classappend="${active == 'reminder'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/settings/reminder'">리마인드 설정</li>
                 </ul>
             </li>
         </ul>

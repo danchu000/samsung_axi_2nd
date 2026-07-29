@@ -8,6 +8,7 @@ import com.ssa.lms.exam.repository.ExamAttemptRepository;
 import com.ssa.lms.exam.repository.ExamRepository;
 import com.ssa.lms.notice.entity.Notification;
 import com.ssa.lms.notice.entity.ReminderLog;
+import com.ssa.lms.notice.entity.ReminderSetting;
 import com.ssa.lms.notice.repository.NotificationRecipientRepository;
 import com.ssa.lms.notice.repository.NotificationRepository;
 import com.ssa.lms.notice.repository.ReminderLogRepository;
@@ -61,6 +62,7 @@ public class ReminderService {
     private final UserRepository userRepository;
     private final CourseQueryService courseQueryService;
     private final ReminderMailSender mailSender;
+    private final ReminderSettingService settingService;
 
     /**
      * 마감 임박 대상에게 리마인드를 보낸다.
@@ -71,23 +73,44 @@ public class ReminderService {
      */
     @Transactional
     public int remindDue(LocalDateTime now, ReminderLog.ReminderStage stage) {
+        ReminderSetting cfg = settingService.current();
+
+        // 관리자가 전체를 껐으면 아무것도 보내지 않는다
+        if (!cfg.isEnabled()) {
+            return 0;
+        }
+
+        /*
+         * 시점을 코드가 아니라 **관리자 설정**에서 읽는다.
+         * 예전에는 24h/1h/3일이 여기 박혀 있어, 기관 운영 방식이 달라도 바꾸려면
+         * 코드를 고쳐 재배포해야 했다.
+         */
         Duration lead = switch (stage) {
-            case BEFORE_24H -> Duration.ofHours(24);
-            case BEFORE_1H -> Duration.ofHours(1);
+            case BEFORE_24H -> Duration.ofHours(cfg.getFirstNoticeHours());
+            case BEFORE_1H -> Duration.ofHours(cfg.getSecondNoticeHours());
             case OVERDUE -> Duration.ZERO;
         };
 
-        // 마감이 [now+lead, now+lead+1시간) 구간에 드는 것만 — 스케줄러 주기(1시간)와 맞춘다.
+        // 마감이 [now+lead, now+lead+주기) 구간에 드는 것만 — 스케줄러 주기와 맞춘다.
         // 구간으로 잡지 않고 "남은 시간 <= lead" 로 하면 그 이후 모든 주기에서 계속 잡힌다.
         LocalDateTime from = stage == ReminderLog.ReminderStage.OVERDUE
-                ? now.minusDays(3) : now.plus(lead);
+                ? now.minusDays(cfg.getOverdueDays()) : now.plus(lead);
         LocalDateTime to = stage == ReminderLog.ReminderStage.OVERDUE
                 ? now : now.plus(lead).plusHours(1);
 
+        /*
+         * 1차와 2차 간격이 1시간 안쪽이면 같은 마감이 두 구간에 다 걸려 두 번 간다.
+         * ReminderLog 가 단계별로 중복을 막지만 단계가 다르면 못 막는다.
+         */
+        if (stage == ReminderLog.ReminderStage.BEFORE_1H
+                && cfg.getFirstNoticeHours() - cfg.getSecondNoticeHours() < 1) {
+            return 0;
+        }
+
         int sent = 0;
-        sent += remindAssignments(now, stage, from, to);
-        sent += remindExams(now, stage, from, to);
-        sent += remindSurveys(now, stage, from, to);
+        if (cfg.isAssignmentEnabled()) sent += remindAssignments(now, stage, from, to);
+        if (cfg.isExamEnabled()) sent += remindExams(now, stage, from, to);
+        if (cfg.isSurveyEnabled()) sent += remindSurveys(now, stage, from, to);
         return sent;
     }
 

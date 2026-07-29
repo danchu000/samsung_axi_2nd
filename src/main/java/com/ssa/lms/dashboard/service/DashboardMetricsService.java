@@ -109,6 +109,12 @@ public class DashboardMetricsService {
         }
         int avg = (int) Math.round(rows.stream().mapToDouble(Enrollment::getProgressRate).average().orElse(0));
 
+        // 등수순 전체 주자 — 세로 트랙에 위(선두)에서 아래로 늘어놓는다
+        List<CoursePaceView.Runner> runners = new ArrayList<>();
+        for (int i = 0; i < rows.size(); i++) {
+            runners.add(new CoursePaceView.Runner(i + 1, pct(rows.get(i)), i == mine));
+        }
+
         return Optional.of(new CoursePaceView(
                 course.getCourseName(),
                 myIdx + 1,
@@ -118,7 +124,8 @@ public class DashboardMetricsService {
                 myIdx < rows.size() - 1 ? pct(rows.get(myIdx + 1)) : null,
                 pct(rows.get(0)),
                 avg,
-                others));
+                others,
+                runners));
     }
 
     private int pct(Enrollment e) {

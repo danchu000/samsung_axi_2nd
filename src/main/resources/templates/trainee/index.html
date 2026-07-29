@@ -103,12 +103,12 @@
                   </div>
 
                   <!--
-                    우리 반에서 내 학습 위치 — 달리기 트랙.
-                    예전에는 "1등/25명" 이 박힌 정적 이미지였다. 누구에게나 같은 그림이라
-                    실제 내 상황과 무관했다. 지금은 진도율로 계산한 실제 순위를 그린다.
+                    우리 반에서 내 위치 — 세로 트랙.
+                    선두가 맨 위, 뒤 주자들이 아래로 늘어선다. 각 줄의 주자 위치가
+                    그 사람의 진도율이라 "누가 얼마나 앞서 있는지"가 한눈에 보인다.
 
                     다른 훈련생의 이름은 쓰지 않는다 — 개인정보이고, 훈련생 사이에
-                    불필요한 비교를 만든다. 주자는 익명으로 진도만 보여준다.
+                    불필요한 비교를 만든다. 등수와 진도만 익명으로 보여준다.
                   -->
                   <div class="card section race-card" style="flex:1;" id="heart-area"
                        th:if="${pace != null}">
@@ -117,38 +117,33 @@
                         <h3 class="section-title">우리 반에서 내 위치</h3>
                         <p class="section-desc" th:text="${pace.courseName}">과정명</p>
                       </div>
-                    </div>
-
-                    <div class="race-rank">
-                      <span class="race-rank-num" th:text="${pace.myRank}">1</span>
-                      <span class="race-rank-unit">위</span>
-                      <span class="race-rank-total" th:text="'/ ' + ${pace.total} + '명'">/ 6명</span>
-                    </div>
-
-                    <!-- 트랙: 0% 출발 ~ 100% 결승선. 주자 위치는 진도율 그대로 -->
-                    <div class="race-track">
-                      <div class="race-lane">
-                        <span class="race-start">🚩</span>
-                        <span class="race-finish">🏁</span>
-
-                        <!-- 반 평균 기준선 — 내가 평균보다 앞인지 뒤인지가 한눈에 -->
-                        <span class="race-avg" th:style="'left: calc(30px + (100% - 60px) * ' + ${pace.classAverage} + ' / 100)'">
-                          <i></i><em th:text="'평균 ' + ${pace.classAverage} + '%'">평균</em>
-                        </span>
-
-                        <!-- 나를 뺀 주자들 (익명) -->
-                        <span class="race-runner other"
-                              th:each="p : ${pace.othersProgress}"
-                              th:style="'left: calc(30px + (100% - 60px) * ' + ${p} + ' / 100)'"
-                              th:title="${p} + '%'">🏃</span>
-
-                        <!-- 나 -->
-                        <span class="race-runner me" th:style="'left: calc(30px + (100% - 60px) * ' + ${pace.myProgress} + ' / 100)'">
-                          <span class="race-me-badge" th:text="${pace.myProgress} + '%'">76%</span>
-                          <span class="race-me-icon">🏃</span>
-                        </span>
+                      <div class="race-rank">
+                        <span class="race-rank-num" th:text="${pace.myRank}">3</span>
+                        <span class="race-rank-unit">위</span>
+                        <span class="race-rank-total" th:text="'/ ' + ${pace.total}">/ 6</span>
                       </div>
-                      <div class="race-axis"><span>출발</span><span>완주</span></div>
+                    </div>
+
+                    <!-- 잔디 트랙: 한 줄이 한 명. 위가 선두 -->
+                    <div class="race-field">
+                      <div class="race-goal">🏁 완주</div>
+
+                      <div class="race-row" th:each="r : ${pace.runners}"
+                           th:classappend="${r.me()} ? 'me' : ''">
+                        <span class="race-no" th:text="${r.rank()}">1</span>
+
+                        <span class="race-lane-v">
+                          <!-- 지나온 길 -->
+                          <span class="race-trail" th:style="'width: calc((100% - 34px) * ' + ${r.progress()} + ' / 100)'"></span>
+                          <!-- 주자 -->
+                          <span class="race-dot"
+                                th:style="'left: calc((100% - 34px) * ' + ${r.progress()} + ' / 100)'"
+                                th:title="${r.progress()} + '%'">🏃</span>
+                        </span>
+
+                        <span class="race-pct" th:text="${r.progress()} + '%'">56%</span>
+                        <span class="race-tag" th:if="${r.me()}">나</span>
+                      </div>
                     </div>
 
                     <p class="race-msg" th:if="${pace.myRank == 1}">
@@ -156,22 +151,21 @@
                     </p>
                     <p class="race-msg" th:if="${pace.myRank > 1 and pace.gapToAhead() != null}"
                        th:text="'앞사람과 ' + ${pace.gapToAhead()} + '%p 차이예요. 조금만 더 하면 따라잡을 수 있어요.'">
-                      앞사람과 4%p 차이예요.
+                      앞사람과 2%p 차이예요.
                     </p>
 
-                    <!-- 빈 자리를 숫자로 채우지 않고, 판단에 쓰는 값만 셋 -->
                     <div class="race-stats">
                       <div class="race-stat">
                         <span class="k">내 진도</span>
-                        <span class="v" th:text="${pace.myProgress} + '%'">76%</span>
+                        <span class="v" th:text="${pace.myProgress} + '%'">52%</span>
                       </div>
                       <div class="race-stat">
                         <span class="k">반 평균</span>
-                        <span class="v" th:text="${pace.classAverage} + '%'">60%</span>
+                        <span class="v" th:text="${pace.classAverage} + '%'">50%</span>
                       </div>
                       <div class="race-stat">
                         <span class="k">선두</span>
-                        <span class="v" th:text="${pace.topProgress} + '%'">88%</span>
+                        <span class="v" th:text="${pace.topProgress} + '%'">56%</span>
                       </div>
                     </div>
                   </div>

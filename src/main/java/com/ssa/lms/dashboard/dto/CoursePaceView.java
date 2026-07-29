@@ -15,8 +15,8 @@ package com.ssa.lms.dashboard.dto;
  * @param behindProgress 바로 뒤 주자의 진도율(%). 내가 꼴찌면 null
  * @param topProgress 1등 진도율(%) — 트랙에서 선두 위치를 잡는 데 쓴다
  * @param classAverage 반 평균 진도율(%) — 내 위치를 판단할 기준선
- * @param othersProgress 나를 뺀 나머지 주자들의 진도율(%). <b>이름 없이 값만</b>.
- *                       트랙에 함께 그려야 "달리기"로 보인다
+ * @param othersProgress 나를 뺀 나머지 주자들의 진도율(%). <b>이름 없이 값만</b>
+ * @param runners 등수순 전체 주자(나 포함). 세로 트랙에 위에서부터 늘어놓는다
  */
 public record CoursePaceView(
         String courseName,
@@ -27,8 +27,18 @@ public record CoursePaceView(
         Integer behindProgress,
         int topProgress,
         int classAverage,
-        java.util.List<Integer> othersProgress
+        java.util.List<Integer> othersProgress,
+        java.util.List<Runner> runners
 ) {
+
+    /**
+     * 트랙에 세울 주자 한 명.
+     *
+     * <p><b>이름은 담지 않는다.</b> 내가 아닌 사람은 등수와 진도만 보인다 —
+     * 순위 화면에 남의 이름이 뜨면 개인정보이고 훈련생 사이에 불필요한 비교를 만든다.</p>
+     */
+    public record Runner(int rank, int progress, boolean me) {
+    }
 
     /** 앞사람과의 격차(%p). 1등이면 null. */
     public Integer gapToAhead() {

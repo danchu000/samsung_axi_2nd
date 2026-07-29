@@ -16,7 +16,20 @@
     'use strict';
 
     var INK = '#101828', SUB = '#667085', LINE = '#eef0f6';
-    var C = { indigo: '#6366f1', cyan: '#06b6d4', green: '#10b981', amber: '#f59e0b', red: '#ef4444', pale: '#e5e7eb' };
+
+    /*
+     * 기본은 사이드바와 같은 남색 계열 하나로 간다.
+     * 색은 "구분"이 아니라 **경고**에만 쓴다 — 지연·미달일 때만 주황/빨강이 나온다.
+     * (예전엔 계열마다 다른 색이라 알록달록하고 가벼워 보였다)
+     */
+    var C = {
+        navy: '#131D41',
+        navy2: '#2a3866',
+        navy3: '#5a6a9a',
+        amber: '#f59e0b',
+        red: '#ef4444',
+        green: '#10b981'
+    };
 
     var DUMMY = {
         courses: [
@@ -28,9 +41,9 @@
         ],
         weeks: ['6/2', '6/9', '6/16', '6/23', '6/30', '7/7', '7/14', '7/21'],
         series: [
-            { label: '출석률', color: C.indigo, values: [92, 94, 91, 95, 93, 96, 94, 95] },
-            { label: '과제 제출률', color: C.cyan, values: [78, 82, 75, 88, 84, 79, 86, 90] },
-            { label: '평가 응시율', color: C.amber, values: [65, 71, 88, 62, 74, 91, 70, 77] }
+            { label: '출석률', color: C.navy, values: [92, 94, 91, 95, 93, 96, 94, 95] },
+            { label: '과제 제출률', color: C.navy2, values: [78, 82, 75, 88, 84, 79, 86, 90] },
+            { label: '평가 응시율', color: C.navy3, values: [65, 71, 88, 62, 74, 91, 70, 77] }
         ],
         completion: [
             { label: '진도 충족', done: 18, total: 24 },
@@ -115,7 +128,7 @@
 
             // 진도가 기간보다 낮으면 지연 — 색으로 즉시 구분
             var late = r.progress < r.elapsed - 5;
-            ctx.fillStyle = late ? C.amber : C.indigo;
+            ctx.fillStyle = late ? C.amber : C.navy;
             rrect(ctx, padL, y, full * r.progress / 100, barH, 7);
 
             // 기간 경과 지점 — 여기까지 왔어야 한다는 기준선
@@ -232,7 +245,7 @@
 
             ctx.fillStyle = '#f3f4f6';
             rrect(ctx, padL, y, full, barH, 6);
-            ctx.fillStyle = C.indigo;
+            ctx.fillStyle = C.navy;
             rrect(ctx, padL, y, full * r.value / 100, barH, 6);
 
             ctx.textAlign = 'left'; ctx.fillStyle = SUB;

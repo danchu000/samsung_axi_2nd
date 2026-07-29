@@ -7,11 +7,21 @@
  *
  * 고친 것
  *  1. 숫자를 키운다 — 대시보드에서 가장 먼저 읽어야 할 것은 수치다
- *  2. 카드마다 색을 가진 상단 띠 — 훑을 때 구역이 구분된다
+ *  2. 카드 상단에 남색 띠 — 카드 경계가 또렷해진다
  *  3. 패널 제목에 왼쪽 강조선 — 어디서 새 블록이 시작되는지 보인다
  *  4. 여백을 넓힌다 — 빽빽하면 읽히지 않는다
  *  5. 마우스를 올리면 살짝 뜬다 — 누를 수 있다는 신호
+ *
+ * 강조색은 **사이드바와 같은 남색 하나**로 통일한다.
+ * 카드마다 다른 색(보라·청록·초록·주황)을 쓰던 때는 알록달록해서 가벼워 보였고,
+ * 훈련기관 운영 화면보다 데모처럼 읽혔다. 색은 "구분"이 아니라 "경고"에만 쓴다.
  */
+
+:root {
+    --dash-navy: #131D41;        /* 사이드바와 동일 */
+    --dash-navy-soft: #2a3866;
+    --dash-navy-tint: #f2f4fa;
+}
 
 /* ===== 페이지 배경 — 순백은 눈이 피로하고 카드가 안 떠 보인다 ===== */
 .main-content,
@@ -21,8 +31,9 @@ main {
 
 /* ===== 상단 인사/요약 줄 ===== */
 .dash-header {
-    background: linear-gradient(120deg, #eef2ff 0%, #f5f3ff 45%, #fdf2f8 100%) !important;
-    border: 1px solid #e0e7ff !important;
+    background: linear-gradient(120deg, #f4f6fb 0%, #eef1f8 100%) !important;
+    border: 1px solid #e2e6f0 !important;
+    border-left: 4px solid var(--dash-navy) !important;
     border-radius: 14px !important;
     padding: 20px 24px !important;
 }
@@ -31,7 +42,7 @@ main {
 .dash-title {
     font-size: 22px !important;
     font-weight: 800 !important;
-    color: #1e1b4b !important;
+    color: var(--dash-navy) !important;
     letter-spacing: -.01em;
 }
 
@@ -50,19 +61,14 @@ main {
     overflow: hidden;
 }
 
-/* 상단 색 띠 — 카드마다 다른 색이라 위치 기억이 쉬워진다 */
+/* 상단 띠 — 사이드바와 같은 남색. 카드 경계를 또렷하게만 하고 색으로 구분하지 않는다 */
 .kpi-card::before {
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
     height: 4px;
-    background: #6366f1;
+    background: var(--dash-navy);
 }
-
-.kpi-card:nth-child(2)::before { background: #06b6d4; }
-.kpi-card:nth-child(3)::before { background: #10b981; }
-.kpi-card:nth-child(4)::before { background: #f59e0b; }
-.kpi-card:nth-child(5)::before { background: #ef4444; }
 
 .kpi-card:hover {
     transform: translateY(-2px);
@@ -76,8 +82,10 @@ main {
     font-weight: 600 !important;
 }
 
-/* 숫자를 키운다 — 대시보드의 주인공 */
-.kpi-main .big {
+/* 숫자를 키운다 — 대시보드의 주인공.
+   관리자는 .kpi-main .big, 강사는 .kpi-value 를 쓴다 (화면이 따로 만들어졌다) */
+.kpi-main .big,
+.kpi-value {
     font-size: 26px !important;
     font-weight: 800 !important;
     color: #101828 !important;
@@ -117,7 +125,7 @@ main {
     width: 4px;
     height: 15px;
     border-radius: 2px;
-    background: #6366f1;
+    background: var(--dash-navy);
 }
 
 .panel-body { padding: 16px 18px !important; }
@@ -155,8 +163,8 @@ main {
 
 .alert-item:hover,
 .note-item:hover {
-    background: #fafbff !important;
-    border-color: #c7d2fe !important;
+    background: var(--dash-navy-tint) !important;
+    border-color: #cbd3e6 !important;
 }
 
 .alert-title,
@@ -164,15 +172,16 @@ main {
 
 /* ===== 훈련생 대시보드 ===== */
 .hero {
-    background: linear-gradient(120deg, #eef2ff 0%, #ede9fe 50%, #fce7f3 100%) !important;
+    background: linear-gradient(120deg, #f4f6fb 0%, #eceff7 100%) !important;
     border-radius: 18px !important;
-    border: 1px solid #e0e7ff !important;
+    border: 1px solid #e2e6f0 !important;
+    border-left: 4px solid var(--dash-navy) !important;
 }
 
 .hero-title {
     font-size: 24px !important;
     font-weight: 800 !important;
-    color: #1e1b4b !important;
+    color: var(--dash-navy) !important;
     letter-spacing: -.01em;
 }
 
@@ -201,7 +210,7 @@ main {
     width: 4px;
     height: 15px;
     border-radius: 2px;
-    background: #6366f1;
+    background: var(--dash-navy);
 }
 
 .section-desc { color: #667085 !important; }
@@ -213,8 +222,8 @@ main {
 }
 
 .todo-list > *:hover {
-    background: #fafbff !important;
-    box-shadow: inset 3px 0 0 #6366f1;
+    background: var(--dash-navy-tint) !important;
+    box-shadow: inset 3px 0 0 var(--dash-navy);
 }
 
 /* 빈 상태가 초라해 보이지 않게 */
@@ -228,14 +237,31 @@ main {
 .empty-title { font-weight: 700; color: #475467; }
 .empty-desc { color: #98a2b3; }
 
-/* ===== AI 위젯이 대시보드에서 묻히지 않게 ===== */
+/* ===== AI 영역도 같은 남색 계열로 =====
+   AI 라고 화면이 달라 보일 이유가 없다. 보라 계열이면 그쪽만 눈에 띈다. */
 .ai-widget {
     border-radius: 14px !important;
-    box-shadow: 0 1px 2px rgba(79, 70, 229, .06);
+    background: linear-gradient(120deg, #f4f6fb 0%, #eceff7 100%) !important;
+    border: 1px solid #e2e6f0 !important;
+    border-left: 4px solid var(--dash-navy) !important;
+    box-shadow: 0 1px 2px rgba(19, 29, 65, .05);
 }
 
-/* AI 카드는 흰 배경 위에 얹혀야 글이 읽힌다 */
 .ai-widget .ai-card {
-    background: rgba(255, 255, 255, .92);
-    border-color: #e0e7ff;
+    background: #fff;
+    border-color: #e2e6f0;
 }
+
+.ai-widget .ai-card-title { color: var(--dash-navy) !important; }
+
+/* 대시보드 안에서는 AI 배지도 남색으로 */
+.ai-widget .ai-badge,
+.panel .ai-badge {
+    background: var(--dash-navy-tint);
+    color: var(--dash-navy);
+    border-color: #cbd3e6;
+}
+
+/* 진행 막대도 남색 — 경고(주황·빨강)만 색을 유지한다 */
+.ai-widget .ai-bar > span,
+.panel .ai-bar > span { background: var(--dash-navy-soft); }

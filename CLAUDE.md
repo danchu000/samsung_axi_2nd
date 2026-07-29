@@ -22,11 +22,48 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 기�
 ## Git
 
 - **푸시는 반드시 https://github.com/woongscoding/axi_project (사용자 소유) 로만 한다.**
-  `origin` 과 `personal` 둘 다 이 저장소를 가리키도록 설정돼 있으므로 `git push origin main` / `git push personal main` 어느 쪽도 안전하다.
-  **`mina-old` 리모트(mina-2026-ai/samsung-lxp, 과거 협업 저장소)에는 절대 푸시 금지** — 읽기 보관용.
+- **⚠ 리모트 이름이 PC 마다 다르다. 푸시 전에 `git remote -v` 로 확인할 것.**
+
+  | 환경 | 정본(axi_project) | 금지(mina-2026-ai) |
+  |---|---|---|
+  | 사무실 PC | `origin` | `mina-old` |
+  | **Mac (`~/Desktop/test/samsung-lxp`)** | **`a`** | **`origin` ← 여기선 origin 이 금지 대상** |
+
+  Mac 에서 `git push origin main` 을 그대로 치면 **금지 저장소로 나간다.**
+  Mac 에서는 항상 `git push a main` / `git push a v0.1.x-draft`.
+  `docs/deploy-guide.md` 는 사무실 PC 기준으로 쓰여 있어 `origin` 이라고 돼 있다 — 이 표를 우선한다.
 - 1인 개발이므로 main 직접 커밋 허용. 규모 있는 작업(병렬 세션·실험)은 `feat/*` 브랜치 + worktree(`C:\work\` — OneDrive 밖이라 init 스크립트 불필요).
 - 커밋 메시지 한글, 작은 단위 유지.
-- **배포 = `v*` 태그 푸시** (main 푸시만으로는 배포되지 않음). 태그가 푸시되면 GitHub Actions 가 테스트 → self-hosted 러너가 서버 자동 반영. 절차·규칙은 `docs/deploy-guide.md`, 서버 내부는 `docs/deploy-remote-2026-07-29.md`.
+
+## 배포 (`docs/deploy-guide.md` 요약 — 원문이 기준)
+
+운영 주소 **https://lms.samsungax.com** — 수강생이 실제로 쓰는 서버다.
+
+- **main 푸시 = 코드 공유** (서버 영향 없음, 자유롭게)
+- **`v*` 태그 푸시 = 배포 결정** — 이 순간 GitHub Actions 가 테스트 → 통과 시 self-hosted 러너가
+  서버에서 해당 태그를 checkout + `docker compose up -d --build` → `/login` 200 헬스체크.
+  **빌드 중 3~5분 서비스 순단**이 있으므로 배포 타이밍은 한마디 하고 진행한다.
+
+```bash
+./gradlew test --init-script ...          # 1) 로컬 테스트 통과 확인 (실패하면 어차피 배포 안 됨)
+git push a main                            # 2) 코드 공유 (Mac 기준. 사무실 PC 는 origin)
+git tag | sort -V | tail -1                # 3) 마지막 태그 확인 → 다음 번호로
+git tag v0.1.3-draft && git push a v0.1.3-draft   # 4) 이 순간 배포 시작
+```
+
+진행 상황·로그는 저장소 **Actions 탭**. 테스트 실패 시 배포되지 않는다(안전장치).
+
+**배포 관련 금지사항**
+
+1. **서버에 직접 들어가 파일을 고치지 말 것** — 다음 배포의 `checkout --force` 로 전부 사라진다. 수정은 반드시 git 을 거친다.
+2. **`docker compose down -v` 절대 금지** — DB·업로드 볼륨이 삭제된다.
+3. **`.env`·API 키·비밀번호 커밋 금지.** private 저장소여도 git 히스토리에 영원히 남는다.
+   비밀값은 서버 `.env` 에만 두고, 새 항목은 `.env.example` 에 **빈 항목만** 추가한다.
+4. **새 환경변수를 쓰는 기능은 값이 없어도 앱이 뜨게 만들 것** — 기능만 꺼지도록 기본값 처리
+   (AI 기능 방식 참고: `AiConfig` 가 키 없으면 안내 구현을 꽂고 기동 로그를 남긴다).
+   서버 `.env` 반영은 서버 관리자에게 요청.
+
+**롤백** — 직전 태그로 Actions 수동 실행(Run workflow), 또는 revert 커밋 + 새 태그.
 
 ## 반드시 지킬 규칙 (실제 사고에서 나온 것)
 
@@ -48,11 +85,13 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 기�
 
 - 미구현: 강사 튜터링·알림함 화면, 콘텐츠 버전관리(H-2), 이수증 에디터(I-9), 동시접속 방지(A-9), 본인인증 외부연동(기관 결정)
 - 기관 결정 대기: 에스컬레이션 7건 (3중 모니터링·안면인식·화상강의 등 — docs/b-audit-reply.md §4)
-- 운영: HTTPS(nginx), 모니터링(actuator), Flyway 전환 — docs/deploy-onprem.md §F
+- 운영: 모니터링(actuator), Flyway 전환 — docs/deploy-onprem.md §F (HTTPS 는 Cloudflare Tunnel 로 해결됨)
 
 ## 참고 문서
 
-- `docs/deploy-onprem.md` — **배포/운영 런북** (현장 절차·백업·트러블슈팅)
+- `docs/deploy-guide.md` — **배포 절차 (팀 공용, 이것이 기준)** — 태그 푸시 자동배포
+- `docs/deploy-remote-2026-07-29.md` — 서버 내부 구성·트러블슈팅 (서버 관리자용)
+- `docs/deploy-onprem.md` — 구버전 수동 배포 런북 (백업·복구 절차는 아직 유효)
 - `docs/requirements-audit-v2-2026-07-27.md` — 요구사항 감사 (별첨4+지원서 41항목)
 - `docs/기능소개-작성초안.md` + `docs/screenshots/` — 정부 제출용 기능 소개 초안
 - `docs/내역서-작성초안.md` — 양식3 내역서 초안

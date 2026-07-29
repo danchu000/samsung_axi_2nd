@@ -97,10 +97,15 @@
                 <!-- 페이지네이션 -->
                 <div class="pagination">
                     <div class="page-info">
-                        <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
+                        <!-- 결과가 없으면 페이지 수를 말하지 않는다 (admin-alarm.html 과 같은 이유) -->
+                        <span th:if="${totalPages > 0 and !#lists.isEmpty(rows)}">
+                            <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
+                        </span>
+                        <span th:if="${#lists.isEmpty(rows)}">결과가 없습니다</span>
                     </div>
                     <!-- 서버 페이징: pagination.js 의 changePage() 는 클라이언트 배열 전용이라 링크로 대체 -->
-                    <div class="pagination-controls">
+                    <!-- 페이지가 하나뿐이면 버튼을 그리지 않는다. 누를 수 없는 "1" 만 남으면 고장으로 보인다 -->
+                    <div class="pagination-controls" th:if="${totalPages > 1}">
                         <a id="prevPage" class="btn" th:classappend="${currentPage <= 1} ? 'disabled'"
                            th:href="@{/instructor/notice(page=${currentPage - 1},keyword=${keyword})}">이전</a>
                         <div id="pageNumbers">

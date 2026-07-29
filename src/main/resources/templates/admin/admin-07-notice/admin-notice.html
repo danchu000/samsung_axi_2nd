@@ -98,11 +98,20 @@
                 <!-- 페이지네이션 -->
                 <div class="pagination">
                     <div class="page-info">
-                        <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
-                        (총 <span th:text="${totalCount}">0</span>건)
+                        <!--
+                          0건일 때 "1 / 1 페이지 (총 0건)" 이 나오던 것을 고쳤다.
+                          컨트롤러가 totalPages 를 Math.max(...,1) 로 강제해, 결과가 없는데도
+                          1페이지가 있는 것처럼 보였다. 앞뒤가 안 맞는 숫자는 "화면이 깨졌나"로 읽힌다.
+                        -->
+                        <span th:if="${totalCount > 0}">
+                            <span id="currentPageInfo" th:text="${currentPage}">1</span> / <span id="totalPagesInfo" th:text="${totalPages}">1</span> 페이지
+                            (총 <span th:text="${totalCount}">0</span>건)
+                        </span>
+                        <span th:if="${totalCount == 0}">결과가 없습니다</span>
                     </div>
                     <!-- 서버 페이징이라 pagination.js 의 changePage()(클라이언트 배열 전용)를 링크로 대체했다. -->
-                    <div class="pagination-controls">
+                    <!-- 페이지가 하나뿐이면 버튼을 그리지 않는다. 누를 수 없는 "1" 만 남으면 고장으로 보인다 -->
+                    <div class="pagination-controls" th:if="${totalPages > 1}">
                         <a id="prevPage" th:classappend="${currentPage <= 1} ? 'disabled'"
                            th:href="@{/admin/notice(page=${currentPage - 1},categoryId=${cond.categoryId},keyword=${cond.keyword})}">이전</a>
                         <div id="pageNumbers">

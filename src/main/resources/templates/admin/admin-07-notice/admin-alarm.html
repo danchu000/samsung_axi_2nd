@@ -131,10 +131,32 @@
                 </form>
                 <div class="pagination">
                     <div class="page-info">
-                        <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">1</span> 페이지
-                        (총 <span th:text="${totalCount}">0</span>건)
+
+                        <!--
+
+                          0건일 때 "1 / 1 페이지 (총 0건)" 이 나오던 것을 고쳤다.
+
+                          컨트롤러가 totalPages 를 Math.max(...,1) 로 강제해 0건에도 1페이지가 있는 것처럼
+
+                          보였다. 결과가 없으면 페이지 수를 말하지 않는다 — 앞뒤가 안 맞는 숫자는
+
+                          "화면이 깨졌나" 로 읽힌다.
+
+                        -->
+
+                        <span th:if="${totalCount > 0}">
+
+                            <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">1</span> 페이지
+
+                            (총 <span th:text="${totalCount}">0</span>건)
+
+                        </span>
+
+                        <span th:if="${totalCount == 0}">결과가 없습니다</span>
+
                     </div>
-                    <div class="pagination-controls">
+                    <!-- 페이지가 하나뿐이면 버튼을 그리지 않는다. 누를 수 없는 "1" 만 남으면 고장으로 보인다 -->
+                    <div class="pagination-controls" th:if="${totalPages > 1}">
                         <a th:each="p : ${#numbers.sequence(1, totalPages)}"
                            th:href="@{/admin/notice/alarms(page=${p},priority=${cond.priority},keyword=${cond.keyword})}"
                            th:text="${p}" th:classappend="${p == currentPage} ? 'active'">1</a>

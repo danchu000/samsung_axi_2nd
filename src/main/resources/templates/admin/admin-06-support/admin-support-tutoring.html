@@ -404,45 +404,36 @@
                       아래 "기존 Q&A 목록"은 서버의 실제 데이터이고, 이 영역은 AI 분석값이라
                       섞이지 않도록 구분해 둔다.
                     -->
-                    <div class="ai-widget" style="border-radius:12px; padding:18px 20px; margin-bottom:18px;">
-                        <div class="ai-card-head">
-                            <div>
-                                <h3 class="ai-card-title">AI 학습 도우미 현황 <span class="ai-badge">AI</span></h3>
-                                <p class="ai-card-sub">훈련생 질문은 AI가 먼저 답하고, 해결되지 않은 것만 강사에게 전달됩니다.</p>
-                            </div>
-                        </div>
+                    <!--
+                      박스를 겹쳐 쌓지 않는다. 위 KPI 카드가 이미 6개라, 여기에 카드를 더
+                      얹으면 아무것도 안 읽힌다. 요약은 한 줄로, 실제 볼 것(전달된 질문)은
+                      표 하나로만 둔다.
+                    -->
+                    <div class="ai-summary-line" id="aiQnaSummary"></div>
 
-                        <div class="ai-grid ai-grid-3" id="aiQnaCards"></div>
-
-                        <div class="ai-card" style="margin:16px 0 0;">
-                            <div class="ai-card-head" style="margin-bottom:10px;">
-                                <div>
-                                    <h3 class="ai-card-title" style="font-size:14px;">강사에게 전달된 질문</h3>
-                                    <p class="ai-card-sub">AI가 답하지 못해 사람이 처리해야 하는 질문입니다.</p>
-                                </div>
-                            </div>
-                            <div style="overflow-x:auto;">
-                                <table class="ai-table">
-                                    <thead>
-                                        <tr>
-                                            <th>질문</th>
-                                            <th style="width:150px;">훈련생</th>
-                                            <th style="width:120px;">담당 강사</th>
-                                            <th style="width:110px;">상태</th>
-                                            <th style="width:110px;">전달일</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="aiEscalatedBody"></tbody>
-                                </table>
-                            </div>
+                    <div class="qna-block">
+                        <h4 class="qna-block-title">강사에게 전달된 질문</h4>
+                        <p class="qna-block-desc">AI가 답하지 못해 사람이 처리해야 하는 질문입니다.</p>
+                        <div style="overflow-x:auto;">
+                            <table class="ai-table">
+                                <thead>
+                                    <tr>
+                                        <th>질문</th>
+                                        <th style="width:110px;">훈련생</th>
+                                        <th style="width:110px;">담당 강사</th>
+                                        <th style="width:100px;">상태</th>
+                                        <th style="width:110px;">전달일</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aiEscalatedBody"></tbody>
+                            </table>
                         </div>
                     </div>
 
                     <!-- Q&A 리스트 (기존 글등록형 — 서버 실제 데이터) -->
                     <div class="qna-list-area">
-                        <p class="ai-card-sub" style="margin:0 0 10px;">
-                            아래는 AI 도입 이전에 등록된 글등록형 Q&amp;A 기록입니다.
-                        </p>
+                        <h4 class="qna-block-title" style="margin-top:22px;">기존 Q&amp;A 기록</h4>
+                        <p class="qna-block-desc">AI 도입 이전에 글로 등록된 질문입니다.</p>
                         <form class="qna-filter-row" method="get" th:action="@{/admin/support/qna}">
                             <select class="form-input" name="status">
                                 <option value="">전체 상태</option>

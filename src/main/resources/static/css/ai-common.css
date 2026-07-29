@@ -355,3 +355,47 @@
 }
 
 .ai-widget .ai-card-title { color: #3730a3; }
+
+
+/* ===== 한 줄 요약 =====
+   카드를 더 쌓지 않고 수치를 한 줄에 늘어놓는다. 이미 카드가 많은 화면에서
+   또 카드를 얹으면 어느 것도 눈에 안 들어온다. */
+.ai-summary-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 26px;
+    padding: 12px 16px;
+    background: #f8f9fc;
+    border: 1px solid #eef0f6;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 13.5px;
+    color: #475467;
+}
+
+.ai-summary-line b { color: #101828; font-size: 16px; font-weight: 800; }
+.ai-summary-line .sep { color: #d0d5dd; }
+.ai-summary-line .warn { color: #b45309; }
+
+/* 표 위 소제목 — 박스를 만들지 않고 제목만으로 구역을 나눈다 */
+.qna-block-title {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #101828;
+    position: relative;
+    padding-left: 10px;
+}
+
+.qna-block-title::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 14px;
+    border-radius: 2px;
+    background: #6366f1;
+}
+
+.qna-block-desc { margin: 0 0 10px; font-size: 12.5px; color: #667085; }

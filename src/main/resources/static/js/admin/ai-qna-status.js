@@ -13,11 +13,7 @@
     'use strict';
 
     var DUMMY = {
-        cards: [
-            { label: '전체 질문', value: '186건', sub: '최근 2주 · 훈련생 24명' },
-            { label: 'AI 자체 해결', value: '156건', sub: '해결률 84% · 평균 응답 3초' },
-            { label: '강사 전달', value: '30건', sub: '미답변 4건 — 확인이 필요합니다' }
-        ],
+        summary: { total: '186건', solved: '156건', rate: '84%', escalated: '30건', pending: '4건' },
         escalated: [
             { q: '3주차 실습에서 커넥션 풀 설정값을 어떻게 정해야 하나요?', trainee: '김훈련', teacher: '김강사', status: '답변완료', date: '2026-07-26' },
             { q: '과제 제출 형식이 zip 이어도 되나요?', trainee: '이수강', teacher: '김강사', status: '대기중', date: '2026-07-28' },
@@ -28,17 +24,19 @@
     };
 
     document.addEventListener('DOMContentLoaded', function () {
-        var box = document.getElementById('aiQnaCards');
+        var box = document.getElementById('aiQnaSummary');
         if (!box) return;   // Q&A 탭이 아닌 화면에서는 아무 일도 하지 않는다
 
         var data = window._serverAiQna || DUMMY;
+        var s = data.summary;
 
-        box.innerHTML = data.cards.map(function (c) {
-            return '<div class="ai-card" style="margin:0;">' +
-                '<p class="ai-card-sub" style="margin:0 0 6px;">' + esc(c.label) + '</p>' +
-                '<p class="ai-card-title" style="font-size:24px;">' + esc(c.value) + '</p>' +
-                '<p class="ai-card-sub">' + esc(c.sub) + '</p></div>';
-        }).join('');
+        // 카드를 쌓지 않고 한 줄로 — 미답변만 색을 준다(유일하게 조치가 필요한 값)
+        box.innerHTML =
+            '<span>🤖 AI 학습 도우미</span><span class="sep">|</span>' +
+            '<span>전체 <b>' + esc(s.total) + '</b></span>' +
+            '<span>AI 자체 해결 <b>' + esc(s.solved) + '</b> (' + esc(s.rate) + ')</span>' +
+            '<span>강사 전달 <b>' + esc(s.escalated) + '</b></span>' +
+            '<span class="warn">미답변 <b class="warn">' + esc(s.pending) + '</b></span>';
 
         var body = document.getElementById('aiEscalatedBody');
         if (!body) return;

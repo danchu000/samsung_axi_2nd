@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/css/ai-common.css">
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/ai-widget.js" defer></script>
+    <script src="/static/js/admin/dashboard-charts.js" defer></script>
     
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
@@ -379,63 +380,64 @@
             </div>
             </div>
 
-            <!-- AI 분석 요약 — 훈련생 AI 이용 현황 + 시장 수요(직무 로드맵 수집분) -->
-            <div class="panel ai-widget" style="margin-bottom:16px;">
+            <!--
+              과정 진행 현황 — 기간이 얼마나 지났는지 대비 진도가 어디까지 왔는지.
+              둘을 나란히 그려야 "일정보다 뒤처진 과정"이 눈에 보인다.
+              숫자 표로는 그 격차가 안 읽힌다.
+            -->
+            <div class="two-col" style="margin-bottom:16px;">
+            <div class="panel">
                 <div class="panel-header">
-                <h3>🤖 AI 분석 요약 <span class="ai-badge">AI</span></h3>
-                <span class="ai-card-sub" id="aiCollectedAt" style="margin:0;">직무 로드맵 수집: —</span>
+                <h3>📚 과정별 진행 현황</h3>
+                <span class="muted">기간 경과 대비 진도</span>
+                </div>
+                <div class="panel-body">
+                <canvas id="courseProgressChart" height="240" style="width:100%;"></canvas>
+                <div class="chart-filters" style="justify-content:flex-start; margin-top:4px;">
+                    <span class="muted">■ 진도율&nbsp;&nbsp;□ 기간 경과율 — 진도가 기간보다 낮으면 지연</span>
+                </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                <h3>📈 주간 학습 활동 추이</h3>
+                <span class="muted">최근 8주</span>
+                </div>
+                <div class="panel-body">
+                <canvas id="weeklyActivityChart" height="240" style="width:100%;"></canvas>
+                <div class="chart-filters" style="justify-content:flex-start; margin-top:4px;">
+                    <span class="muted">출석률 · 과제 제출률 · 평가 응시율</span>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- 평가·이수 분포 + AI 이용 현황 (일반 패널로 통일) -->
+            <div class="two-col" style="margin-bottom:16px;">
+            <div class="panel">
+                <div class="panel-header">
+                <h3>🧭 이수 요건 충족 현황</h3>
+                <span class="muted">진행 중 과정 전체</span>
+                </div>
+                <div class="panel-body">
+                <canvas id="completionChart" height="240" style="width:100%;"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                <h3>🤖 AI 학습지원 이용 현황</h3>
+                <span class="muted" id="aiCollectedAt">직무 로드맵 수집: —</span>
                 </div>
                 <div class="panel-body">
                 <div class="ai-grid ai-grid-3" id="adminAiCards"></div>
-
-                <div class="ai-grid ai-grid-2" style="margin-top:16px;">
-                    <!-- 어떤 역량이 시장에서 요구되는지 = 과정 개편 근거 -->
-                    <div class="ai-card" style="margin:0;">
-                        <div class="ai-card-head" style="margin-bottom:10px;">
-                            <div>
-                                <h3 class="ai-card-title" style="font-size:14px;">채용공고 요구 역량 TOP</h3>
-                                <p class="ai-card-sub">과정 개편 시 우선 검토 대상이에요.</p>
-                            </div>
-                        </div>
-                        <div id="aiDemandMeters"></div>
-                    </div>
-
-                    <!-- 훈련생이 어디서 막히는지 = 수업 보완 근거 -->
-                    <div class="ai-card" style="margin:0;">
-                        <div class="ai-card-head" style="margin-bottom:10px;">
-                            <div>
-                                <h3 class="ai-card-title" style="font-size:14px;">훈련생이 많이 막히는 주제</h3>
-                                <p class="ai-card-sub">AI 질문이 몰린 순서예요.</p>
-                            </div>
-                        </div>
-                        <div id="aiStuckMeters"></div>
-                    </div>
-                </div>
-
-                <!-- 수집 현황 — 로드맵 데이터가 최신인지 관리자가 확인해야 한다 -->
-                <div class="ai-card" style="margin:16px 0 0;">
-                    <div class="ai-card-head" style="margin-bottom:10px;">
-                        <div>
-                            <h3 class="ai-card-title" style="font-size:14px;">직무 로드맵 수집 현황</h3>
-                            <p class="ai-card-sub">주 1회 자동 수집돼요. 실패하면 훈련생 화면이 옛 데이터로 남아요.</p>
-                        </div>
-                    </div>
-                    <div style="overflow-x:auto;">
-                        <table class="ai-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:150px;">직무</th>
-                                    <th style="width:110px;">수집 공고</th>
-                                    <th style="width:160px;">마지막 수집</th>
-                                    <th style="width:110px;">상태</th>
-                                    <th>비고</th>
-                                </tr>
-                            </thead>
-                            <tbody id="aiCollectBody"></tbody>
-                        </table>
-                    </div>
+                <canvas id="aiDemandChart" height="150" style="width:100%; margin-top:12px;"></canvas>
+                <div class="chart-filters" style="justify-content:flex-start;">
+                    <span class="muted">채용공고 요구 역량 TOP — 과정 개편 검토용</span>
                 </div>
                 </div>
+            </div>
             </div>
 
             <!-- Alerts + Trend -->

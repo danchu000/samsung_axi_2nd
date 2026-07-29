@@ -88,26 +88,6 @@
         /* 관리자 화면 전용 상세 — 과정 개편·수업 보완의 근거가 되는 값들 */
         adminDetail: {
             collectedAt: '2026-07-27 03:00',
-            demand: [
-                { label: 'Docker', value: 74 },
-                { label: 'AWS', value: 71 },
-                { label: '테스트 코드', value: 68 },
-                { label: 'CI/CD', value: 52 },
-                { label: 'Redis', value: 39 }
-            ],
-            stuck: [
-                { label: '트랜잭션·동시성', value: 82, count: 38 },
-                { label: 'Docker·배포', value: 64, count: 29 },
-                { label: 'JPA 연관관계', value: 51, count: 24 },
-                { label: 'REST API 설계', value: 33, count: 15 },
-                { label: '테스트 코드', value: 22, count: 10 }
-            ],
-            collect: [
-                { job: '백엔드 개발자', count: '128건', at: '2026-07-27 03:00', ok: true, note: '정상' },
-                { job: '프론트엔드 개발자', count: '96건', at: '2026-07-27 03:00', ok: true, note: '정상' },
-                { job: '데이터 분석가', count: '74건', at: '2026-07-27 03:00', ok: true, note: '정상' },
-                { job: 'AI 엔지니어', count: '0건', at: '2026-07-13 03:00', ok: false, note: '2주째 수집 실패 — 훈련생 화면에 옛 데이터가 보여요' }
-            ]
         }
     };
 
@@ -119,44 +99,18 @@
         drawAdminDetail(data.adminDetail);
     });
 
-    /** 관리자 전용 상세 — 해당 자리가 없는 화면(강사·훈련생)에서는 그냥 넘어간다. */
+    /**
+     * 관리자 화면의 수집 시각 표시.
+     *
+     * 예전에는 여기서 요구역량·막힌주제 막대와 수집현황 표까지 그렸는데,
+     * 대시보드에 박스가 너무 많아져 차트(admin/dashboard-charts.js)로 옮겼다.
+     * 남은 것은 "로드맵 데이터가 언제 수집됐나" 한 줄 — 오래되면 훈련생 화면이
+     * 옛 정보로 남으므로 관리자가 상시 봐야 한다.
+     */
     function drawAdminDetail(d) {
         if (!d) return;
-
         var stamp = document.getElementById('aiCollectedAt');
         if (stamp) stamp.textContent = '직무 로드맵 수집: ' + d.collectedAt;
-
-        meters('aiDemandMeters', d.demand, function (m) { return m.value + '%'; });
-        meters('aiStuckMeters', d.stuck, function (m) { return m.count + '건'; });
-
-        var body = document.getElementById('aiCollectBody');
-        if (body) {
-            body.innerHTML = d.collect.map(function (r) {
-                // 수집 실패는 눈에 띄어야 한다 — 방치하면 훈련생이 옛 정보를 보게 된다
-                var badge = r.ok
-                    ? '<span class="ai-level low">정상</span>'
-                    : '<span class="ai-level high">실패</span>';
-                return '<tr>' +
-                    '<td>' + esc(r.job) + '</td>' +
-                    '<td>' + esc(r.count) + '</td>' +
-                    '<td>' + esc(r.at) + '</td>' +
-                    '<td>' + badge + '</td>' +
-                    '<td style="font-size:12.5px; color:' + (r.ok ? '#6b7280' : '#b91c1c') + ';">' + esc(r.note) + '</td>' +
-                '</tr>';
-            }).join('');
-        }
-    }
-
-    function meters(id, list, valueOf) {
-        var box = document.getElementById(id);
-        if (!box || !list) return;
-        box.innerHTML = list.map(function (m) {
-            var cls = m.value >= 70 ? 'danger' : (m.value >= 45 ? 'warn' : '');
-            return '<div class="ai-meter-row">' +
-                '<span class="label">' + esc(m.label) + '</span>' +
-                '<span class="ai-bar ' + cls + '"><span style="width:' + m.value + '%"></span></span>' +
-                '<span class="value">' + esc(valueOf(m)) + '</span></div>';
-        }).join('');
     }
 
     function draw(id, items) {

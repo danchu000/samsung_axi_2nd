@@ -467,3 +467,114 @@ main {
    숫자가 아니라 "무엇을 해주는지"를 읽게 한다. 값은 크게, 설명은 두 줄까지. */
 #hpAiCards .ai-card-title { font-size: 18px; line-height: 1.35; }
 #hpAiCards .ai-card-sub { line-height: 1.55; }
+
+/* ===== 우리 반에서 내 위치 — 달리기 트랙 =====
+   예전엔 "1등/25명"이 박힌 정적 이미지라 누구에게나 같은 그림이었다.
+   지금은 진도율로 계산한 실제 위치를 그린다. */
+.race-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.race-rank {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin: 6px 0 2px;
+}
+
+.race-rank-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--dash-navy);
+    line-height: 1;
+    letter-spacing: -.03em;
+}
+
+.race-rank-unit { font-size: 18px; font-weight: 700; color: var(--dash-navy); }
+.race-rank-total { font-size: 14px; color: #667085; margin-left: 4px; }
+
+.race-track { margin: 14px 0 6px; }
+
+/* 트랙 — 점선이 레인 표시. 0% 출발, 100% 결승 */
+.race-lane {
+    position: relative;
+    height: 52px;
+    background: linear-gradient(180deg, #f7f8fc 0%, #eef1f8 100%);
+    border: 1px solid #e2e6f0;
+    border-radius: 26px;
+    margin-bottom: 6px;
+}
+
+.race-lane::before {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px; top: 50%;
+    border-top: 2px dashed #d6dbe8;
+}
+
+.race-finish {
+    position: absolute;
+    right: 6px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+}
+
+/* 주자 — left 를 진도율(%)로 잡는다. 양끝에서 잘리지 않게 안쪽으로 살짝 민다 */
+.race-runner {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    line-height: 1;
+    transition: left .5s ease;
+    max-width: 0;              /* 위치만 잡고 폭은 아이콘이 결정 */
+    display: flex;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+/* 나 — 가장 크고 진하게. 내 위치가 먼저 보여야 한다 */
+.race-runner.me {
+    font-size: 30px;
+    z-index: 3;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.race-me-badge {
+    background: var(--dash-navy);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    line-height: 1.4;
+}
+
+/* 앞·뒤 주자 — 익명이라 흐리게. 나를 가리지 않는다 */
+.race-runner.ahead,
+.race-runner.behind {
+    opacity: .45;
+    filter: grayscale(.5);
+    z-index: 1;
+}
+
+.race-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: #98a2b3;
+    padding: 0 4px;
+}
+
+.race-msg {
+    margin: 6px 0 0;
+    font-size: 13.5px;
+    color: #475467;
+    line-height: 1.6;
+}
+
+.race-msg b { color: var(--dash-navy); }

@@ -1,0 +1,32 @@
+package com.ssa.lms.dashboard.dto;
+
+/**
+ * 우리 반에서 내 학습 위치 — 훈련생 대시보드의 "달리기 트랙"에 쓴다.
+ *
+ * <p><b>다른 훈련생의 이름은 담지 않는다.</b> 순위 비교 화면에 남의 이름이 뜨면
+ * 개인정보이고, 훈련생 사이에 불필요한 비교를 만든다. 내 위치와 앞·뒤 주자의
+ * <b>진도율만</b> 익명으로 보여준다.</p>
+ *
+ * @param courseName  과정명
+ * @param myRank      내 등수 (1부터)
+ * @param total       비교 대상 인원 (승인·수료 상태 수강생)
+ * @param myProgress  내 진도율(%)
+ * @param aheadProgress 바로 앞 주자의 진도율(%). 내가 1등이면 null
+ * @param behindProgress 바로 뒤 주자의 진도율(%). 내가 꼴찌면 null
+ * @param topProgress 1등 진도율(%) — 트랙에서 선두 위치를 잡는 데 쓴다
+ */
+public record CoursePaceView(
+        String courseName,
+        int myRank,
+        int total,
+        int myProgress,
+        Integer aheadProgress,
+        Integer behindProgress,
+        int topProgress
+) {
+
+    /** 앞사람과의 격차(%p). 1등이면 null. */
+    public Integer gapToAhead() {
+        return aheadProgress == null ? null : aheadProgress - myProgress;
+    }
+}

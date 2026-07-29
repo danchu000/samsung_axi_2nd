@@ -6,6 +6,7 @@ import com.ssa.lms.course.entity.Enrollment;
 import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.CourseRepository;
 import com.ssa.lms.course.repository.EnrollmentRepository;
+import com.ssa.lms.dashboard.dto.CoursePaceView;
 import com.ssa.lms.dashboard.dto.DashboardMetrics;
 import com.ssa.lms.dashboard.service.DashboardMetricsService;
 import com.ssa.lms.user.entity.Role;
@@ -57,8 +58,12 @@ class DashboardMetricsServiceTest {
     }
 
     private void enroll(Course c, EnrollmentStatus status, double progress) {
+        enrollUser(newTrainee(), c, status, progress);
+    }
+
+    private void enrollUser(User u, Course c, EnrollmentStatus status, double progress) {
         Enrollment e = enrollmentRepository.save(Enrollment.builder()
-                .trainee(newTrainee()).course(c).status(status).build());
+                .trainee(u).course(c).status(status).build());
         e.updateProgressRate(progress);
         enrollmentRepository.flush();
     }
@@ -134,6 +139,51 @@ class DashboardMetricsServiceTest {
         DashboardMetrics m = metricsService.of(List.of());
         assertThat(m.courses()).isEmpty();
         assertThat(m.completion()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("내 위치 — 진도 순위와 앞·뒤 주자를 돌려준다")
+    void 내_학습_위치() {
+        Course c = newCourse("트랙검증", LocalDate.now().minusDays(5), LocalDate.now().plusDays(5));
+        User me = newTrainee();
+        enrollUser(me, c, EnrollmentStatus.APPROVED, 60);
+        enroll(c, EnrollmentStatus.APPROVED, 90);   // 앞
+        enroll(c, EnrollmentStatus.APPROVED, 30);   // 뒤
+
+        CoursePaceView p = metricsService.paceOf(me.getId()).orElseThrow();
+
+        assertThat(p.myRank()).isEqualTo(2);
+        assertThat(p.total()).isEqualTo(3);
+        assertThat(p.myProgress()).isEqualTo(60);
+        assertThat(p.aheadProgress()).isEqualTo(90);
+        assertThat(p.behindProgress()).isEqualTo(30);
+        assertThat(p.gapToAhead()).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("혼자 듣는 과정은 순위가 성립하지 않는다")
+    void 혼자면_위치없음() {
+        Course c = newCourse("혼자", LocalDate.now().minusDays(5), LocalDate.now().plusDays(5));
+        User me = newTrainee();
+        enrollUser(me, c, EnrollmentStatus.APPROVED, 40);
+
+        assertThat(metricsService.paceOf(me.getId()))
+                .as("혼자인데 1위/1명을 보여주면 의미가 없다")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("1등이면 앞 주자가 없다")
+    void 선두면_앞사람_없음() {
+        Course c = newCourse("선두", LocalDate.now().minusDays(5), LocalDate.now().plusDays(5));
+        User me = newTrainee();
+        enrollUser(me, c, EnrollmentStatus.APPROVED, 95);
+        enroll(c, EnrollmentStatus.APPROVED, 50);
+
+        CoursePaceView p = metricsService.paceOf(me.getId()).orElseThrow();
+        assertThat(p.myRank()).isEqualTo(1);
+        assertThat(p.aheadProgress()).isNull();
+        assertThat(p.gapToAhead()).isNull();
     }
 
     private DashboardMetrics.CourseProgress find(List<DashboardMetrics.CourseProgress> rows, String name) {

@@ -11,6 +11,7 @@ import com.ssa.lms.course.entity.EnrollmentStatus;
 import com.ssa.lms.course.repository.EnrollmentRepository;
 import com.ssa.lms.course.service.CourseQueryService;
 import com.ssa.lms.course.service.CourseService;
+import com.ssa.lms.dashboard.dto.CoursePaceView;
 import com.ssa.lms.dashboard.dto.DashboardMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,6 +65,54 @@ public class DashboardMetricsService {
         return of(courseService.findAll().stream()
                 .filter(c -> courseQueryService.isInstructorOf(instructorId, c.getId()))
                 .toList());
+    }
+
+    /**
+     * 훈련생 — 우리 반에서 내 학습 위치.
+     *
+     * <p>수강 중인 과정 중 <b>진도가 가장 많이 남은 과정</b> 하나만 돌려준다.
+     * 여러 개를 한꺼번에 보여주면 "그래서 뭘 해야 하나"가 흐려진다.</p>
+     *
+     * <p>비교 기준은 진도율이다. 성적으로 줄 세우면 훈련생 사이에 위화감이 생기고,
+     * 성적은 확정 전 값이 섞일 수 있다. 진도는 본인 노력으로 바로 바꿀 수 있는 값이다.</p>
+     */
+    public Optional<CoursePaceView> paceOf(Long traineeId) {
+        return enrollmentRepository.findByTraineeIdOrderByAppliedAtDesc(traineeId).stream()
+                .filter(e -> COUNTED.contains(e.getStatus()))
+                .map(e -> paceIn(e.getCourse(), traineeId))
+                .flatMap(Optional::stream)
+                // 진도가 가장 낮은 과정 = 지금 가장 신경 써야 할 과정
+                .min(Comparator.comparingInt(CoursePaceView::myProgress));
+    }
+
+    private Optional<CoursePaceView> paceIn(Course course, Long traineeId) {
+        List<Enrollment> rows = enrollmentRepository
+                .findByCourseIdOrderByAppliedAtDesc(course.getId()).stream()
+                .filter(e -> COUNTED.contains(e.getStatus()))
+                .sorted(Comparator.comparingDouble(Enrollment::getProgressRate).reversed())
+                .toList();
+
+        // 혼자면 순위라는 게 성립하지 않는다
+        if (rows.size() < 2) return Optional.empty();
+
+        int myIdx = -1;
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).getTrainee().getId().equals(traineeId)) { myIdx = i; break; }
+        }
+        if (myIdx < 0) return Optional.empty();
+
+        return Optional.of(new CoursePaceView(
+                course.getCourseName(),
+                myIdx + 1,
+                rows.size(),
+                pct(rows.get(myIdx)),
+                myIdx > 0 ? pct(rows.get(myIdx - 1)) : null,
+                myIdx < rows.size() - 1 ? pct(rows.get(myIdx + 1)) : null,
+                pct(rows.get(0))));
+    }
+
+    private int pct(Enrollment e) {
+        return (int) Math.round(e.getProgressRate());
     }
 
     public DashboardMetrics of(List<Course> courses) {

@@ -50,6 +50,8 @@ public class ModuleHomeController {
     public String traineeHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
         model.addAttribute("dashboard",
                 traineeDashboardService.load(loginUser.getId(), loginUser.getName()));
+        // 우리 반에서 내 학습 위치 (달리기 트랙). 혼자 듣는 과정이면 값이 없다
+        model.addAttribute("pace", dashboardMetricsService.paceOf(loginUser.getId()).orElse(null));
         return "trainee/index";
     }
 }

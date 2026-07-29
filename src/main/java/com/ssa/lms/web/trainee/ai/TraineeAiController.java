@@ -4,6 +4,7 @@ import com.ssa.lms.ai.dto.AiQnaAnswer;
 import com.ssa.lms.ai.service.AiEscalationService;
 import com.ssa.lms.ai.service.AiCurriculumService;
 import com.ssa.lms.ai.service.AiQnaService;
+import com.ssa.lms.ai.service.AiRoadmapService;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.job.service.RoadmapService;
 import com.ssa.lms.support.service.QnaService;
@@ -14,8 +15,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 
 /**
@@ -47,6 +51,7 @@ public class TraineeAiController {
     private final AiEscalationService escalationService;
     private final QnaService qnaService;
     private final AiCurriculumService curriculumService;
+    private final AiRoadmapService aiRoadmapService;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
@@ -136,8 +141,35 @@ public class TraineeAiController {
      * null 이다. 화면은 그때 "아직 수집 전"을 보여준다 — 날짜를 지어내지 않는다.</p>
      */
     @GetMapping("/roadmap")
-    public String roadmap(@AuthenticationPrincipal LoginUser me, Model model) {
-        model.addAttribute("roadmap", roadmapService.forTrainee(me == null ? null : me.getId()));
+    public String roadmap(@AuthenticationPrincipal LoginUser me,
+                          @RequestParam(required = false) String job,
+                          Model model) {
+        Long myId = me == null ? null : me.getId();
+
+        /*
+         * 공고 수집이 돼 있으면 그 통계를 쓴다 — 실제 채용 시장이 근거이므로 더 낫다.
+         * 수집 전이면 Claude 가 만든 일반 로드맵으로 대신한다.
+         *
+         * 두 출처를 섞지 않는다. 섞으면 어느 숫자가 실제 공고 기반인지 구분할 수 없다.
+         */
+        var collected = roadmapService.forTrainee(myId);
+        boolean hasPostings = collected.collectedAt() != null && !collected.jobs().isEmpty();
+
+        String target = (job == null || job.isBlank()) ? DEFAULT_JOB : job;
+        model.addAttribute("roadmap", hasPostings ? collected
+                : aiRoadmapService.forTrainee(myId, target));
+        model.addAttribute("fromPostings", hasPostings);
+        model.addAttribute("jobOptions", JOB_OPTIONS);
+        model.addAttribute("selectedJob", target);
+        model.addAttribute("aiAvailable", aiRoadmapService.available());
         return "trainee/ai-roadmap";
     }
+
+    /** 로드맵을 만들 수 있는 직무. 공고 수집 설정의 직무명과 맞춰 둔다. */
+    private static final List<String> JOB_OPTIONS = List.of(
+            "백엔드 개발자", "프론트엔드 개발자", "풀스택 개발자", "모바일 앱 개발자",
+            "데브옵스·인프라", "데이터 엔지니어·분석가", "AI·머신러닝 개발자",
+            "정보보안 담당자", "QA·테스트 엔지니어", "게임 개발자");
+
+    private static final String DEFAULT_JOB = "백엔드 개발자";
 }

@@ -5,6 +5,7 @@ import com.ssa.lms.ai.client.AiClient;
 import com.ssa.lms.ai.client.AiRequest;
 import com.ssa.lms.ai.dto.AiQnaAnswer;
 import com.ssa.lms.ai.service.AiQnaService;
+import com.ssa.lms.ai.service.ContentTextExtractor;
 import com.ssa.lms.content.entity.Content;
 import com.ssa.lms.content.entity.ContentStatus;
 import com.ssa.lms.content.entity.ContentType;
@@ -56,7 +57,10 @@ class AiQnaServiceTest {
         aiClient = mock(AiClient.class);
         enrollmentRepository = mock(EnrollmentRepository.class);
         contentRepository = mock(ContentRepository.class);
-        service = new AiQnaService(aiClient, enrollmentRepository, contentRepository);
+        // 본문 추출기는 가짜로 — 테스트에서 실제 PDF 를 열 이유가 없다
+        ContentTextExtractor textExtractor = mock(ContentTextExtractor.class);
+        when(textExtractor.textOf(any())).thenReturn("");
+        service = new AiQnaService(aiClient, enrollmentRepository, contentRepository, textExtractor);
     }
 
     private void enrolled(EnrollmentStatus status) {

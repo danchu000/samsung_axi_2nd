@@ -30,9 +30,18 @@ import java.util.regex.Pattern;
  * 훈련생은 그게 수업 내용인지 아닌지 구분할 수 없다. 그래서 <b>그 과정의 콘텐츠 제목·설명만
  * 근거로 삼도록</b> 제한하고, 자료에 없으면 "여기서는 다루지 않는다"고 말하게 한다.</p>
  *
- * <p><b>지금 근거로 쓰는 것은 제목·설명까지다.</b> 영상 자막이나 문서 본문은 아직 넣지 않는다.
- * 그래서 화면에도 "근거"가 아니라 <b>관련 학습 자료</b>로 표기한다 — 본문을 안 읽고 답한
- * 것을 "근거"라고 부르면 훈련생이 답변을 과신한다.</p>
+ * <p><b>본문까지 넣는다.</b> PDF 자료는 {@link ContentTextExtractor} 로 본문을 뽑아
+ * 프롬프트에 함께 넣는다. 벡터 검색(임베딩·pgvector)을 쓰지 않고 <b>모델이 직접 읽고
+ * 찾게</b> 하는 방식이다. 자료가 수백 개가 되면 이 방식은 한계에 부딪히지만,
+ * 그때 검색 단계를 끼워 넣으면 되고 화면 코드는 바뀌지 않는다.</p>
+ *
+ * <p><b>프롬프트 크기를 반드시 막는다.</b> 본문을 다 넣으면 질문 한 번에 수만 토큰이
+ * 나간다. {@link #MAX_TOTAL_BODY_CHARS} 를 넘으면 <b>질문과 겹치는 단어가 많은 자료부터</b>
+ * 넣고 나머지는 제목·설명만 넣는다. 이 선별은 자바에서 하므로 <b>공짜</b>다 —
+ * 고르는 일에 모델을 한 번 더 부르면 호출이 두 배가 된다.</p>
+ *
+ * <p>영상 자막은 아직 넣지 않는다(STT 필요). 그래서 화면 표기는 "근거"가 아니라
+ * <b>관련 학습 자료</b>로 둔다 — 영상만 있는 과정에서는 여전히 제목만 보고 답한다.</p>
  *
  * <p><b>권한</b> — 수강하지 않는 과정으로는 물을 수 없다. 막지 않으면 남의 과정
  * 커리큘럼(콘텐츠 제목 전체)이 답변을 통해 새어 나간다.</p>
@@ -52,6 +61,15 @@ public class AiQnaService {
     /** 자료 설명은 길면 잘라 넣는다 — 한 자료가 프롬프트를 다 먹으면 안 된다. */
     private static final int MAX_DESC_CHARS = 200;
 
+    /**
+     * 프롬프트에 넣을 본문 총량 상한(글자).
+     *
+     * <p>한국어는 대략 2~3글자가 1토큰이다. 40,000자면 입력 15,000~20,000 토큰쯤 되고,
+     * 질문 한 번의 비용이 그만큼 늘어난다. 자료가 많은 과정에서 이 상한이 없으면
+     * 질문 한 번에 수만 토큰이 나간다.</p>
+     */
+    private static final int MAX_TOTAL_BODY_CHARS = 40_000;
+
     /** 질문 길이 상한. 본문 전체를 붙여넣는 식의 호출을 막는다. */
     private static final int MAX_QUESTION_CHARS = 1000;
 
@@ -64,6 +82,7 @@ public class AiQnaService {
     private final AiClient aiClient;
     private final EnrollmentRepository enrollmentRepository;
     private final ContentRepository contentRepository;
+    private final ContentTextExtractor textExtractor;
 
     /** 지금 실제로 모델을 부를 수 있는지 — 화면이 입력창을 열지 말지 판단한다. */
     public boolean available() {
@@ -111,7 +130,7 @@ public class AiQnaService {
         List<Content> materials = materialsOf(courseId);
 
         AiAnswer res = aiClient.ask(AiRequest.of("QNA")
-                .system(systemPrompt(materials))
+                .system(systemPrompt(materials, question))
                 .user(question.trim())
                 .userId(traineeId)
                 // 진단([기능 4])이 "무엇을 어려워하는가"를 보려면 질문이 남아야 한다.
@@ -156,14 +175,16 @@ public class AiQnaService {
      * 규칙을 프롬프트로 못 박는다. 특히 <b>모르면 모른다고 말하게</b> 하는 것이 핵심이다 —
      * 그럴듯하게 지어낸 답이 제일 위험하다. 학습자는 검증할 수단이 없다.
      */
-    private String systemPrompt(List<Content> materials) {
-        StringBuilder sb = new StringBuilder(1024);
+    private String systemPrompt(List<Content> materials, String question) {
+        StringBuilder sb = new StringBuilder(4096);
         sb.append("""
                 당신은 국비 직업훈련 과정의 학습 도우미입니다. 훈련생의 질문에 한국어 존댓말로 답합니다.
 
                 답변은 두 단계로 합니다.
 
-                [1단계] 아래 '학습 자료 목록'에 관련 내용이 있으면 그것을 근거로 답합니다.
+                [1단계] 아래 '학습 자료 목록'에서 답을 찾습니다.
+                        <본문 시작>~<본문 끝> 사이는 그 자료의 실제 내용입니다.
+                        본문을 끝까지 읽고, 질문과 관련된 부분이 있으면 그것을 근거로 답합니다.
                         참고한 자료는 문장 끝에 [자료 3] 형식으로 번호를 답니다.
 
                 [2단계] 자료에 없는 내용이면, 자료에 없다고 먼저 밝힌 뒤 일반적인 지식으로
@@ -181,7 +202,28 @@ public class AiQnaService {
                 """);
         if (materials.isEmpty()) {
             sb.append("(등록된 학습 자료가 없습니다. 모든 답변을 <일반지식> 으로 처리하세요.)\n");
+            return sb.toString();
         }
+
+        /*
+         * 본문을 넣을 순서를 정한다. 상한에 걸리면 뒤쪽 자료는 제목·설명만 들어가므로,
+         * 질문과 관련 있어 보이는 자료를 먼저 넣어야 한다.
+         * 이 정렬은 자바에서 하므로 공짜다 — 고르는 일에 모델을 한 번 더 부르면
+         * 질문 하나에 호출이 두 번 나간다.
+         */
+        List<Integer> order = orderByRelevance(materials, question);
+
+        int budget = MAX_TOTAL_BODY_CHARS;
+        java.util.Map<Integer, String> bodies = new java.util.LinkedHashMap<>();
+        for (int idx : order) {
+            if (budget <= 0) break;
+            String body = textExtractor.textOf(materials.get(idx));
+            if (body.isEmpty()) continue;
+            if (body.length() > budget) body = body.substring(0, budget);
+            bodies.put(idx, body);
+            budget -= body.length();
+        }
+
         for (int i = 0; i < materials.size(); i++) {
             Content c = materials.get(i);
             sb.append('[').append(i + 1).append("] ")
@@ -192,8 +234,49 @@ public class AiQnaService {
                         ? desc.substring(0, MAX_DESC_CHARS) + "…" : desc);
             }
             sb.append('\n');
+
+            String body = bodies.get(i);
+            if (body != null) {
+                sb.append("<본문 시작>\n").append(body).append("\n<본문 끝>\n");
+            }
         }
         return sb.toString();
+    }
+
+    /**
+     * 질문과 겹치는 단어가 많은 자료부터.
+     *
+     * <p>임베딩이 아니라 <b>단어 겹침</b>으로 고른다. 정확도는 벡터 검색보다 낮지만
+     * 외부 모델도, 별도 DB 도 필요 없다. 여기서 하는 일은 "어느 본문을 먼저 넣을지"를
+     * 정하는 것뿐이고, 최종 판단은 모델이 본문을 읽고 한다.</p>
+     */
+    private List<Integer> orderByRelevance(List<Content> materials, String question) {
+        Set<String> qWords = words(question);
+
+        record Scored(int index, int score) {}
+        List<Scored> scored = new ArrayList<>();
+        for (int i = 0; i < materials.size(); i++) {
+            Content c = materials.get(i);
+            Set<String> cw = words(c.getTitle() + " " + (c.getDescription() == null ? "" : c.getDescription()));
+            int hit = 0;
+            for (String w : qWords) {
+                if (cw.contains(w)) hit++;
+            }
+            scored.add(new Scored(i, hit));
+        }
+        // 점수 높은 순, 같으면 원래 차시 순서대로 — 앞 차시가 기초라 먼저 넣는 편이 낫다
+        scored.sort((a, b) -> b.score() != a.score() ? b.score() - a.score() : a.index() - b.index());
+        return scored.stream().map(Scored::index).toList();
+    }
+
+    /** 두 글자 미만 토큰은 버린다 — "은/는/이/가" 같은 조각이 점수를 흔든다. */
+    private Set<String> words(String text) {
+        Set<String> out = new LinkedHashSet<>();
+        if (text == null) return out;
+        for (String w : text.toLowerCase(java.util.Locale.ROOT).split("[^\\p{L}\\p{N}]+")) {
+            if (w.length() >= 2) out.add(w);
+        }
+        return out;
     }
 
     /**

@@ -232,13 +232,11 @@
     var current = null;
 
     document.addEventListener('DOMContentLoaded', function () {
+        /*
+         * 직무 목록은 서버(Thymeleaf)가 이미 채웠다. 여기서 다시 채우면 서버가 고른
+         * 선택 상태가 지워진다 — 새로고침할 때마다 첫 직무로 되돌아간다.
+         */
         var sel = document.getElementById('jobSelect');
-        data.jobs.forEach(function (job) {
-            var opt = document.createElement('option');
-            opt.value = job.id;
-            opt.textContent = job.name;
-            sel.appendChild(opt);
-        });
 
         var stamp = document.querySelector('.js-collected-at');
         if (stamp) {
@@ -296,11 +294,19 @@
     function renderSummary() {
         var barClass = current.matchRate >= 70 ? '' : (current.matchRate >= 45 ? 'warn' : 'danger');
         document.getElementById('summaryGrid').innerHTML =
-            card('수집된 채용공고', current.postingCount + '건', '최근 4주 기준') +
+            /*
+             * 공고를 실제로 수집한 경우에만 건수를 말한다.
+             * 0건인데 "0건 수집"이라고 쓰면 수집이 고장난 것처럼 보이고,
+             * 없는 숫자를 지어내면 훈련생이 공고 데이터로 오해한다.
+             */
+            (current.postingCount > 0
+                ? card('수집된 채용공고', current.postingCount + '건', '최근 공고 기준')
+                : card('로드맵 근거', '일반 직무 요구사항', '실시간 공고 아님')) +
             '<div class="ai-card"><p class="ai-card-sub" style="margin:0 0 6px;">내 역량 충족도</p>' +
             '<p class="ai-card-title" style="font-size:26px; margin-bottom:10px;">' + current.matchRate + '%</p>' +
             '<div class="ai-bar ' + barClass + '"><span style="width:' + current.matchRate + '%"></span></div></div>' +
-            card('공고 요구 경력', current.avgCareer, '평균값');
+            card('공고 요구 경력', current.avgCareer || '정보 없음',
+                 current.postingCount > 0 ? '공고 최빈값' : '—');
     }
 
     function card(label, value, sub) {
@@ -321,7 +327,14 @@
     }
 
     function renderMeters() {
-        document.getElementById('skillMeters').innerHTML = current.meters.map(function (m) {
+        var box = document.getElementById('skillMeters');
+        if (!current.meters || !current.meters.length) {
+            // 공고 통계가 없으면 요구 비율도 없다. 빈 막대를 그리면 0%로 읽힌다
+            box.style.display = 'none';
+            return;
+        }
+        box.style.display = '';
+        box.innerHTML = current.meters.map(function (m) {
             var cls = m.value >= 70 ? '' : (m.value >= 40 ? 'warn' : 'danger');
             return '<div class="ai-meter-row">' +
                 '<span class="label">' + esc(m.label) + '</span>' +

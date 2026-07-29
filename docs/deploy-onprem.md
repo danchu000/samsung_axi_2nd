@@ -48,6 +48,41 @@ nano .env
 
 **★ 작성 직후 `.env` 내용 전체를 안전한 곳(개인 비밀번호 관리자 등)에 백업.** 특히 CRYPTO_SECRET.
 
+```bash
+chmod 600 .env    # 다른 계정이 못 읽게 — 여기에 DB 비번과 API 키가 들어 있다
+```
+
+### A-2-1. AI 기능 키 (선택 — 없어도 앱은 정상 기동)
+
+AI 기능(학습 도우미·커리큘럼 추천·학습진단·과제 초안·직무 로드맵)을 쓰려면 키가 필요하다.
+**키가 없으면 그 기능만 꺼진 채 뜨고, 화면에는 안내 문구가 나온다.** 앱 기동은 막지 않는다.
+
+| 키 | 넣을 값 | 없으면 |
+|---|---|---|
+| `LMS_AI_ENABLED` | `true` | AI 기능 전체 꺼짐 |
+| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys → Create Key | 위와 같음 |
+| `LMS_AI_DAILY_LIMIT` | `200` (하루 전체 호출 상한) | — |
+| `LMS_AI_DAILY_LIMIT_PER_USER` | `20` (1인 상한) | — |
+| `WORKNET_API_KEY` | data.go.kr → 워크넷 채용정보 (즉시 발급) | 로드맵이 AI 일반 지식으로 대체됨 |
+
+**비용 상한을 반드시 확인할 것.** 위 두 한도가 그날 나갈 수 있는 최대치를 정한다.
+Anthropic 콘솔에서 **결제 한도(spend limit)** 도 함께 걸어 두면 이중으로 막힌다.
+
+**키는 절대 커밋되지 않는다** — `.gitignore`(git), `.dockerignore`(이미지 빌드) 양쪽에서 막고 있다.
+컨테이너에는 `docker compose` 가 호스트의 `.env` 를 읽어 **환경변수로만** 넣어 준다.
+
+기동 후 로그로 확인:
+```bash
+docker compose logs app | grep '\[AI\]'
+# [AI] 활성 — model=claude-sonnet-5 ...   ← 키 인식됨
+# [AI] 비활성 — ... API 키가 비어 있음      ← 아직 안 들어감
+```
+
+**키를 바꾼 뒤에는 재시작이 필요하다** (기동 시 한 번만 읽는다):
+```bash
+nano .env && docker compose up -d    # 재빌드 불필요
+```
+
 ### A-3. 기동
 
 ```bash

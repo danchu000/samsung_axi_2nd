@@ -2,6 +2,7 @@ package com.ssa.lms.web.trainee.ai;
 
 import com.ssa.lms.ai.dto.AiQnaAnswer;
 import com.ssa.lms.ai.service.AiEscalationService;
+import com.ssa.lms.ai.service.AiAdviceCache;
 import com.ssa.lms.ai.service.AiCurriculumService;
 import com.ssa.lms.ai.service.AiQnaService;
 import com.ssa.lms.ai.service.AiRoadmapService;
@@ -52,6 +53,7 @@ public class TraineeAiController {
     private final QnaService qnaService;
     private final AiCurriculumService curriculumService;
     private final AiRoadmapService aiRoadmapService;
+    private final AiAdviceCache adviceCache;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
@@ -128,10 +130,31 @@ public class TraineeAiController {
      */
     @GetMapping("/curriculum")
     public String curriculum(@AuthenticationPrincipal LoginUser me, Model model) {
-        model.addAttribute("advice",
-                curriculumService.recommend(me == null ? null : me.getId()));
+        Long myId = me == null ? null : me.getId();
+
+        /*
+         * 화면을 열 때마다 모델을 부르면 안 된다.
+         * 1인 하루 한도가 20회라, 이 화면을 스무 번 새로고침하면 그날 Q&A 가 막힌다.
+         * 진도·성적은 몇 시간 만에 크게 안 바뀌므로 캐시된 결과를 그대로 쓴다.
+         */
+        var advice = adviceCache.get(
+                AiAdviceCache.key(myId, "CURRICULUM", null),
+                () -> curriculumService.recommend(myId),
+                a -> a != null && a.ok());   // 실패는 캐시하지 않는다
+
+        model.addAttribute("advice", advice);
         model.addAttribute("aiAvailable", curriculumService.available());
         return "trainee/ai-curriculum";
+    }
+
+    /**
+     * 추천을 새로 만든다. 학습이 많이 진행됐을 때 훈련생이 직접 갱신할 수 있어야 한다.
+     * 캐시만 버리고 화면으로 돌려보내면, 다음 렌더에서 새로 만들어진다.
+     */
+    @PostMapping("/curriculum/refresh")
+    public String refreshCurriculum(@AuthenticationPrincipal LoginUser me) {
+        if (me != null) adviceCache.evictUser(me.getId());
+        return "redirect:/trainee/ai/curriculum";
     }
 
     /**
@@ -156,8 +179,18 @@ public class TraineeAiController {
         boolean hasPostings = collected.collectedAt() != null && !collected.jobs().isEmpty();
 
         String target = (job == null || job.isBlank()) ? DEFAULT_JOB : job;
-        model.addAttribute("roadmap", hasPostings ? collected
-                : aiRoadmapService.forTrainee(myId, target));
+
+        /*
+         * 직무별로 캐시한다. 키에 직무를 빼면 다른 직무를 골라도 앞서 본 결과가 나온다.
+         * 공고 기반 결과는 DB 집계라 모델을 안 부르므로 캐시하지 않는다.
+         */
+        var roadmap = hasPostings ? collected
+                : adviceCache.get(
+                    AiAdviceCache.key(myId, "ROADMAP", target),
+                    () -> aiRoadmapService.forTrainee(myId, target),
+                    r -> r != null && !r.jobs().isEmpty());
+
+        model.addAttribute("roadmap", roadmap);
         model.addAttribute("fromPostings", hasPostings);
         model.addAttribute("jobOptions", JOB_OPTIONS);
         model.addAttribute("selectedJob", target);

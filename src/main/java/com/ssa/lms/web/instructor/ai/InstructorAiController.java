@@ -1,6 +1,7 @@
 package com.ssa.lms.web.instructor.ai;
 
 import com.ssa.lms.ai.dto.AssignmentDraft;
+import com.ssa.lms.ai.service.AiAdviceCache;
 import com.ssa.lms.ai.service.AiAssignmentDraftService;
 import com.ssa.lms.ai.service.AiDiagnosisService;
 import com.ssa.lms.auth.LoginUser;
@@ -39,16 +40,35 @@ public class InstructorAiController {
 
     private final AiAssignmentDraftService draftService;
     private final AiDiagnosisService diagnosisService;
+    private final AiAdviceCache adviceCache;
 
     @GetMapping("/diagnosis")
     public String diagnosis(@AuthenticationPrincipal LoginUser me, Model model) {
         // 키가 없으면 화면이 [AI로 과제 만들기] 버튼을 비활성으로 그린다 —
         // 눌러 놓고 기다렸다 실패하면 허탈하다
         model.addAttribute("aiAvailable", draftService.available());
-        // 훈련생 질문이 없으면 모델을 부르지 않고 빈 결과가 온다 (비용 방어)
-        model.addAttribute("diagnosis",
-                diagnosisService.forInstructor(me == null ? null : me.getId()));
+        Long myId = me == null ? null : me.getId();
+
+        /*
+         * 두 겹으로 막는다.
+         *  1) 훈련생 질문이 0건이면 서비스가 모델을 아예 안 부른다
+         *  2) 부른 결과는 캐시한다 — 강사가 새로고침할 때마다 다시 분석하면
+         *     같은 질문 목록으로 같은 답을 만드느라 돈만 나간다
+         * 새 질문이 들어와도 캐시 만료 전까지는 반영되지 않는다. 그게 필요하면
+         * [다시 분석] 을 누르면 된다 — 자동 갱신보다 강사가 정하는 편이 낫다.
+         */
+        model.addAttribute("diagnosis", adviceCache.get(
+                AiAdviceCache.key(myId, "DIAGNOSIS", null),
+                () -> diagnosisService.forInstructor(myId),
+                d -> d != null && !d.isEmpty()));
         return "instructor/ai-diagnosis";
+    }
+
+    /** 진단을 새로 돌린다. 새 질문이 들어왔을 때 강사가 직접 갱신한다. */
+    @PostMapping("/diagnosis/refresh")
+    public String refreshDiagnosis(@AuthenticationPrincipal LoginUser me) {
+        if (me != null) adviceCache.evictUser(me.getId());
+        return "redirect:/instructor/ai/diagnosis";
     }
 
     /**

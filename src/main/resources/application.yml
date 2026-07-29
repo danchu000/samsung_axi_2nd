@@ -42,6 +42,9 @@ lms:
     # 비용 안전장치 — 무한 루프나 반복 호출로 요금이 터지는 것을 막는다.
     # 훈련생 7명 기준 하루 최대 140건이면 넉넉하다. 필요해지면 올리면 되지만,
     # 처음부터 크게 잡으면 사고가 났을 때 금액이 커진 뒤에야 알게 된다.
+    # 커리큘럼·로드맵·진단 결과를 이 시간 동안 재사용한다.
+    # 캐시가 없으면 화면 새로고침만으로 하루 한도를 소진해 Q&A 가 막힌다.
+    advice-cache-hours: ${LMS_AI_ADVICE_CACHE_HOURS:12}
     daily-request-limit: ${LMS_AI_DAILY_LIMIT:200}
     daily-request-limit-per-user: ${LMS_AI_DAILY_LIMIT_PER_USER:20}
 

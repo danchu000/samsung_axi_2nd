@@ -137,8 +137,25 @@ class AiQnaServiceTest {
                 .as("태그가 그대로 보이면 무슨 말인지 알 수 없다")
                 .doesNotContain("<일반지식>");
         assertThat(a.sources())
-                .as("일반 지식 답변에 자료 링크를 달면 근거가 아닌 것을 근거로 보이게 한다")
+                .as("인용하지 않았으면 링크도 없다")
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("일반지식 표시와 자료 인용이 함께 오면 링크를 살린다 — 끊긴 참조를 남기지 않는다")
+    void 일반지식이어도_인용했으면_링크를_준다() {
+        // 실제 호출에서 나온 형태다. 모델이 "자료에서 다루지만 본문이 없어
+        // 일반 개념으로 설명한다 [자료 1]" 처럼 둘 다 하는 경우가 있다
+        enrolled(EnrollmentStatus.APPROVED);
+        materials(material(101, "3주차 트랜잭션"));
+        modelSays("<일반지식>\n3주차 자료에서 다루지만 본문이 없어 일반 개념으로 설명드려요 [자료 1].");
+
+        AiQnaAnswer a = service.ask(ME, COURSE, "트랜잭션이 뭔가요?");
+
+        assertThat(a.general()).isTrue();
+        assertThat(a.sources())
+                .as("링크를 빼면 본문의 [자료 1] 이 누를 곳 없는 끊긴 참조가 된다")
+                .hasSize(1);
     }
 
     @Test

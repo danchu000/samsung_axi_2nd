@@ -152,10 +152,18 @@ public class AiQnaService {
         if (general) {
             text = text.replace(GENERAL_TAG, "").trim();
         }
-        // 일반지식 답변에는 자료 링크를 붙이지 않는다. 근거가 아닌 것을 근거로 보이면 안 된다
-        return new AiQnaAnswer(true, text,
-                general ? List.of() : citedSources(text, materials),
-                null, general);
+        /*
+         * 인용한 자료는 <일반지식> 표시가 붙어도 링크로 준다.
+         *
+         * 처음에는 일반지식이면 링크를 빼도록 했는데, 실제로 돌려 보니 모델이
+         * "3주차 자료에서 다루지만 본문이 없어 일반 개념으로 설명한다 [자료 3]" 처럼
+         * **둘 다** 하는 경우가 있었다. 링크를 빼면 본문에는 [자료 3] 이 남고 누를 곳은
+         * 없는, 끊긴 참조가 된다.
+         *
+         * 인용은 모델이 "이 자료가 관련 있다"고 말한 것이므로 링크는 살린다.
+         * 일반지식이라는 사실은 배지로 따로 알린다 — 그게 둘을 구분하는 자리다.
+         */
+        return new AiQnaAnswer(true, text, citedSources(text, materials), null, general);
     }
 
     private boolean enrolled(Long traineeId, Long courseId) {

@@ -469,17 +469,17 @@ main {
 #hpAiCards .ai-card-sub { line-height: 1.55; }
 
 /* ===== 우리 반에서 내 위치 — 세로 레인 트랙 =====
-   결승선이 위, 각자 자기 레인에서 위로 달린다. 주자의 높이가 진도율이라
-   선두는 위, 뒤처진 사람은 아래에 있다. 육상 트랙을 뒤에서 본 모습이다.
+   결승선이 위, 각자 레인에서 위로 달린다. 육상 트랙을 뒤에서 본 모습.
+   높이가 진도율이고, 위로 갈수록 멀어지므로 주자를 조금씩 작게 그려 깊이를 준다.
 
-   가로로 눕혔을 때는 주자들이 한 선에 겹쳐 누가 누군지 알 수 없었다. */
+   카드 높이는 옆의 "오늘 할 일"과 같아야 하므로 트랙이 남는 공간을 다 먹는다. */
 .race-card { display: flex; flex-direction: column; }
 .race-card .section-head { align-items: flex-start; }
 
 .race-rank { display: flex; align-items: baseline; gap: 2px; flex: none; }
 
 .race-rank-num {
-    font-size: 34px;
+    font-size: 36px;
     font-weight: 800;
     color: var(--dash-navy);
     line-height: 1;
@@ -489,140 +489,195 @@ main {
 .race-rank-unit { font-size: 16px; font-weight: 700; color: var(--dash-navy); }
 .race-rank-total { font-size: 13px; color: #667085; margin-left: 3px; }
 
-/* 잔디 — 가로 줄무늬가 거리 눈금 역할을 한다 */
+/* 트랙 — flex:1 로 카드의 남는 높이를 전부 차지한다 (옆 카드와 높이가 맞는다) */
 .race-field {
     position: relative;
+    flex: 1;
+    min-height: 300px;
     margin: 14px 0 4px;
-    height: 260px;
-    padding: 26px 12px 0;
+    padding: 30px 10px 0;
     border-radius: 14px;
     overflow: hidden;
     background:
         repeating-linear-gradient(0deg,
-            rgba(255, 255, 255, .10) 0 26px,
-            rgba(0, 0, 0, .04) 26px 52px),
-        linear-gradient(180deg, #5fb372 0%, #4a9d5f 100%);
-    border: 1px solid #3f8b52;
+            rgba(255, 255, 255, .09) 0 30px,
+            rgba(0, 0, 0, .05) 30px 60px),
+        linear-gradient(180deg, #57ad6b 0%, #3f8f54 100%);
+    border: 1px solid #35784a;
+    box-shadow: inset 0 -18px 34px rgba(0, 0, 0, .14);
 }
 
-/* 결승선 — 트랙 맨 위 */
+/* 결승선 — 맨 위. 체크무늬라 한눈에 "골인 지점"으로 읽힌다 */
 .race-goal {
     position: absolute;
     left: 0; right: 0; top: 0;
-    height: 26px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: repeating-linear-gradient(90deg, #fff 0 8px, #2f7a45 8px 16px);
+    background: repeating-linear-gradient(90deg, #fff 0 10px, #2c6b40 10px 20px);
+    z-index: 4;
 }
 
 .race-goal span {
     background: #fff;
-    color: #2f7a45;
-    font-size: 11.5px;
+    color: #2c6b40;
+    font-size: 12px;
     font-weight: 800;
-    padding: 1px 10px;
+    padding: 2px 12px;
     border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
 
-/* 반 평균 — 내가 평균보다 위인지 아래인지가 한눈에 보여야 한다 */
+/* 반 평균 — 내가 평균 위인지 아래인지가 바로 보여야 한다 */
 .race-avg {
     position: absolute;
     left: 0; right: 0;
-    border-top: 2px dashed rgba(255, 255, 255, .6);
-    z-index: 1;
+    border-top: 2px dashed rgba(255, 255, 255, .65);
+    z-index: 3;
     pointer-events: none;
 }
 
 .race-avg span {
     position: absolute;
     right: 8px;
-    top: -9px;
-    font-size: 10.5px;
+    top: -10px;
+    font-size: 11px;
     font-weight: 800;
-    color: #2f7a45;
-    background: rgba(255, 255, 255, .92);
+    color: #2c6b40;
+    background: rgba(255, 255, 255, .95);
     border-radius: 999px;
-    padding: 1px 8px;
+    padding: 2px 9px;
 }
 
-/* 레인 — 한 칸이 한 명 */
 .race-lanes {
     position: relative;
     height: 100%;
     display: flex;
-    gap: 6px;
+    gap: 4px;
     z-index: 2;
 }
 
+/* 레인 — 위로 갈수록 좁아 보이도록 안쪽 그라데이션을 준다 */
 .race-col {
     position: relative;
     flex: 1;
     min-width: 0;
-    border-left: 2px dashed rgba(255, 255, 255, .28);
-    border-right: 2px dashed rgba(255, 255, 255, .28);
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, .04) 0%,
+        rgba(255, 255, 255, .12) 100%);
+    border-left: 2px dashed rgba(255, 255, 255, .3);
+    border-right: 2px dashed rgba(255, 255, 255, .3);
+    border-radius: 6px;
 }
 
-/* 주자 — bottom 이 진도율. 위로 갈수록 많이 달린 것 */
+/*
+ * 주자.
+ * --depth 가 진도율(0~100). 위로 갈수록 멀어지므로 배율을 줄여 깊이를 만든다.
+ * 0.78 ~ 1.06 사이에서 움직인다 — 너무 작아지면 안 보인다.
+ */
 .race-runner {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    transition: bottom .6s ease;
+    gap: 2px;
+    transition: bottom .7s cubic-bezier(.22, 1, .36, 1);
     white-space: nowrap;
+    transform: translateX(-50%) scale(calc(1.06 - var(--depth, 50) * 0.0028));
+    transform-origin: bottom center;
 }
 
-/* 🏃 이모지는 폰트에서 왼쪽을 본다. 위로 달리는 그림이라 정면(오른쪽)으로 뒤집는다 */
+/* 🏃 는 폰트에서 왼쪽을 본다 — 위로 달리는 그림이라 뒤집는다.
+   달리는 느낌을 주려고 살짝 위아래로 튄다. */
 .race-icon {
     font-style: normal;
-    font-size: 20px;
+    font-size: 26px;
     line-height: 1;
     display: inline-block;
     transform: scaleX(-1);
-    filter: saturate(.25) brightness(1.9);   /* 남들은 흐릿하게 */
+    filter: saturate(.3) brightness(1.8);
+    animation: race-bob 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes race-bob {
+    from { transform: scaleX(-1) translateY(0); }
+    to   { transform: scaleX(-1) translateY(-3px); }
+}
+
+/* 발밑 먼지 — 달리고 있다는 신호 */
+.race-dust {
+    display: block;
+    width: 22px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .32);
+    filter: blur(2px);
+    animation: race-dust 0.6s ease-out infinite;
+}
+
+@keyframes race-dust {
+    0%   { opacity: .55; transform: scaleX(.7); }
+    100% { opacity: 0;   transform: scaleX(1.5); }
 }
 
 .race-pct {
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 800;
-    color: rgba(255, 255, 255, .85);
+    color: rgba(255, 255, 255, .9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
 
-/* 레인 번호 — 트랙 바닥 */
+/* 레인 번호 + 메달 — 트랙 바닥 */
 .race-no {
     position: absolute;
     left: 50%;
-    bottom: 4px;
+    bottom: 5px;
     transform: translateX(-50%);
-    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
     font-weight: 800;
-    color: rgba(255, 255, 255, .6);
+    color: rgba(255, 255, 255, .7);
 }
 
-/* 내 레인 — 밝게. 내 위치가 먼저 보여야 한다 */
+/* 내 레인 — 확실히 도드라지게. 내 위치가 먼저 보여야 한다 */
 .race-col.me {
-    background: rgba(255, 255, 255, .16);
-    border-radius: 8px;
-    border-color: rgba(255, 255, 255, .75);
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, .14) 0%,
+        rgba(255, 255, 255, .30) 100%);
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .5) inset;
 }
 
-.race-col.me .race-icon { font-size: 30px; filter: none; }
+.race-col.me .race-runner {
+    /* 내 주자는 원근을 무시하고 항상 크게 — 내가 어디 있는지가 제일 중요하다 */
+    transform: translateX(-50%) scale(1.25);
+    z-index: 5;
+}
+
+.race-col.me .race-icon {
+    font-size: 30px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .35));
+}
+
+.race-col.me .race-dust { background: rgba(255, 255, 255, .7); width: 26px; }
+
 .race-col.me .race-pct {
-    color: #2f7a45;
+    color: #2c6b40;
     background: #fff;
-    font-size: 11px;
-    padding: 1px 7px;
+    padding: 2px 8px;
     border-radius: 999px;
+    text-shadow: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
 }
 
 .race-col.me .race-no {
-    color: #2f7a45;
+    color: #2c6b40;
     background: #fff;
-    padding: 1px 8px;
+    padding: 2px 10px;
     border-radius: 999px;
 }
 
@@ -635,12 +690,10 @@ main {
 
 .race-msg b { color: var(--dash-navy); }
 
-/* 카드가 길면 아래에 붙어 빈 공간을 메운다 */
 .race-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    margin-top: auto;
     padding-top: 14px;
 }
 
@@ -654,3 +707,8 @@ main {
 
 .race-stat .k { display: block; font-size: 12px; color: #667085; margin-bottom: 3px; }
 .race-stat .v { display: block; font-size: 17px; font-weight: 800; color: var(--dash-navy); }
+
+/* 움직임이 불편한 사용자에게는 애니메이션을 끈다 */
+@media (prefers-reduced-motion: reduce) {
+    .race-icon, .race-dust { animation: none; }
+}

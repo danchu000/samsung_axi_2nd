@@ -131,7 +131,7 @@
                       <div class="race-goal"><span>🏁 완주 100%</span></div>
 
                       <!-- 반 평균 — 내가 평균보다 위인지 아래인지 한눈에 -->
-                      <div class="race-avg" th:style="'bottom: calc(26px + (100% - 62px) * ' + ${pace.classAverage} + ' / 100)'">
+                      <div class="race-avg" th:style="'bottom: calc(6% + 74% * ' + ${pace.classAverage} + ' / 100)'">
                         <span th:text="'평균 ' + ${pace.classAverage} + '%'">평균</span>
                       </div>
 
@@ -139,13 +139,24 @@
                       <div class="race-lanes">
                         <div class="race-col" th:each="r : ${pace.runners}"
                              th:classappend="${r.me()} ? 'me' : ''">
+                          <!--
+                            bottom 이 진도율. 위로 갈수록 멀리(=많이) 달린 것이라
+                            원근감을 주려고 위쪽 주자를 조금 작게 그린다.
+                          -->
                           <span class="race-runner"
-                                th:style="'bottom: calc((100% - 30px) * ' + ${r.progress()} + ' / 100)'"
+                                th:style="'bottom: calc(6% + 74% * ' + ${r.progress()} + ' / 100);'
+                                          + ' --depth: ' + ${r.progress()}"
                                 th:title="${r.rank()} + '위 · ' + ${r.progress()} + '%'">
                             <b class="race-pct" th:text="${r.progress()} + '%'">52%</b>
                             <i class="race-icon">🏃</i>
+                            <b class="race-dust"></b>
                           </span>
-                          <span class="race-no" th:text="${r.me()} ? '나' : ${r.rank()}">1</span>
+                          <span class="race-no">
+                            <span th:if="${r.rank() == 1}">🥇</span>
+                            <span th:if="${r.rank() == 2}">🥈</span>
+                            <span th:if="${r.rank() == 3}">🥉</span>
+                            <span th:text="${r.me()} ? '나' : ${r.rank()}">1</span>
+                          </span>
                         </div>
                       </div>
                     </div>

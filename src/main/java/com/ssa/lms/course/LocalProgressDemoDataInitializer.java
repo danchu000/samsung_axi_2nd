@@ -88,12 +88,18 @@ public class LocalProgressDemoDataInitializer {
              * 마지막 한 명이 남은 오차를 메워 평균이 정확히 target 이 되게 한다.
              */
             int n = rows.size();
-            int spread = Math.min(12, Math.min(target, 100 - target));
+            /*
+             * 값이 목표 근처에 몰리면 트랙에서 주자들이 한 높이에 겹쳐 "달리기"로 안 보인다.
+             * 목표 평균은 지키되 위아래로 넓게 벌린다(±30%p 안쪽).
+             * 마지막 한 명이 남은 오차를 메워 평균이 정확히 target 이 되게 한다.
+             */
+            int spread = Math.min(30, Math.min(target - 5, 95 - target));
             int assigned = 0;
 
             for (int i = 0; i < n - 1; i++) {
-                int delta = (i % 2 == 0 ? 1 : -1) * (spread * (i / 2 + 1) / Math.max(n, 2));
-                int v = clamp(target + delta);
+                // -1 ~ +1 로 고르게 편 뒤 spread 만큼 벌린다
+                double t = (n == 1) ? 0 : (2.0 * i / (n - 1) - 1.0);
+                int v = clamp((int) Math.round(target - t * spread));
                 rows.get(i).updateProgressRate(v);
                 assigned += v;
             }

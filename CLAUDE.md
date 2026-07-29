@@ -6,7 +6,7 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 기�
 ## 기술 스택
 
 - Java 17, Spring Boot 3.x (Security, Data JPA), Thymeleaf SSR, PostgreSQL 16 (로컬 개발은 인메모리 H2), Gradle
-- 배포: Docker Compose (app + PostgreSQL) — 사내 Windows PC + WSL2 Ubuntu. **절차는 `docs/deploy-onprem.md` 런북이 기준** (리허설 검증 완료, 태그 v0.1.0-draft)
+- 배포: Docker Compose (app + PostgreSQL + cloudflared) — 사내 Windows PC + WSL2, https://lms.samsungax.com 외부 공개. **`v*` 태그 푸시로 자동 배포** — 절차는 `docs/deploy-guide.md`, 서버 런북은 `docs/deploy-remote-2026-07-29.md` (구버전: deploy-onprem.md)
 - 패키지 루트 `com.ssa.lms`, 도메인 구조: `<domain>/{entity,repository,service,web}` — auth, user, course, content, attendance, completion, exam, assignment, grading, proctor, support, notice, survey, dashboard, common, config
 
 ## 빌드/실행
@@ -26,7 +26,7 @@ K-디지털 트레이닝 훈련기관 학습데이터관리시스템(LMS). 기�
   **`mina-old` 리모트(mina-2026-ai/samsung-lxp, 과거 협업 저장소)에는 절대 푸시 금지** — 읽기 보관용.
 - 1인 개발이므로 main 직접 커밋 허용. 규모 있는 작업(병렬 세션·실험)은 `feat/*` 브랜치 + worktree(`C:\work\` — OneDrive 밖이라 init 스크립트 불필요).
 - 커밋 메시지 한글, 작은 단위 유지.
-- 배포 기준은 태그로 관리 (`v0.1.0-draft`). 배포 후 서버 갱신: 서버에서 `git pull && docker compose up -d --build`.
+- **배포 = `v*` 태그 푸시** (main 푸시만으로는 배포되지 않음). 태그가 푸시되면 GitHub Actions 가 테스트 → self-hosted 러너가 서버 자동 반영. 절차·규칙은 `docs/deploy-guide.md`, 서버 내부는 `docs/deploy-remote-2026-07-29.md`.
 
 ## 반드시 지킬 규칙 (실제 사고에서 나온 것)
 

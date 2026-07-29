@@ -39,18 +39,16 @@
                     <li><a href="/trainee/assignment">과제</a></li>
                 </ul>
             </li>
-            <li th:classappend="${active == 'support'} ? 'active_menu'">
-                <span><a href="/trainee/qna/tutoring">학습지원</a></span>
-                <ul>
-                    <li><a href="/trainee/qna/tutoring">튜터링</a></li>
-                    <li><a href="/trainee/qna">Q&amp;A</a></li>
-                </ul>
-            </li>
-            <!-- AI 학습지원 — 기존 학습지원(사람이 답하는 튜터링·Q&A)과 구분해 따로 둔다 -->
-            <li th:classappend="${active == 'ai'} ? 'active_menu'">
+            <!--
+              학습지원 대분류는 없앴다. AI 학습 도우미가 기존 Q&A(글등록형)를 대체하고,
+              튜터링은 이 아래로 옮겼다 — 훈련생 입장에서 "물어보는 곳"이 한 군데여야 한다.
+              (기존 /trainee/qna 는 컨트롤러가 남아 있으나 메뉴에서는 뺐다)
+            -->
+            <li th:classappend="${active == 'ai' or active == 'support'} ? 'active_menu'">
                 <span><a href="/trainee/ai/qna">AI 학습지원</a></span>
                 <ul>
                     <li><a href="/trainee/ai/qna">AI 학습 도우미</a></li>
+                    <li><a href="/trainee/qna/tutoring">튜터링</a></li>
                     <li><a href="/trainee/ai/curriculum">맞춤 커리큘럼 추천</a></li>
                     <li><a href="/trainee/ai/roadmap">직무 로드맵</a></li>
                 </ul>

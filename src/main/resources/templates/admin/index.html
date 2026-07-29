@@ -378,13 +378,62 @@
             </div>
             </div>
 
-            <!-- AI 분석 요약 — 훈련생 AI 이용 현황과 시장 수요 -->
+            <!-- AI 분석 요약 — 훈련생 AI 이용 현황 + 시장 수요(직무 로드맵 수집분) -->
             <div class="panel ai-widget" style="margin-bottom:16px;">
                 <div class="panel-header">
                 <h3>🤖 AI 분석 요약 <span class="ai-badge">AI</span></h3>
+                <span class="ai-card-sub" id="aiCollectedAt" style="margin:0;">직무 로드맵 수집: —</span>
                 </div>
                 <div class="panel-body">
                 <div class="ai-grid ai-grid-3" id="adminAiCards"></div>
+
+                <div class="ai-grid ai-grid-2" style="margin-top:16px;">
+                    <!-- 어떤 역량이 시장에서 요구되는지 = 과정 개편 근거 -->
+                    <div class="ai-card" style="margin:0;">
+                        <div class="ai-card-head" style="margin-bottom:10px;">
+                            <div>
+                                <h3 class="ai-card-title" style="font-size:14px;">채용공고 요구 역량 TOP</h3>
+                                <p class="ai-card-sub">과정 개편 시 우선 검토 대상이에요.</p>
+                            </div>
+                        </div>
+                        <div id="aiDemandMeters"></div>
+                    </div>
+
+                    <!-- 훈련생이 어디서 막히는지 = 수업 보완 근거 -->
+                    <div class="ai-card" style="margin:0;">
+                        <div class="ai-card-head" style="margin-bottom:10px;">
+                            <div>
+                                <h3 class="ai-card-title" style="font-size:14px;">훈련생이 많이 막히는 주제</h3>
+                                <p class="ai-card-sub">AI 질문이 몰린 순서예요.</p>
+                            </div>
+                        </div>
+                        <div id="aiStuckMeters"></div>
+                    </div>
+                </div>
+
+                <!-- 수집 현황 — 로드맵 데이터가 최신인지 관리자가 확인해야 한다 -->
+                <div class="ai-card" style="margin:16px 0 0;">
+                    <div class="ai-card-head" style="margin-bottom:10px;">
+                        <div>
+                            <h3 class="ai-card-title" style="font-size:14px;">직무 로드맵 수집 현황</h3>
+                            <p class="ai-card-sub">주 1회 자동 수집돼요. 실패하면 훈련생 화면이 옛 데이터로 남아요.</p>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="ai-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:150px;">직무</th>
+                                    <th style="width:110px;">수집 공고</th>
+                                    <th style="width:160px;">마지막 수집</th>
+                                    <th style="width:110px;">상태</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aiCollectBody"></tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
             </div>
 

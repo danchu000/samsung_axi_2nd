@@ -65,25 +65,50 @@
             {
                 label: 'AI 도우미 이용',
                 value: '186건',
-                sub: '최근 2주 · 훈련생 24명',
+                sub: '최근 2주 · 훈련생 24명 (1인 평균 7.8건)',
                 href: '#',
                 cta: null
             },
             {
                 label: 'AI 자체 해결률',
                 value: '84%',
-                sub: '강사 전달 30건',
+                sub: '강사 전달 30건 · 지난주 대비 +6%p',
                 href: '#',
                 cta: null
             },
             {
-                label: '시장 수요 상위 역량',
-                value: 'Docker',
-                sub: '채용공고 74%가 요구 — 과정 개편 검토',
-                href: '#',
-                cta: null
+                label: '보완 필요 훈련생',
+                value: '7명',
+                sub: '전체 24명 중 · 시급도 높음 3명',
+                href: '/instructor/ai/diagnosis',
+                cta: '진단 보기'
             }
-        ]
+        ],
+
+        /* 관리자 화면 전용 상세 — 과정 개편·수업 보완의 근거가 되는 값들 */
+        adminDetail: {
+            collectedAt: '2026-07-27 03:00',
+            demand: [
+                { label: 'Docker', value: 74 },
+                { label: 'AWS', value: 71 },
+                { label: '테스트 코드', value: 68 },
+                { label: 'CI/CD', value: 52 },
+                { label: 'Redis', value: 39 }
+            ],
+            stuck: [
+                { label: '트랜잭션·동시성', value: 82, count: 38 },
+                { label: 'Docker·배포', value: 64, count: 29 },
+                { label: 'JPA 연관관계', value: 51, count: 24 },
+                { label: 'REST API 설계', value: 33, count: 15 },
+                { label: '테스트 코드', value: 22, count: 10 }
+            ],
+            collect: [
+                { job: '백엔드 개발자', count: '128건', at: '2026-07-27 03:00', ok: true, note: '정상' },
+                { job: '프론트엔드 개발자', count: '96건', at: '2026-07-27 03:00', ok: true, note: '정상' },
+                { job: '데이터 분석가', count: '74건', at: '2026-07-27 03:00', ok: true, note: '정상' },
+                { job: 'AI 엔지니어', count: '0건', at: '2026-07-13 03:00', ok: false, note: '2주째 수집 실패 — 훈련생 화면에 옛 데이터가 보여요' }
+            ]
+        }
     };
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -91,7 +116,48 @@
         draw('hpAiCards', data.trainee);
         draw('instAiCards', data.instructor);
         draw('adminAiCards', data.admin);
+        drawAdminDetail(data.adminDetail);
     });
+
+    /** 관리자 전용 상세 — 해당 자리가 없는 화면(강사·훈련생)에서는 그냥 넘어간다. */
+    function drawAdminDetail(d) {
+        if (!d) return;
+
+        var stamp = document.getElementById('aiCollectedAt');
+        if (stamp) stamp.textContent = '직무 로드맵 수집: ' + d.collectedAt;
+
+        meters('aiDemandMeters', d.demand, function (m) { return m.value + '%'; });
+        meters('aiStuckMeters', d.stuck, function (m) { return m.count + '건'; });
+
+        var body = document.getElementById('aiCollectBody');
+        if (body) {
+            body.innerHTML = d.collect.map(function (r) {
+                // 수집 실패는 눈에 띄어야 한다 — 방치하면 훈련생이 옛 정보를 보게 된다
+                var badge = r.ok
+                    ? '<span class="ai-level low">정상</span>'
+                    : '<span class="ai-level high">실패</span>';
+                return '<tr>' +
+                    '<td>' + esc(r.job) + '</td>' +
+                    '<td>' + esc(r.count) + '</td>' +
+                    '<td>' + esc(r.at) + '</td>' +
+                    '<td>' + badge + '</td>' +
+                    '<td style="font-size:12.5px; color:' + (r.ok ? '#6b7280' : '#b91c1c') + ';">' + esc(r.note) + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+    }
+
+    function meters(id, list, valueOf) {
+        var box = document.getElementById(id);
+        if (!box || !list) return;
+        box.innerHTML = list.map(function (m) {
+            var cls = m.value >= 70 ? 'danger' : (m.value >= 45 ? 'warn' : '');
+            return '<div class="ai-meter-row">' +
+                '<span class="label">' + esc(m.label) + '</span>' +
+                '<span class="ai-bar ' + cls + '"><span style="width:' + m.value + '%"></span></span>' +
+                '<span class="value">' + esc(valueOf(m)) + '</span></div>';
+        }).join('');
+    }
 
     function draw(id, items) {
         var box = document.getElementById(id);

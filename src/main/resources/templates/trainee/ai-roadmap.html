@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="/static/css/basic-form-trainee.css" />
 <link rel="stylesheet" href="/static/css/btn-style.css" />
 <link rel="stylesheet" href="/static/css/ai-common.css" />
+<link rel="stylesheet" href="/static/css/ai-roadmap-map.css" />
+<!-- 지도 렌더러가 먼저 로드돼야 ai-roadmap.js 가 renderRoadmapMap 을 쓸 수 있다 -->
+<script src="/static/js/trainee/ai-roadmap-map.js" defer></script>
 <script src="/static/js/trainee/ai-roadmap.js" defer></script>
 
 <title>Samsung Academy LXP</title>
@@ -87,15 +90,32 @@
                 <div style="margin-top:22px;" id="skillMeters"></div>
             </div>
 
-            <!-- ===== 단계별 로드맵 ===== -->
+            <!-- ===== 단계별 로드맵 (지도형) ===== -->
             <div class="ai-card">
                 <div class="ai-card-head">
                     <div>
-                        <h3 class="ai-card-title">단계별 학습 로드맵</h3>
-                        <p class="ai-card-sub">지금 위치에서 목표 직무까지 순서대로 정리했어요.</p>
+                        <h3 class="ai-card-title">학습 로드맵</h3>
+                        <p class="ai-card-sub">지금 위치에서 목표 직무까지 가는 길이에요. 정거장을 누르면 자세히 볼 수 있어요.</p>
+                    </div>
+                    <span class="ai-badge">AI 분석</span>
+                </div>
+
+                <div class="map-wrap">
+                    <!-- 길과 정거장은 JS 가 그린다 (단계 수가 달라져도 CSS 수정 불필요) -->
+                    <div class="map-canvas" id="mapCanvas"></div>
+
+                    <div class="map-legend">
+                        <span><i class="done"></i> 완료</span>
+                        <span><i class="current"></i> 지금 할 차례</span>
+                        <span><i class="locked"></i> 앞으로 할 것</span>
                     </div>
                 </div>
-                <ul class="ai-list" id="roadmapList"></ul>
+
+                <!-- 좁은 화면에서는 지도가 겹치므로 목록으로 대체 -->
+                <ul class="ai-list map-fallback" id="roadmapList"></ul>
+
+                <!-- 정거장을 누르면 여기에 상세가 나온다 -->
+                <div class="map-detail" id="mapDetail"></div>
             </div>
 
             <!-- ===== 최근 채용공고 ===== -->

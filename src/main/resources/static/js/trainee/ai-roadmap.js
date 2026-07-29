@@ -33,28 +33,34 @@
                 ],
                 steps: [
                     {
-                        title: '1단계 · 테스트 코드 작성 습관 들이기',
+                        title: 'Java · Spring 기본기',
+                        meta: '이수 완료 · 2026-05 ~ 2026-07',
+                        reason: '"클라우드 기반 풀스택" 과정에서 이미 학습했어요. 공고 92%가 요구하는 항목이라 잘 갖추셨어요.',
+                        status: 'done', icon: '☕'
+                    },
+                    {
+                        title: '테스트 코드 작성 습관 들이기',
                         meta: '예상 2주 · 공고 68%가 요구',
                         reason: '지금 수강 중인 과정에서 단위 테스트를 다루지 않았어요. 백엔드 공고 대부분이 요구하는 항목이라 가장 먼저 채우면 좋아요.',
-                        done: false
+                        status: 'current', icon: '🧪'
                     },
                     {
-                        title: '2단계 · Docker 로 개발 환경 구성하기',
+                        title: 'Docker 로 개발 환경 구성하기',
                         meta: '예상 3주 · 공고 74%가 요구',
                         reason: '보완이 필요한 역량 중 요구 빈도가 가장 높아요. 원내 "컨테이너 기반 배포" 과정과 연결돼요.',
-                        done: false
+                        status: 'locked', icon: '🐳'
                     },
                     {
-                        title: '3단계 · AWS 배포 경험 만들기',
+                        title: 'AWS 배포 경험 만들기',
                         meta: '예상 4주 · 공고 71%가 요구',
                         reason: 'Docker 를 익힌 뒤에 이어서 하면 학습 부담이 줄어요.',
-                        done: false
+                        status: 'locked', icon: '☁️'
                     },
                     {
-                        title: '4단계 · 포트폴리오 프로젝트 정리',
+                        title: '포트폴리오 프로젝트 정리',
                         meta: '예상 3주',
                         reason: '이수한 과정의 과제 결과물을 묶으면 별도 준비 없이 포트폴리오가 돼요.',
-                        done: false
+                        status: 'locked', icon: '📦'
                     }
                 ],
                 postings: [
@@ -81,22 +87,28 @@
                 ],
                 steps: [
                     {
-                        title: '1단계 · Pandas 로 데이터 다루기',
+                        title: 'Python · SQL 기초',
+                        meta: '이수 완료 · 2026-04 ~ 2026-06',
+                        reason: '데이터 직무의 공통 기반이에요. 이미 갖추셨어요.',
+                        status: 'done', icon: '🐍'
+                    },
+                    {
+                        title: 'Pandas 로 데이터 다루기',
                         meta: '예상 3주 · 공고 82%가 요구',
                         reason: '데이터 직무 공고에서 가장 많이 등장하는 도구예요.',
-                        done: false
+                        status: 'current', icon: '🧮'
                     },
                     {
-                        title: '2단계 · 시각화 리포트 만들어보기',
+                        title: '시각화 리포트 만들어보기',
                         meta: '예상 2주 · 공고 63%가 요구',
                         reason: '분석 결과를 전달하는 능력을 함께 봐요.',
-                        done: false
+                        status: 'locked', icon: '📊'
                     },
                     {
-                        title: '3단계 · 머신러닝 기초 과정 수강',
+                        title: '머신러닝 기초 과정 수강',
                         meta: '예상 5주 · 공고 55%가 요구',
                         reason: '원내 "AI 실무" 과정이 이 단계에 해당해요.',
-                        done: false
+                        status: 'locked', icon: '🤖'
                     }
                 ],
                 postings: [
@@ -121,16 +133,22 @@
                 ],
                 steps: [
                     {
-                        title: '1단계 · React 기초 익히기',
-                        meta: '예상 4주 · 공고 88%가 요구',
-                        reason: '프론트엔드 공고에서 사실상 필수로 요구돼요.',
-                        done: false
+                        title: 'HTML · CSS · JavaScript',
+                        meta: '이수 완료 · 2026-03 ~ 2026-05',
+                        reason: '웹 개발의 기본기예요. 이미 갖추셨어요.',
+                        status: 'done', icon: '🎨'
                     },
                     {
-                        title: '2단계 · TypeScript 적용하기',
+                        title: 'React 기초 익히기',
+                        meta: '예상 4주 · 공고 88%가 요구',
+                        reason: '프론트엔드 공고에서 사실상 필수로 요구돼요.',
+                        status: 'current', icon: '⚛️'
+                    },
+                    {
+                        title: 'TypeScript 적용하기',
                         meta: '예상 3주 · 공고 67%가 요구',
                         reason: 'React 를 익힌 다음에 붙이면 이해가 빨라요.',
-                        done: false
+                        status: 'locked', icon: '🔷'
                     }
                 ],
                 postings: [
@@ -160,6 +178,13 @@
         document.getElementById('btnAnalyze').addEventListener('click', function () { render(sel.value); });
 
         render(data.jobs[0].id);
+
+        // 폭이 바뀌면 정거장 좌표가 달라지므로 다시 그린다
+        var t;
+        window.addEventListener('resize', function () {
+            clearTimeout(t);
+            t = setTimeout(function () { if (current) renderRoadmap(); }, 200);
+        });
     });
 
     function render(jobId) {
@@ -210,15 +235,59 @@
     }
 
     function renderRoadmap() {
+        // 지도 — 길 위의 정거장으로 그린다
+        if (typeof window.renderRoadmapMap === 'function') {
+            window.renderRoadmapMap(current.steps, showDetail);
+        }
+
+        // 좁은 화면용 목록 (지도가 겹쳐 안 보일 때 CSS 가 이쪽을 보여준다)
         document.getElementById('roadmapList').innerHTML = current.steps.map(function (s, i) {
             return '<li>' +
-                '<span class="ai-rank' + (s.done ? ' dim' : '') + '">' + (i + 1) + '</span>' +
+                '<span class="ai-rank' + (s.status === 'done' ? ' dim' : '') + '">' + (i + 1) + '</span>' +
                 '<div style="flex:1;">' +
-                '<p class="ai-item-title">' + esc(s.title) + '</p>' +
+                '<p class="ai-item-title">' + (s.icon || '') + ' ' + esc(s.title) + '</p>' +
                 '<p class="ai-item-meta">' + esc(s.meta) + '</p>' +
                 '<div class="ai-reason">' + esc(s.reason) + '</div>' +
                 '</div></li>';
         }).join('');
+
+        // 처음에는 "지금 할 차례"를 펼쳐 둔다 — 사용자가 가장 궁금한 단계다
+        var idx = 0;
+        for (var i = 0; i < current.steps.length; i++) {
+            if (current.steps[i].status === 'current') { idx = i; break; }
+        }
+        showDetail(idx);
+    }
+
+    /** 정거장 상세. 지도에서 정거장을 누르면 바뀐다. */
+    function showDetail(idx) {
+        var box = document.getElementById('mapDetail');
+        if (!box) return;
+        var s = current.steps[idx];
+        if (!s) { box.innerHTML = ''; return; }
+
+        var stateText = s.status === 'done' ? '완료한 단계'
+                      : (s.status === 'current' ? '지금 할 차례' : '앞으로 할 단계');
+        var stateTag = s.status === 'done' ? 'have' : (s.status === 'current' ? 'partial' : 'lack');
+
+        box.innerHTML =
+            '<div class="map-detail-head">' +
+                '<span class="map-detail-icon">' + (s.icon || '📘') + '</span>' +
+                '<div>' +
+                    '<p class="ai-item-title" style="font-size:15px;">' + esc(s.title) + '</p>' +
+                    '<p class="ai-item-meta">' + esc(s.meta) + '</p>' +
+                '</div>' +
+                '<span class="ai-tag ' + stateTag + '" style="margin-left:auto;">' + stateText + '</span>' +
+            '</div>' +
+            '<div class="ai-reason"><b>왜 이 단계인가요?</b><br>' + esc(s.reason) + '</div>' +
+            (s.status === 'locked'
+                ? '<p class="ai-card-sub" style="margin-top:10px;">앞 단계를 먼저 마치면 더 수월해요.</p>'
+                : '');
+
+        // 지도에서도 선택한 정거장을 표시
+        document.querySelectorAll('.map-node').forEach(function (el) {
+            el.setAttribute('aria-current', Number(el.dataset.idx) === idx ? 'true' : 'false');
+        });
     }
 
     function renderPostings() {

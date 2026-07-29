@@ -31,6 +31,34 @@
             answer: 'JPA 의 영속성 컨텍스트는 엔티티를 보관하는 "1차 캐시"라고 생각하면 이해가 쉬워요.\n\n' +
                     '같은 트랜잭션 안에서 같은 엔티티를 두 번 조회하면 DB에 두 번 가지 않고 캐시에서 꺼내 줍니다. 그래서 두 객체가 == 비교에서도 같아요.',
             sources: [{ label: '4주차 강의자료 — JPA 영속성 컨텍스트 (p.8)', href: '#' }]
+        },
+        {
+            match: ['spring', '스프링', '의존성', 'di', '빈'],
+            answer: 'Spring 의 의존성 주입(DI)은 "필요한 객체를 내가 직접 만들지 않고 밖에서 받는 것"이에요.\n\n' +
+                    'new 로 직접 만들면 그 클래스에 묶여버려서 나중에 바꾸기 어렵고 테스트도 힘들어요. 스프링이 대신 만들어 넣어주면 필요할 때 다른 구현으로 갈아끼울 수 있습니다.',
+            sources: [{ label: '2주차 강의자료 — 스프링 컨테이너와 DI (p.5)', href: '#' }]
+        },
+        {
+            match: ['rest', 'api', '설계', 'http', '메서드'],
+            answer: 'REST API 설계에서 가장 자주 나오는 원칙은 "URL 에는 자원(명사), 동작은 HTTP 메서드로" 예요.\n\n' +
+                    '· 조회 GET /users/1\n· 생성 POST /users\n· 수정 PUT/PATCH /users/1\n· 삭제 DELETE /users/1\n\n' +
+                    '/getUser, /deleteUser 처럼 URL 에 동사를 넣지 않는 것이 핵심이에요.',
+            sources: [{ label: '6주차 강의자료 — REST API 설계 원칙 (p.4)', href: '#' },
+                      { label: '중간평가 2회차 7번 문항 해설', href: '#' }]
+        },
+        {
+            match: ['과제', '제출', '마감', '점수', '평가'],
+            answer: '이번 주 과제는 "게시판 CRUD 구현" 이고 마감은 금요일 23:59 예요.\n\n' +
+                    '평가 항목은 기능 구현 40점, 코드 구조 30점, 테스트 코드 20점, 문서화 10점입니다.\n' +
+                    '제출은 파일·링크·텍스트 중 편한 방법을 쓰시면 되고, 마감 전까지는 여러 번 다시 제출할 수 있어요.',
+            sources: [{ label: '과제 상세 — 게시판 CRUD 구현', href: '#' }]
+        },
+        {
+            match: ['깃', 'git', '브랜치', '머지', '충돌'],
+            answer: 'Git 브랜치는 "작업을 따로 떼어 두는 복사본" 이라고 생각하면 쉬워요.\n\n' +
+                    'main 에서 바로 작업하면 실수했을 때 되돌리기 어려워요. 기능마다 브랜치를 만들어 작업하고, 다 되면 main 에 합칩니다(merge).\n' +
+                    '같은 줄을 서로 다르게 고치면 충돌이 나는데, 이때는 어느 쪽을 남길지 직접 정해줘야 해요.',
+            sources: [{ label: '1주차 실습자료 — Git 협업 흐름 (p.9)', href: '#' }]
         }
     ];
 
@@ -54,11 +82,42 @@
 
     var log, input, busy = false;
 
+    /**
+     * 대화 보관.
+     *
+     * 화면을 나갔다 와도 대화가 남아 있어야 한다 — 물어본 걸 다시 물어보게 만들면
+     * 도우미로서 쓸모가 없다. 서버가 붙기 전까지는 브라우저에 보관한다.
+     * (서버 연동 시 이 함수들만 API 호출로 바꾸면 된다)
+     */
+    var STORE_KEY = 'lxp.ai.qna.history.v1';
+    var MAX_KEEP = 100;   // 무한정 쌓이면 브라우저 저장 한도를 넘는다
+
+    function loadHistory() {
+        try {
+            var raw = localStorage.getItem(STORE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];   // 저장이 막힌 브라우저(시크릿 모드 등)에서도 화면은 동작해야 한다
+        }
+    }
+
+    function saveHistory(list) {
+        try {
+            localStorage.setItem(STORE_KEY, JSON.stringify(list.slice(-MAX_KEEP)));
+        } catch (e) { /* 저장 실패해도 대화는 계속 가능하다 */ }
+    }
+
+    function appendHistory(item) {
+        var list = loadHistory();
+        list.push(item);
+        saveHistory(list);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         log = document.getElementById('chatLog');
         input = document.getElementById('chatInput');
 
-        greet();
+        restore();
         renderSuggest();
         renderEscalated();
 
@@ -78,6 +137,13 @@
             input.style.height = Math.min(input.scrollHeight, 120) + 'px';
         });
 
+        document.getElementById('btnClear').addEventListener('click', function () {
+            if (!confirm('지금까지의 대화를 모두 지울까요?\n지운 대화는 되돌릴 수 없어요.')) return;
+            try { localStorage.removeItem(STORE_KEY); } catch (e) { /* 무시 */ }
+            log.innerHTML = '';
+            restore();
+        });
+
         document.getElementById('btnEscalate').addEventListener('click', function () {
             if (!log.querySelector('.ai-msg.me')) {
                 alert('전달할 대화가 없어요. 먼저 질문을 입력해 주세요.');
@@ -87,10 +153,26 @@
         });
     });
 
-    function greet() {
-        push('ai',
-            '안녕하세요! 학습 중 궁금한 점을 물어보세요.\n선택하신 과정의 강의자료와 평가 해설을 바탕으로 답해 드려요.',
-            []);
+    /** 저장된 대화를 되살린다. 없으면 인사말부터 시작. */
+    function restore() {
+        var list = loadHistory();
+        if (!list.length) {
+            push('ai',
+                '안녕하세요! 학습 중 궁금한 점을 물어보세요.\n선택하신 과정의 강의자료와 평가 해설을 바탕으로 답해 드려요.',
+                [], null, false);
+            return;
+        }
+
+        list.forEach(function (m) {
+            push(m.who, m.text, m.sources || [], m.time, false);
+        });
+
+        // 이어서 대화하는 것임을 알려준다 — 지난 대화가 방금 한 것처럼 보이면 혼란스럽다
+        var mark = document.createElement('div');
+        mark.style.cssText = 'text-align:center; font-size:12px; color:#9ca3af; padding:4px 0;';
+        mark.textContent = '— 이전 대화를 이어서 보고 있어요 —';
+        log.appendChild(mark);
+        log.scrollTop = log.scrollHeight;
     }
 
     function renderSuggest() {
@@ -126,7 +208,10 @@
         var text = input.value.trim();
         if (!text) return;
 
-        push('me', text, []);
+        var t = now();
+        push('me', text, [], t);
+        appendHistory({ who: 'me', text: text, sources: [], time: t });
+
         input.value = '';
         input.style.height = 'auto';
 
@@ -135,7 +220,9 @@
 
         sendToServer(text, function (res) {
             typing.remove();
-            push('ai', res.answer, res.sources);
+            var at = now();
+            push('ai', res.answer, res.sources, at);
+            appendHistory({ who: 'ai', text: res.answer, sources: res.sources, time: at });
             busy = false;
         });
     }
@@ -152,7 +239,7 @@
         setTimeout(function () { done(hit || FALLBACK); }, 700);
     }
 
-    function push(who, text, sources) {
+    function push(who, text, sources, time, scroll) {
         var wrap = document.createElement('div');
         wrap.className = 'ai-msg' + (who === 'me' ? ' me' : '');
 
@@ -173,10 +260,10 @@
             body.appendChild(src);
         }
 
-        var time = document.createElement('div');
-        time.className = 'ai-msg-time';
-        time.textContent = now();
-        body.appendChild(time);
+        var stamp = document.createElement('div');
+        stamp.className = 'ai-msg-time';
+        stamp.textContent = time || now();
+        body.appendChild(stamp);
 
         wrap.appendChild(avatar);
         wrap.appendChild(body);

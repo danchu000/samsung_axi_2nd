@@ -299,7 +299,19 @@
       popupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitter = e.submitter;
-        const action = (submitter && submitter.formAction) || popupForm.action;
+        /*
+         * submitter.formAction 을 그냥 쓰면 안 된다.
+         *
+         * HTML 명세상 formAction 은 **formaction 속성이 없으면 문서 URL** 을 돌려준다.
+         * 그래서 [등록] 버튼(formaction 없음)을 누르면 폼의 action 이 아니라
+         * 지금 보고 있는 주소(/admin/notice/alarms/new)로 POST 가 나가 404 가 났다.
+         * 삭제·확인처리 버튼은 formaction 이 있어서 멀쩡히 동작했고,
+         * 등록만 안 되는 상태였다.
+         *
+         * 속성이 실제로 붙어 있을 때만 그 값을 쓴다.
+         */
+        const hasFormAction = submitter && submitter.hasAttribute('formaction');
+        const action = hasFormAction ? submitter.getAttribute('formaction') : popupForm.action;
         const fd = new FormData(popupForm);
         if (submitter && submitter.name) fd.append(submitter.name, submitter.value);
         try {

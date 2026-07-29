@@ -13,9 +13,9 @@
 (function (global) {
     'use strict';
 
-    var STEP_GAP = 210;   // 정거장 사이 세로 간격
-    var TOP_PAD = 90;
-    var BOTTOM_PAD = 110;
+    var STEP_GAP = 132;   // 정거장 사이 세로 간격
+    var TOP_PAD = 58;
+    var BOTTOM_PAD = 72;
 
     /**
      * @param steps [{ title, meta, reason, status: 'done'|'current'|'locked', icon }]
@@ -45,8 +45,8 @@
 
     /** 좌우로 번갈아 놓아 길이 구부러지게 한다. 가장자리는 라벨이 잘리지 않게 여백을 둔다. */
     function layout(n, width, height) {
-        var leftX = Math.max(140, width * 0.2);
-        var rightX = Math.min(width - 140, width * 0.8);
+        var leftX = Math.max(110, width * 0.24);
+        var rightX = Math.min(width - 110, width * 0.76);
         var pts = [];
         for (var i = 0; i < n; i++) {
             pts.push({
@@ -102,10 +102,10 @@
     function flags(pts, width) {
         var first = pts[0];
         var last = pts[pts.length - 1];
-        return '<div class="map-flag" style="left:' + first.x + 'px; top:' + (first.y - 78) + 'px;">' +
+        return '<div class="map-flag" style="left:' + first.x + 'px; top:' + (first.y - 56) + 'px;">' +
                     '<span class="icon">🚩</span>출발' +
                '</div>' +
-               '<div class="map-flag" style="left:' + last.x + 'px; top:' + (last.y + 86) + 'px;">' +
+               '<div class="map-flag" style="left:' + last.x + 'px; top:' + (last.y + 62) + 'px;">' +
                     '<span class="icon">🏁</span>목표 직무' +
                '</div>';
     }

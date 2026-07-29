@@ -13,7 +13,7 @@
     background: linear-gradient(180deg, #fffdf7 0%, #fdfbf3 100%);
     border: 1px solid #f0ead9;
     border-radius: 16px;
-    padding: 10px 0 30px;
+    padding: 6px 0 20px;
     overflow-x: hidden;
 }
 
@@ -36,30 +36,30 @@
 .map-path-base {
     fill: none;
     stroke: #e3d7b8;
-    stroke-width: 34;
+    stroke-width: 24;
     stroke-linecap: round;
 }
 
 .map-path-fill {
     fill: none;
     stroke: #efe4c8;
-    stroke-width: 26;
+    stroke-width: 18;
     stroke-linecap: round;
 }
 
 .map-path-dots {
     fill: none;
     stroke: #d9c9a3;
-    stroke-width: 5;
+    stroke-width: 4;
     stroke-linecap: round;
-    stroke-dasharray: 0 22;
+    stroke-dasharray: 0 16;
 }
 
 /* 이미 지나온 구간 */
 .map-path-done {
     fill: none;
     stroke: #cbb98d;
-    stroke-width: 26;
+    stroke-width: 18;
     stroke-linecap: round;
 }
 
@@ -70,7 +70,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
     background: none;
     border: 0;
@@ -80,15 +80,15 @@
 
 .map-node-circle {
     position: relative;
-    width: 96px;
-    height: 96px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: #fdfcf8;
-    border: 5px dashed #e6dcc2;
+    border: 4px dashed #e6dcc2;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 38px;
+    font-size: 26px;
     line-height: 1;
     transition: transform .15s ease, box-shadow .15s ease;
 }
@@ -134,12 +134,12 @@
     position: absolute;
     top: -4px;
     right: -4px;
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #34a853;
     color: #fff;
-    font-size: 15px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -153,13 +153,13 @@
     background: #fff;
     border: 1px solid #efe7d4;
     border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 13.5px;
+    padding: 4px 11px;
+    font-size: 12.5px;
     font-weight: 700;
     color: #4a4032;
     white-space: nowrap;
     box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
-    max-width: 210px;
+    max-width: 170px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -184,7 +184,7 @@
     pointer-events: none;
 }
 
-.map-flag .icon { display: block; font-size: 26px; margin-bottom: 2px; }
+.map-flag .icon { display: block; font-size: 20px; margin-bottom: 1px; }
 
 /* ===== 상세 패널 ===== */
 .map-detail {

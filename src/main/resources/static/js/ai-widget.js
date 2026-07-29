@@ -43,22 +43,22 @@
                 label: '보완 필요 훈련생',
                 value: '7명',
                 sub: '시급도 높음 3명',
-                href: '/instructor/ai/diagnosis',
-                cta: '진단 보기'
+                href: '/instructor/ai/diagnosis#secTrainees',
+                cta: '목록 보기'
             },
             {
                 label: 'AI 질문이 몰린 주제',
                 value: '트랜잭션·동시성',
                 sub: '최근 2주 38건 — 수업 보완 검토',
-                href: '/instructor/ai/diagnosis',
-                cta: '주제 보기'
+                href: '/instructor/ai/diagnosis#secTopics',
+                cta: '주제 목록 보기'
             },
             {
                 label: '추천 과제 미배부',
                 value: '5건',
                 sub: '확인 후 배부해 주세요',
-                href: '/instructor/ai/diagnosis',
-                cta: '배부하기'
+                href: '/instructor/ai/diagnosis#secTasks',
+                cta: '배부 목록 보기'
             }
         ],
         admin: [
@@ -80,8 +80,8 @@
                 label: '보완 필요 훈련생',
                 value: '7명',
                 sub: '전체 24명 중 · 시급도 높음 3명',
-                href: '/instructor/ai/diagnosis',
-                cta: '진단 보기'
+                href: '/instructor/ai/diagnosis#secTrainees',
+                cta: '목록 보기'
             }
         ],
 

@@ -17,11 +17,16 @@
             { label: 'AI 질문 건수', value: '186건', sub: '최근 2주' }
         ],
         topics: [
-            { label: '트랜잭션·동시성', value: 82, count: 38 },
-            { label: 'Docker·배포', value: 64, count: 29 },
-            { label: 'JPA 연관관계', value: 51, count: 24 },
-            { label: 'REST API 설계', value: 33, count: 15 },
-            { label: '테스트 코드', value: 22, count: 10 }
+            { label: '트랜잭션·동시성', value: 82, count: 38, students: 9, correctRate: 41,
+              askedBy: ['김훈련', '최교육', '오민서', '정연수', '이수강'] },
+            { label: 'Docker·배포', value: 64, count: 29, students: 7, correctRate: 38,
+              askedBy: ['이수강', '정연수', '최교육'] },
+            { label: 'JPA 연관관계', value: 51, count: 24, students: 6, correctRate: 55,
+              askedBy: ['김훈련', '오민서'] },
+            { label: 'REST API 설계', value: 33, count: 15, students: 5, correctRate: 60,
+              askedBy: ['최교육'] },
+            { label: '테스트 코드', value: 22, count: 10, students: 4, correctRate: 64,
+              askedBy: ['정연수'] }
         ],
         rows: [
             {
@@ -112,7 +117,23 @@
 
         renderSummary();
         renderTopics();
+        renderTopicTable();
+        renderTaskGroups(data.rows);
         renderRows(data.rows);
+
+        // 대시보드 카드에서 #secTopics / #secTasks / #secTrainees 로 넘어온 경우
+        // 해당 목록으로 스크롤한다 (긴 화면이라 어디를 보라는지 알려줘야 한다)
+        if (window.location.hash) {
+            var target = document.querySelector(window.location.hash);
+            if (target) {
+                setTimeout(function () {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    target.style.outline = '2px solid #c7d2fe';
+                    target.style.outlineOffset = '3px';
+                    setTimeout(function () { target.style.outline = ''; }, 2000);
+                }, 120);
+            }
+        }
 
         document.getElementById('btnFilter').addEventListener('click', applyFilter);
 
@@ -150,9 +171,11 @@
     function applyFilter() {
         var course = document.getElementById('courseFilter').value;
         var level = document.getElementById('levelFilter').value;
-        renderRows(data.rows.filter(function (r) {
+        var filtered = data.rows.filter(function (r) {
             return (!course || r.course === course) && (!level || r.level === level);
-        }));
+        });
+        renderRows(filtered);
+        renderTaskGroups(filtered);
         document.getElementById('checkAll').checked = false;
     }
 
@@ -173,6 +196,72 @@
                 '<span class="ai-bar ' + cls + '"><span style="width:' + t.value + '%"></span></span>' +
                 '<span class="value">' + t.count + '건</span></div>';
         }).join('');
+    }
+
+    /** 주제 목록 — 막대만으로는 "누가 무엇을 물었는지" 를 알 수 없다. */
+    function renderTopicTable() {
+        var body = document.getElementById('topicBody');
+        if (!body) return;
+        body.innerHTML = data.topics.map(function (t) {
+            // 정답률이 낮을수록 시급하다 — 질문이 많아도 정답률이 높으면 관심일 뿐이다
+            var cls = t.correctRate < 45 ? 'high' : (t.correctRate < 60 ? 'mid' : 'low');
+            return '<tr>' +
+                '<td><b>' + esc(t.label) + '</b></td>' +
+                '<td>' + t.count + '건</td>' +
+                '<td>' + t.students + '명</td>' +
+                '<td><span class="ai-level ' + cls + '">' + t.correctRate + '%</span></td>' +
+                '<td>' + (t.askedBy || []).map(function (n) {
+                    return '<span class="ai-tag partial" style="margin:2px 3px 2px 0; display:inline-block;">' + esc(n) + '</span>';
+                }).join('') + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    /**
+     * 추천 과제별로 훈련생을 묶는다.
+     * 배정 화면은 과제 하나를 다루므로, 같은 과제끼리 묶어야 한 번에 배부할 수 있다.
+     */
+    function renderTaskGroups(rows) {
+        var body = document.getElementById('taskBody');
+        if (!body) return;
+
+        var order = { high: 3, mid: 2, low: 1 };
+        var groups = {};
+        rows.forEach(function (r) {
+            var g = groups[r.task] || (groups[r.task] = {
+                task: r.task, names: [], courseId: r.courseId, level: 'low', levelLabel: '낮음'
+            });
+            g.names.push(r.name);
+            if (order[r.level] > order[g.level]) { g.level = r.level; g.levelLabel = r.levelLabel; }
+        });
+
+        var list = Object.keys(groups).map(function (k) { return groups[k]; })
+            .sort(function (a, b) { return order[b.level] - order[a.level] || b.names.length - a.names.length; });
+
+        if (!list.length) {
+            body.innerHTML = '<tr><td colspan="5" class="ai-empty">배부할 추천 과제가 없습니다.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = list.map(function (g) {
+            return '<tr>' +
+                '<td><b>' + esc(g.task) + '</b></td>' +
+                '<td>' + g.names.length + '명</td>' +
+                '<td><span class="ai-level ' + g.level + '">' + esc(g.levelLabel) + '</span></td>' +
+                '<td>' + g.names.map(function (n) {
+                    return '<span class="ai-tag partial" style="margin:2px 3px 2px 0; display:inline-block;">' + esc(n) + '</span>';
+                }).join('') + '</td>' +
+                '<td><button type="button" class="btn btn-primary btn-sm js-group"' +
+                    ' data-task="' + esc(g.task) + '" data-names="' + esc(g.names.join(',')) + '"' +
+                    ' data-course-id="' + g.courseId + '">배부</button></td>' +
+            '</tr>';
+        }).join('');
+
+        body.querySelectorAll('.js-group').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                goAssign(btn.dataset.task, btn.dataset.names.split(','), btn.dataset.courseId);
+            });
+        });
     }
 
     function renderRows(rows) {

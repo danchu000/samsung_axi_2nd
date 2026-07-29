@@ -246,3 +246,40 @@
 }
 
 .map-fallback { display: none; }
+
+/* ===== 가로 모드 (대시보드 "오늘의 여정") =====
+   대시보드는 위젯이라 세로로 길면 화면을 다 잡아먹는다. 눕히고 크기를 더 줄인다. */
+.map-node.compact .map-node-circle {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+    font-size: 20px;
+}
+
+.map-node.compact .map-node-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-width: 2px;
+    top: -3px;
+    right: -3px;
+}
+
+.map-node.compact .map-node-label {
+    font-size: 11.5px;
+    padding: 3px 9px;
+    max-width: 130px;
+}
+
+/* 가로 모드에서는 길을 더 얇게 — 원이 작아진 만큼 비율을 맞춘다 */
+.map-wrap.horizontal .map-path-base { stroke-width: 18; }
+.map-wrap.horizontal .map-path-fill { stroke-width: 13; }
+.map-wrap.horizontal .map-path-done { stroke-width: 13; }
+.map-wrap.horizontal .map-path-dots { stroke-width: 3; stroke-dasharray: 0 12; }
+
+.map-wrap.horizontal { padding: 4px 0 10px; }
+
+/* 좁은 화면에서 가로 지도는 원이 겹친다 — 목록으로 되돌린다 */
+@media (max-width: 900px) {
+    .map-wrap.horizontal { display: none; }
+}

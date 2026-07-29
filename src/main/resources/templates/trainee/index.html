@@ -8,10 +8,14 @@
     <link rel="stylesheet" href="/static/css/trainee/index.css">
     <link rel="stylesheet" href="/static/css/chatbot.css">
     <link rel="stylesheet" href="/static/css/ai-common.css">
+    <link rel="stylesheet" href="/static/css/ai-roadmap-map.css">
     <link rel="stylesheet" href="/static/css/dashboard-visual.css">
     <script src="/static/js/chatbot.js" defer></script>
     <script src="/static/js/trainee/index.js" defer></script>
     <script src="/static/js/ai-widget.js" defer></script>
+    <!-- 오늘의 여정(가로 지도). 렌더러가 먼저 로드돼야 한다 -->
+    <script src="/static/js/trainee/ai-roadmap-map.js" defer></script>
+    <script src="/static/js/trainee/today-journey.js" defer></script>
 
     <!-- ===== 서버 데이터 주입 =====
          TraineeDashboardView(com.ssa.lms.dashboard.dto)를 그대로 내려받는다.
@@ -77,6 +81,20 @@
                       <button type="button" class="btn btn-gray" id="hpRefresh">새로고침</button>
                       </div>
   
+                      <!--
+                        오늘의 여정 — 할 일을 마감 순서대로 길 위에 늘어놓는다.
+                        목록은 "무엇이 있는지"는 보여주지만 "지금 어디쯤인지"가 안 보인다.
+                        아래 목록과 같은 데이터를 쓰므로 둘이 어긋날 일은 없다.
+                      -->
+                      <div class="map-wrap horizontal" id="todayJourney" style="display:none;">
+                          <div class="map-canvas" id="todayMapCanvas"></div>
+                          <div class="map-legend">
+                              <span><i class="done"></i> 마감 지남</span>
+                              <span><i class="current"></i> 가장 급함</span>
+                              <span><i class="locked"></i> 여유 있음</span>
+                          </div>
+                      </div>
+
                       <div class="todo-list" id="hpTodoList"></div>
                       <div class="empty-state" id="hpTodoEmpty" style="display:none;">
                       <p class="empty-title">오늘 할 일이 없어요.</p>

@@ -8,7 +8,13 @@
  * 왜 목록이 아니라 지도인가 — "지금 어디까지 왔고 다음이 무엇인지"가 한눈에 보여야
  * 학습 동기가 생긴다. 목록은 순서는 보여주지만 진행 상황이 안 보인다.
  *
- * 전역 함수 하나만 노출한다: renderRoadmapMap(steps, onSelect)
+ * 세로(로드맵)와 가로(대시보드 "오늘의 여정") 두 방향을 지원한다.
+ * 대시보드는 위젯이라 세로로 길면 화면을 다 잡아먹으므로 가로로 눕힌다.
+ *
+ * 전역 함수 하나만 노출한다:
+ *   renderRoadmapMap(steps, onSelect, opts)
+ *     opts.el          그릴 대상 id (기본 'mapCanvas')
+ *     opts.orientation 'vertical'(기본) | 'horizontal'
  */
 (function (global) {
     'use strict';
@@ -21,20 +27,30 @@
      * @param steps [{ title, meta, reason, status: 'done'|'current'|'locked', icon }]
      * @param onSelect 정거장을 눌렀을 때 호출 (index)
      */
-    global.renderRoadmapMap = function (steps, onSelect) {
-        var canvas = document.getElementById('mapCanvas');
+    global.renderRoadmapMap = function (steps, onSelect, opts) {
+        opts = opts || {};
+        var canvas = document.getElementById(opts.el || 'mapCanvas');
         if (!canvas || !steps || !steps.length) return;
 
+        var horizontal = opts.orientation === 'horizontal';
         var width = canvas.clientWidth || 900;
-        var height = TOP_PAD + STEP_GAP * (steps.length - 1) + BOTTOM_PAD;
-        canvas.style.height = height + 'px';
+        var height, pts;
 
-        var pts = layout(steps.length, width, height);
+        if (horizontal) {
+            // 가로: 폭을 단계 수로 나눠 배치하고 위아래로 살짝 물결치게 한다
+            height = 176;
+            canvas.style.height = height + 'px';
+            pts = layoutH(steps.length, width, height);
+        } else {
+            height = TOP_PAD + STEP_GAP * (steps.length - 1) + BOTTOM_PAD;
+            canvas.style.height = height + 'px';
+            pts = layout(steps.length, width, height);
+        }
 
         canvas.innerHTML =
             svg(pts, steps, width, height) +
-            flags(pts, width) +
-            steps.map(function (s, i) { return nodeHtml(s, i, pts[i]); }).join('');
+            (horizontal ? '' : flags(pts, width)) +
+            steps.map(function (s, i) { return nodeHtml(s, i, pts[i], horizontal); }).join('');
 
         canvas.querySelectorAll('.map-node').forEach(function (el) {
             el.addEventListener('click', function () {
@@ -52,6 +68,25 @@
             pts.push({
                 x: (i % 2 === 0) ? leftX : rightX,
                 y: TOP_PAD + i * STEP_GAP
+            });
+        }
+        return pts;
+    }
+
+    /**
+     * 가로 배치. 단계가 많아지면 간격이 좁아지므로 원이 겹치지 않을 만큼만 물결친다.
+     * 가장자리에는 라벨이 잘리지 않게 여백을 둔다.
+     */
+    function layoutH(n, width, height) {
+        var padX = Math.min(90, width / (n + 1));
+        var usable = width - padX * 2;
+        var midY = height / 2 - 12;
+        var wave = n > 1 ? 20 : 0;
+        var pts = [];
+        for (var i = 0; i < n; i++) {
+            pts.push({
+                x: n === 1 ? width / 2 : padX + usable * i / (n - 1),
+                y: midY + (i % 2 === 0 ? -wave : wave)
             });
         }
         return pts;
@@ -110,12 +145,12 @@
                '</div>';
     }
 
-    function nodeHtml(s, i, pt) {
+    function nodeHtml(s, i, pt, horizontal) {
         var badge = s.status === 'done' ? '✓' : (s.status === 'current' ? '★' : (i + 1));
         // 상태를 색뿐 아니라 글자로도 알린다 (색만으로 구분하면 안 된다)
         var stateText = s.status === 'done' ? '완료' : (s.status === 'current' ? '지금 할 차례' : '앞으로 할 것');
 
-        return '<button type="button" class="map-node ' + s.status + '" data-idx="' + i + '"' +
+        return '<button type="button" class="map-node ' + s.status + (horizontal ? ' compact' : '') + '" data-idx="' + i + '"' +
                     ' style="left:' + pt.x + 'px; top:' + pt.y + 'px;"' +
                     ' aria-label="' + esc(s.title) + ' — ' + stateText + '">' +
                     '<span class="map-node-circle">' + (s.icon || '📘') +

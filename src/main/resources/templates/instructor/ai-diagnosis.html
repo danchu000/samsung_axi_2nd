@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- 과제 초안 생성을 fetch 로 부르므로 CSRF 토큰이 필요하다 -->
+<meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" content="" />
+<meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}" content="" />
 
 <!--
   강사 화면 공통 CSS. 예전에 존재하지 않는 basic-form.css 를 적었다가 레이아웃이
@@ -127,7 +130,18 @@
                         <h3 class="ai-card-title">보완이 필요한 훈련생</h3>
                         <p class="ai-card-sub">체크한 훈련생에게 추천 과제를 한 번에 배부할 수 있습니다.</p>
                     </div>
-                    <button type="button" class="btn btn-primary" id="btnAssign">선택한 훈련생에게 과제 배부</button>
+                    <span style="display:flex; gap:8px; flex:none;">
+                        <!--
+                          AI 과제 초안 생성. 예전에는 과제 제목이 화면 JS 에 하드코딩돼 있어
+                          취약 영역이 뭐로 나오든 같은 제목이 붙었다. 이제 모델이 만든다.
+                          키가 없으면 비활성 — 눌러 놓고 기다렸다 실패하면 허탈하다.
+                        -->
+                        <button type="button" class="btn btn-secondary" id="btnDraft"
+                                th:disabled="${!aiAvailable}"
+                                th:title="${aiAvailable} ? 'AI가 과제 제목·설명·평가기준 초안을 만듭니다'
+                                                        : 'AI 기능이 아직 켜지지 않았습니다'">🤖 AI로 과제 만들기</button>
+                        <button type="button" class="btn btn-primary" id="btnAssign">선택한 훈련생에게 과제 배부</button>
+                    </span>
                 </div>
 
                 <div style="overflow-x:auto;">
@@ -149,5 +163,45 @@
 
         </section>
     </main>
+
+    <!--
+      AI 과제 초안 모달.
+      생성 결과를 바로 배부하지 않는다 — 강사가 읽고 [이 내용으로 배부하기]를 눌러야
+      배정 화면으로 넘어간다. AI 가 훈련생에게 과제를 직접 내리는 경로는 만들지 않는다.
+    -->
+    <div class="ai-modal-back" id="draftBack" hidden>
+      <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="draftTitle">
+        <div class="ai-modal-head">
+          <h3 id="draftTitle">AI 과제 초안</h3>
+          <button type="button" class="ai-modal-x" id="draftClose" aria-label="닫기">✕</button>
+        </div>
+
+        <div class="ai-modal-body" id="draftBody">
+          <p class="ai-empty" id="draftLoading">과제 초안을 만들고 있어요…</p>
+
+          <div id="draftResult" hidden>
+            <label class="ai-field-label" for="draftTitleInput">제목</label>
+            <input type="text" id="draftTitleInput" class="form-input" maxlength="120">
+
+            <label class="ai-field-label" for="draftDescInput">설명</label>
+            <textarea id="draftDescInput" class="form-input" rows="6"></textarea>
+
+            <label class="ai-field-label" for="draftCriteriaInput">평가 기준</label>
+            <textarea id="draftCriteriaInput" class="form-input" rows="4"></textarea>
+
+            <p class="ai-card-sub" style="margin-top:10px;">
+              AI가 만든 <b>초안</b>이에요. 그대로 나가지 않으니 자유롭게 고쳐 주세요.
+            </p>
+          </div>
+
+          <p class="ai-empty" id="draftError" hidden></p>
+        </div>
+
+        <div class="ai-modal-foot">
+          <button type="button" class="btn btn-gray" id="draftCancel">닫기</button>
+          <button type="button" class="btn btn-primary" id="draftApply" disabled>이 내용으로 배부하기</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

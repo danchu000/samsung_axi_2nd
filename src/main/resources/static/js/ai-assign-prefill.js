@@ -28,7 +28,7 @@
         var courseId = q.get('aiCourseId');
 
         banner(task, trainees);
-        prefill(task, courseId);
+        prefill(task, courseId, q.get('aiDesc'), q.get('aiCriteria'));
     });
 
     /** 어디서 왜 왔는지 화면에 남긴다 — 값이 미리 채워진 이유를 알 수 있어야 한다. */
@@ -52,7 +52,7 @@
         anchor.insertBefore(box, anchor.firstChild);
     }
 
-    function prefill(task, courseId) {
+    function prefill(task, courseId, desc, criteria) {
         // 과정 — 진단 대상 훈련생이 듣는 과정
         var course = document.getElementById('courseSelect');
         if (course && courseId) {
@@ -68,6 +68,22 @@
             title.value = task;
             title.focus();
         }
+
+        /*
+         * 설명·평가기준은 AI 초안에서 왔을 때만 넘어온다.
+         *
+         * 이 화면(AssignmentForm)에는 **평가기준 입력칸이 없다.** 그래서 설명 아래에
+         * 붙여 넣는다 — 버리면 AI 가 만든 배점이 통째로 사라진다.
+         * 폼에 필드가 생기면 그때 분리하면 된다.
+         *
+         * 이미 강사가 쓴 내용이 있으면 덮어쓰지 않는다 — 남의 입력을 지우면 안 된다.
+         */
+        var body = (desc || '').trim();
+        if (criteria && criteria.trim()) {
+            body += (body ? '\n\n' : '') + '[평가 기준]\n' + criteria.trim();
+        }
+        var descEl = document.getElementById('newAssignmentDesc');
+        if (descEl && !descEl.value && body) descEl.value = body;
     }
 
     /** 없는 값을 강제로 넣으면 select 가 빈 상태가 되므로, 있는 경우에만 고른다. */

@@ -37,6 +37,10 @@ services:
       LMS_AI_MODEL: ${LMS_AI_MODEL:-claude-sonnet-5}
       LMS_AI_DAILY_LIMIT: ${LMS_AI_DAILY_LIMIT:-500}
       LMS_AI_DAILY_LIMIT_PER_USER: ${LMS_AI_DAILY_LIMIT_PER_USER:-50}
+      # [기능 1] 채용공고 수집 — 키가 없으면 수집만 멈추고 앱은 뜬다
+      LMS_JOB_ENABLED: ${LMS_JOB_ENABLED:-false}
+      SARAMIN_ACCESS_KEY: ${SARAMIN_ACCESS_KEY:-}
+      LMS_JOB_CRON: ${LMS_JOB_CRON:-0 0 3 * * MON}
     volumes:
       - lxp-uploads:/data/uploads
     depends_on:

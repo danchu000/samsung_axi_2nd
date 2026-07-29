@@ -176,6 +176,7 @@
         }
 
         document.getElementById('btnFilter').addEventListener('click', applyFilter);
+        initDraft();
 
         document.getElementById('checkAll').addEventListener('change', function (e) {
             document.querySelectorAll('#diagBody .js-pick').forEach(function (c) {
@@ -339,11 +340,137 @@
      * 그 화면의 폼 바인딩(th:field)은 건드리지 않고, 배정 화면 쪽 스크립트가
      * 이 값을 읽어 제목을 채우고 안내 배너를 띄운다.
      */
-    function goAssign(task, names, courseId) {
+    function goAssign(task, names, courseId, desc, criteria) {
         var q = '?aiTask=' + encodeURIComponent(task) +
                 '&aiTrainees=' + encodeURIComponent(names.join(',')) +
-                (courseId ? '&aiCourseId=' + encodeURIComponent(courseId) : '');
+                (courseId ? '&aiCourseId=' + encodeURIComponent(courseId) : '') +
+                (desc ? '&aiDesc=' + encodeURIComponent(desc) : '') +
+                (criteria ? '&aiCriteria=' + encodeURIComponent(criteria) : '');
         window.location.href = '/admin/evaluation/assignments/new' + q;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+     *  AI 과제 초안 생성 — 실제 모델 호출
+     * ══════════════════════════════════════════════════════════════════
+     *
+     * 예전에는 과제 제목이 이 파일의 DUMMY 에 하드코딩돼 있었다.
+     * 취약 영역이 뭐로 나오든 같은 제목이 붙었다. 이제 서버가 모델로 만든다.
+     *
+     * 만든 결과를 **바로 배부하지 않는다.** 모달에 띄워 강사가 읽고 고칠 수 있게 한 뒤,
+     * [이 내용으로 배부하기]를 눌러야 배정 화면으로 넘어간다.
+     */
+    var draftCtx = null;   // 어떤 훈련생/과정으로 만들었는지 — 배부 때 그대로 써야 한다
+
+    function initDraft() {
+        var btn = document.getElementById('btnDraft');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            var picked = pickedRows();
+            if (!picked.length) {
+                alert('과제를 만들 훈련생을 먼저 선택해 주세요.');
+                return;
+            }
+
+            // 취약 영역이 서로 다르면 한 과제로 묶을 수 없다 — 가장 많이 겹치는 영역으로 만든다
+            var area = topWeakArea(picked);
+            draftCtx = {
+                names: picked.map(function (r) { return r.name; }),
+                courseId: picked[0].courseId,
+                area: area
+            };
+
+            openDraft();
+            requestDraft(picked[0].courseId, area, picked.length);
+        });
+
+        document.getElementById('draftClose').addEventListener('click', closeDraft);
+        document.getElementById('draftCancel').addEventListener('click', closeDraft);
+
+        document.getElementById('draftApply').addEventListener('click', function () {
+            if (!draftCtx) return;
+            goAssign(
+                document.getElementById('draftTitleInput').value.trim(),
+                draftCtx.names,
+                draftCtx.courseId,
+                document.getElementById('draftDescInput').value.trim(),
+                document.getElementById('draftCriteriaInput').value.trim()
+            );
+        });
+    }
+
+    /** 체크된 행을 진단 데이터에서 되찾는다. */
+    function pickedRows() {
+        var ids = Array.prototype.slice
+            .call(document.querySelectorAll('#diagBody .js-pick:checked'))
+            // 체크박스는 value 가 아니라 data-id 를 쓴다. value 로 읽으면 전부 'on' 이 나와
+            // 매칭이 하나도 안 되고 "선택한 훈련생이 없다"로 조용히 끝난다
+            .map(function (c) { return String(c.dataset.id); });
+        return data.rows.filter(function (r) { return ids.indexOf(String(r.id)) >= 0; });
+    }
+
+    /** 고른 훈련생들에게 가장 많이 겹치는 취약 영역. 동점이면 먼저 나온 것. */
+    function topWeakArea(rows) {
+        var count = {};
+        rows.forEach(function (r) {
+            (r.weak || []).forEach(function (w) { count[w] = (count[w] || 0) + 1; });
+        });
+        var best = null;
+        Object.keys(count).forEach(function (k) {
+            if (best === null || count[k] > count[best]) best = k;
+        });
+        return best || '학습 보완';
+    }
+
+    function requestDraft(courseId, weakArea, traineeCount) {
+        var headers = { 'Content-Type': 'application/json' };
+        var t = (document.querySelector('meta[name="_csrf"]') || {}).content;
+        var h = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+        if (t && h) headers[h] = t;
+
+        fetch('/instructor/ai/assignment-draft', {
+            method: 'POST', headers: headers, credentials: 'same-origin',
+            body: JSON.stringify({ courseId: courseId, weakArea: weakArea, traineeCount: traineeCount })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (d) {
+                if (!d.ok) { showDraftError(d.message || '과제를 만들지 못했어요.'); return; }
+                showDraft(d);
+            })
+            .catch(function () {
+                showDraftError('과제를 만들지 못했어요. 잠시 후 다시 시도해 주세요.');
+            });
+    }
+
+    function openDraft() {
+        document.getElementById('draftBack').hidden = false;
+        document.getElementById('draftLoading').hidden = false;
+        document.getElementById('draftResult').hidden = true;
+        document.getElementById('draftError').hidden = true;
+        document.getElementById('draftApply').disabled = true;
+    }
+
+    function closeDraft() {
+        document.getElementById('draftBack').hidden = true;
+    }
+
+    function showDraft(d) {
+        document.getElementById('draftLoading').hidden = true;
+        document.getElementById('draftResult').hidden = false;
+        document.getElementById('draftTitleInput').value = d.title || '';
+        document.getElementById('draftDescInput').value = d.description || '';
+        document.getElementById('draftCriteriaInput').value = d.criteria || '';
+        document.getElementById('draftApply').disabled = false;
+    }
+
+    function showDraftError(msg) {
+        document.getElementById('draftLoading').hidden = true;
+        var box = document.getElementById('draftError');
+        box.hidden = false;
+        box.textContent = msg;
     }
 
     function esc(s) {

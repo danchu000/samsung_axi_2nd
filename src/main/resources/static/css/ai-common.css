@@ -399,3 +399,48 @@
 }
 
 .qna-block-desc { margin: 0 0 10px; font-size: 12.5px; color: #667085; }
+
+
+/* 표본 데이터임을 알리는 표기. 실제 수집값과 절대 같아 보이면 안 된다. */
+.sample-note {
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-weight: 600;
+}
+
+
+/* ===== AI 과제 초안 모달 ===== */
+.ai-modal-back {
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(16, 24, 40, 0.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.ai-modal-back[hidden] { display: none; }
+.ai-modal {
+    background: #fff; border-radius: 10px; width: min(640px, 100%);
+    max-height: 88vh; display: flex; flex-direction: column;
+    box-shadow: 0 18px 48px rgba(16, 24, 40, 0.28);
+}
+.ai-modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #eef0f6;
+}
+.ai-modal-head h3 { margin: 0; font-size: 16px; color: #131D41; }
+.ai-modal-x {
+    border: 0; background: none; font-size: 16px; cursor: pointer; color: #667085;
+}
+/* 본문만 스크롤 — 머리말과 버튼은 항상 보여야 한다 */
+.ai-modal-body { padding: 18px 20px; overflow-y: auto; }
+.ai-modal-foot {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 14px 20px; border-top: 1px solid #eef0f6;
+}
+.ai-field-label {
+    display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 600; color: #374151;
+}
+.ai-field-label:first-child { margin-top: 0; }
+.ai-modal .form-input { width: 100%; }

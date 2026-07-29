@@ -30,6 +30,7 @@
     'use strict';
 
     var DUMMY = {
+        sample: true,          // 화면에 '표본' 배지를 달게 한다
         collectedAt: '2026-07-27',
         jobs: [
             {
@@ -175,7 +176,59 @@
         ]
     };
 
-    var data = window._serverRoadmap || DUMMY;
+    /*
+     * 서버 모양 → 화면 모양 변환.
+     *
+     * 서버(RoadmapView)와 이 화면의 필드 이름이 다르다. 그대로 꽂으면 화면이
+     * 예외 없이 **빈 칸으로만** 그려진다 — 제일 알아채기 어려운 고장이다.
+     * 그래서 여기서 한 번에 맞춘다.
+     *
+     *   demands[{label,percent}]        → meters[{label,value}]
+     *   postings[{keywords,postingDate}] → postings[{skills,date}]
+     *   steps 에 아이콘 추가 (서버는 표시용 아이콘을 모른다)
+     */
+    function adapt(server) {
+        return {
+            collectedAt: server.collectedAt,
+            sample: false,
+            jobs: (server.jobs || []).map(function (j) {
+                return {
+                    id: j.id,
+                    name: j.name,
+                    postingCount: j.postingCount,
+                    matchRate: j.matchRate,
+                    avgCareer: j.avgCareer,
+                    have: j.have || [],
+                    lack: j.lack || [],
+                    meters: (j.demands || []).map(function (d) {
+                        return { label: d.label, value: d.percent, count: d.count };
+                    }),
+                    steps: (j.steps || []).map(function (st) {
+                        return {
+                            title: st.title, meta: st.meta, reason: st.reason,
+                            status: st.status, icon: ICON[st.status] || '•'
+                        };
+                    }),
+                    postings: (j.postings || []).map(function (p) {
+                        return {
+                            company: p.company, title: p.title,
+                            skills: p.keywords || '-',
+                            date: p.postingDate || '-'
+                        };
+                    })
+                };
+            })
+        };
+    }
+
+    var ICON = { done: '✅', current: '🎯', locked: '🔒' };
+
+    /*
+     * 서버가 수집한 공고가 있으면 그걸 쓰고, 없으면 시연용 표본을 쓴다.
+     * 표본일 때는 화면에 **표본 배지**를 단다 — 표본을 실제 채용 시장으로 착각하면
+     * 진로를 잘못 정하게 된다.
+     */
+    var data = window._serverRoadmap ? adapt(window._serverRoadmap) : DUMMY;
     var current = null;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -188,7 +241,29 @@
         });
 
         var stamp = document.querySelector('.js-collected-at');
-        if (stamp) stamp.textContent = '마지막 수집: ' + data.collectedAt;
+        if (stamp) {
+            /*
+             * 표본일 때 그냥 날짜만 쓰면 실제로 수집한 것처럼 보인다.
+             * 표본을 진짜 채용 시장으로 착각하면 진로를 잘못 정하게 된다 —
+             * 여기는 반드시 구분해서 말한다.
+             */
+            stamp.textContent = data.sample
+                ? '표본 데이터 (채용공고 수집 미연동)'
+                : '마지막 수집: ' + data.collectedAt;
+            stamp.className = stamp.className.replace(/\s*sample-note/g, '')
+                + (data.sample ? ' sample-note' : '');
+        }
+
+        // 수집은 됐는데 표본이 부족해 분석할 직무가 없는 경우 — 빈 화면을 그대로 두지 않는다
+        if (!data.jobs.length) {
+            var wrap = document.getElementById('summaryGrid');
+            if (wrap) {
+                wrap.innerHTML = '<div class="ai-empty" style="grid-column:1/-1;">'
+                    + '아직 분석할 만큼 공고가 모이지 않았어요.<br>'
+                    + '다음 수집(매주 월요일) 이후 다시 확인해 주세요.</div>';
+            }
+            return;
+        }
 
         sel.addEventListener('change', function () { render(sel.value); });
         document.getElementById('btnAnalyze').addEventListener('click', function () { render(sel.value); });

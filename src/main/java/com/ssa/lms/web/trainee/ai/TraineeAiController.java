@@ -3,6 +3,7 @@ package com.ssa.lms.web.trainee.ai;
 import com.ssa.lms.ai.dto.AiQnaAnswer;
 import com.ssa.lms.ai.service.AiQnaService;
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.job.service.RoadmapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -26,7 +27,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *       (과정 목록·답변 모두 서버에서 온다)</li>
  *   <li>{@code /trainee/ai/curriculum} — 학습 데이터 기반 원내 과정 추천. <b>화면만</b> —
  *       JS 안의 더미로 그린다</li>
- *   <li>{@code /trainee/ai/roadmap} — 채용공고 주간 수집 기반 직무 로드맵. <b>화면만</b></li>
+ *   <li>{@code /trainee/ai/roadmap} — 직무 로드맵. <b>사람인 API 수집 연동 완료</b>
+ *       (공고 수·요구 역량은 실제 집계값, 보유/부족 판정은 자료 제목 매칭 근사치)</li>
  * </ul>
  * <p>접근 권한은 SecurityConfig 의 URL 규칙이 담당한다 ({@code /trainee/**} → TRAINEE·ADMIN).
  * 이 프로젝트는 메서드 보안(@EnableMethodSecurity)을 켜지 않아 {@code @PreAuthorize} 는
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class TraineeAiController {
 
     private final AiQnaService aiQnaService;
+    private final RoadmapService roadmapService;
 
     /** AI 학습 도우미 — 학습 자료 기반으로 즉시 답변하고, 안 되면 강사에게 넘긴다. */
     @GetMapping("/qna")
@@ -74,9 +77,15 @@ public class TraineeAiController {
         return "trainee/ai-curriculum";
     }
 
-    /** 직무 로드맵 — 주 1회 수집한 채용공고에서 요구 역량을 뽑아 내 학습과 비교한다. */
+    /**
+     * 직무 로드맵 — 주 1회 수집한 채용공고에서 요구 역량을 뽑아 내 학습과 비교한다.
+     *
+     * <p>수집된 공고가 없으면 {@code roadmap.jobs()} 가 빈 목록이고 {@code collectedAt} 이
+     * null 이다. 화면은 그때 "아직 수집 전"을 보여준다 — 날짜를 지어내지 않는다.</p>
+     */
     @GetMapping("/roadmap")
-    public String roadmap() {
+    public String roadmap(@AuthenticationPrincipal LoginUser me, Model model) {
+        model.addAttribute("roadmap", roadmapService.forTrainee(me == null ? null : me.getId()));
         return "trainee/ai-roadmap";
     }
 }

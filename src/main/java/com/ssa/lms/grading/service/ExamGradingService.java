@@ -153,6 +153,62 @@ public class ExamGradingService {
         return rows;
     }
 
+    /** 시험 채점 목록 시트 헤더. {@link ExamGradingRow} 를 내려쓰는 순서와 맞춰 둔다. */
+    private static final String[] EXAM_LIST_HEADERS = {
+            "번호", "과정명", "시험명", "강사명", "제출 시작", "제출 마감",
+            "제출", "미제출", "채점완료", "미채점", "상태"};
+
+    /**
+     * 시험 채점 목록 엑셀(xlsx) — 화면(admin-evaluation-result.html)의 현재 필터 조건 그대로.
+     *
+     * <p>필터 의미는 화면 JS(assignments.js {@code filterList})와 같게 맞춘다 — 과정명·검색어는
+     * 부분일치, 강사명·상태는 정확일치. 다운로드만 화면과 다른 목록이 나오면 안 되기 때문이다.
+     * 권한(강사는 담당 과정만)은 {@link #examList} 가 이미 본다.</p>
+     */
+    public byte[] examListExcel(String courseName, String status, String instructor,
+                                String keyword, Long viewerId, boolean admin) {
+        List<ExamGradingRow> rows = examList(null, null, null, viewerId, admin, "").stream()
+                .filter(r -> matchesListFilter(r, courseName, status, instructor, keyword))
+                .toList();
+
+        try (ExcelWriter writer = ExcelWriter.create()) {
+            writer.sheet("시험 채점", EXAM_LIST_HEADERS);
+            int no = 0;
+            for (ExamGradingRow r : rows) {
+                writer.row(++no, r.courseName(), r.title(), r.instructor(),
+                        r.startDate() + " " + r.startTime(),
+                        r.endDate() + " " + r.endTime(),
+                        r.submitted(), r.notSubmitted(), r.graded(), r.ungraded(),
+                        statusText(r.status()));
+            }
+            if (rows.isEmpty()) {
+                writer.emptyNote("조건에 맞는 채점 대상 시험이 없습니다.");
+            }
+            return writer.toBytes();
+        }
+    }
+
+    private static boolean matchesListFilter(ExamGradingRow r, String courseName, String status,
+                                             String instructor, String keyword) {
+        if (blankToNull(courseName) != null && !r.courseName().contains(courseName.strip())) {
+            return false;
+        }
+        if (blankToNull(status) != null && !r.status().equals(status.strip())) {
+            return false;
+        }
+        if (blankToNull(instructor) != null && !r.instructor().equals(instructor.strip())) {
+            return false;
+        }
+        String kw = blankToNull(keyword);
+        if (kw != null) {
+            String needle = kw.toLowerCase();
+            return r.courseName().toLowerCase().contains(needle)
+                    || r.title().toLowerCase().contains(needle)
+                    || r.instructor().toLowerCase().contains(needle);
+        }
+        return true;
+    }
+
     /* ===================== 2. 시험별 채점 현황 + 응시자 목록 ===================== */
 
     public ExamGradingSummary summary(Long examId, Long viewerId, boolean admin, String urlPrefix) {

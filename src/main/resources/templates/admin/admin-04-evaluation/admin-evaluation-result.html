@@ -99,6 +99,14 @@
             <div class="bulk-action-area" style="display:flex; gap:10px; margin:16px 0 0 0;">
                 <button class="btn btn-gray btn-sm" id="bulkDeleteBtn" data-user-role="admin">선택 삭제</button>
                 <button class="btn btn-gray btn-sm" id="bulkDisableBtn">선택한 시험 비활성화</button>
+                <!-- 현재 필터 조건의 목록 전체를 xlsx 로 내린다 (화면에 보이는 행과 같은 기준). -->
+                <button type="button" class="btn btn-gray btn-sm flex" id="excelDownloadBtn"
+                        style="margin-left:auto; display:flex; align-items:center;"
+                        th:data-export-url="@{/admin/evaluation/grading/export.xlsx}"
+                        onclick="downloadGradingExcel(this)">
+                    <img src="/static/icons/excel.svg" alt="Excel icon" style="margin-right: 8px;">
+                    <span>엑셀로 다운로드</span>
+                </button>
             </div>
 
             <!-- 페이지네이션 -->
@@ -147,6 +155,24 @@
             window.filterGrading = function () {
                 var input = document.getElementById('searchInput');
                 if (input) input.dispatchEvent(new Event('input'));
+            };
+
+            // "엑셀로 다운로드" — 화면의 현재 필터 값을 그대로 쿼리로 붙여 서버에 넘긴다.
+            // (화면 필터는 assignments.js 가 클라이언트에서 걸고, 서버가 같은 의미로 다시 건다)
+            window.downloadGradingExcel = function (button) {
+                var params = new URLSearchParams();
+                var pairs = {
+                    courseName: 'courseFilter',
+                    status: 'statusFilter',
+                    instructor: 'instructorFilter',
+                    keyword: 'searchInput'
+                };
+                Object.keys(pairs).forEach(function (name) {
+                    var el = document.getElementById(pairs[name]);
+                    if (el && el.value) params.append(name, el.value);
+                });
+                var query = params.toString();
+                window.location.href = button.dataset.exportUrl + (query ? '?' + query : '');
             };
         });
     </script>

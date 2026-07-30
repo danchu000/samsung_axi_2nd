@@ -133,6 +133,24 @@ public class AdminGradingController {
     /* ===================== 다운로드 ===================== */
 
     /**
+     * 시험 채점 목록 다운로드 (xlsx) — 화면의 현재 필터 값이 쿼리로 그대로 붙어 온다.
+     *
+     * <p>화면 필터는 클라이언트(assignments.js)에서 걸리므로, 다운로드도 같은 의미의 필터를
+     * 서비스에서 다시 적용한다. 강사는 담당 과정만 내려받는다(목록과 같은 경로).</p>
+     */
+    @GetMapping("/export.xlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> listExcel(@RequestParam(required = false) String courseName,
+                                            @RequestParam(required = false) String status,
+                                            @RequestParam(required = false) String instructor,
+                                            @RequestParam(required = false) String keyword,
+                                            @AuthenticationPrincipal LoginUser loginUser) {
+        byte[] body = examGradingService.examListExcel(
+                courseName, status, instructor, keyword, loginUser.getId(), isAdmin(loginUser));
+        return ExcelDownload.attachment("시험채점목록", body);
+    }
+
+    /**
      * 성적 목록 다운로드 — 기본 형식 xlsx.
      *
      * <p>시트 "성적" + "정정이력" 두 장. 권한(강사는 담당 과정만)은 서비스가 본다.</p>

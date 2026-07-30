@@ -33,7 +33,7 @@
             if (!val) return;
             appendChatbotMsg(val, true);
             chatbotInput.value = '';
-            setTimeout(() => appendChatbotMsg('AI 헬피 챗봇이 곧 답변을 드릴 예정입니다.', false), 600);
+            setTimeout(() => appendChatbotMsg('지금은 [AI 학습 도우미] 메뉴에서 질문을 받고 있어요. 질문을 남겨 주시면 강사님이 답변해 드립니다.', false), 600);
         }
         if (chatbotSendBtn && chatbotInput) {
             chatbotSendBtn.addEventListener('click', handleChatbotSend);

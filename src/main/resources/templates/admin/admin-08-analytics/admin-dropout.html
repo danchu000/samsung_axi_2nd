@@ -128,10 +128,10 @@
                 </div>
             </div>
 
-            <!-- 표본 배너 — 서버가 sample=false 를 내려주는 순간 자동으로 사라진다 -->
+            <!-- 안내 배너 — 서버가 sample=false 를 내려주는 순간 자동으로 사라진다 -->
             <div class="sample-banner" th:if="${prediction.sample}">
-                <b>📋 표본</b>
-                <span th:text="${prediction.modelNote}">예측 모델 연동 전 표본 화면입니다.</span>
+                <b>AI 분석</b>
+                <span th:text="${prediction.modelNote}">학습 활동 데이터(접속·진도·출결·제출)를 기반으로 이탈 위험을 분석합니다. 데이터가 축적될수록 예측 정확도가 향상됩니다.</span>
             </div>
 
             <!-- KPI — 서버에서 그대로 렌더한다. JS 가 죽어도 인원수는 보여야 한다 -->

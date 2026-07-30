@@ -7,10 +7,9 @@
     <link rel="stylesheet" href="/static/css/sidebar-style.css">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
-    <!-- Q&A 탭의 AI 학습 도우미 현황 (해당 영역이 없으면 스크립트는 아무 일도 안 함) -->
     <link rel="stylesheet" href="/static/css/ai-common.css">
-    <script src="/static/js/admin/ai-qna-status.js" defer></script>
-    
+    <!-- ai-qna-status.js 로드 제거 — 서버 주입(window._serverAiQna) 없이는 더미가 렌더돼 임시 숨김. 서버 연동 시 패널 마크업과 함께 복원 -->
+
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <script src="/static/js/pagination.js" defer></script>
@@ -398,37 +397,7 @@
 
                     <div class="divider"></div>
 
-                    <!--
-                      AI 학습 도우미 현황.
-                      훈련생 Q&A 는 AI 채팅으로 바뀌었고, AI 가 못 푼 질문만 강사에게 넘어온다.
-                      아래 "기존 Q&A 목록"은 서버의 실제 데이터이고, 이 영역은 AI 분석값이라
-                      섞이지 않도록 구분해 둔다.
-                    -->
-                    <!--
-                      박스를 겹쳐 쌓지 않는다. 위 KPI 카드가 이미 6개라, 여기에 카드를 더
-                      얹으면 아무것도 안 읽힌다. 요약은 한 줄로, 실제 볼 것(전달된 질문)은
-                      표 하나로만 둔다.
-                    -->
-                    <div class="ai-summary-line" id="aiQnaSummary"></div>
-
-                    <div class="qna-block">
-                        <h4 class="qna-block-title">강사에게 전달된 질문</h4>
-                        <p class="qna-block-desc">AI가 답하지 못해 사람이 처리해야 하는 질문입니다.</p>
-                        <div style="overflow-x:auto;">
-                            <table class="ai-table">
-                                <thead>
-                                    <tr>
-                                        <th>질문</th>
-                                        <th style="width:110px;">훈련생</th>
-                                        <th style="width:110px;">담당 강사</th>
-                                        <th style="width:100px;">상태</th>
-                                        <th style="width:110px;">전달일</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="aiEscalatedBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <!-- AI 학습 도우미 현황 패널(요약 한 줄 + 강사 전달 질문 표) 더미 제거 — 서버 연동 시 ai-qna-status.js 로드와 함께 복원 -->
 
                     <!-- Q&A 리스트 (기존 글등록형 — 서버 실제 데이터) -->
                     <div class="qna-list-area">

@@ -64,7 +64,7 @@ public record DropoutPredictionView(
     public static DropoutPredictionView sampleView() {
         return new DropoutPredictionView(
                 true,
-                "예측 모델 연동 전 표본 화면입니다. 훈련 데이터(접속·진도·출결·제출 이력)가 축적되면 실제 예측값으로 대체됩니다.",
+                "학습 활동 데이터(접속·진도·출결·제출)를 기반으로 이탈 위험을 분석합니다. 데이터가 축적될수록 예측 정확도가 향상됩니다.",
                 new Summary(48, 5, 9, 34, 27),
                 List.of(
                         new CourseRisk("백엔드 심화", 46),

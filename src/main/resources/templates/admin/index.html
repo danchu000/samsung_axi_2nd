@@ -528,7 +528,7 @@
                     <div th:if="${jobSummary.collectedAt() == null}" class="ai-empty">
                         수집된 채용공고가 없습니다.<br>
                         <span th:if="${!jobSummary.enabled()}">
-                            <code>.env</code> 에 <b>SARAMIN_ACCESS_KEY</b> 를 넣고 재시작하세요.
+                            채용공고 수집 기능이 비활성화되어 있습니다. 시스템 관리자에게 활성화를 문의하세요.
                         </span>
                     </div>
 

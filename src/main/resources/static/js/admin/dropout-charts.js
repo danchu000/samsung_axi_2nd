@@ -44,11 +44,7 @@
 
         riskBars('courseRiskChart', d.courseRisks);
         C.hbar('factorChart', d.factors, '요인 데이터가 없습니다');
-
-        // 표본인 동안만 배지를 단다 — 실제 예측값에 표본 표시가 남으면 그것도 거짓말이다
-        if (d.sample) {
-            ['dropoutTrendChart', 'courseRiskChart', 'factorChart'].forEach(mark);
-        }
+        // 데이터 단계 안내는 상단 배너(admin-dropout.html)가 담당한다 — 차트별 배지는 달지 않는다
     }
 
     /**
@@ -82,17 +78,6 @@
             if (r.risk >= 60) ctx.fillStyle = '#b91c1c';
             ctx.fillText(r.risk + '%', s.w - padR + 6, y + barH - 1);
         });
-    }
-
-    /** 표본 배지 — 스타일은 dashboard-visual.css 의 .sample-mark 를 그대로 쓴다. */
-    function mark(canvasId) {
-        var cv = document.getElementById(canvasId);
-        if (!cv || cv.parentNode.querySelector('.sample-mark')) return;
-        var tag = document.createElement('span');
-        tag.className = 'sample-mark';
-        tag.textContent = '표본';
-        tag.title = '예측 모델 연동 전 표본 값입니다.';
-        cv.parentNode.insertBefore(tag, cv);
     }
 
     /* ===== canvas 유틸 — 공용 모듈이 내부 함수를 노출하지 않아 같은 방식으로 둔다 ===== */

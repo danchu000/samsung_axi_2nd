@@ -13,7 +13,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -29,12 +32,32 @@ class ContentRenderTest {
     @Autowired ContentRepository contentRepository;
 
     @Test
-    @DisplayName("강사 콘텐츠 목록/등록 폼 렌더링")
+    @DisplayName("강사 콘텐츠 목록/등록 폼 렌더링 — 강사 레이아웃")
     @WithUserDetails("instructor1")
     void instructorContentPages() throws Exception {
-        mvc.perform(get("/instructor/contents")).andExpect(status().isOk());
+        mvc.perform(get("/instructor/contents")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("AI 학습진단")))   // 강사 사이드바 항목
+                .andExpect(content().string(not(containsString("이탈 예측")))) // 관리자 사이드바 항목 없음
+                .andExpect(content().string(containsString("</html>")));
         mvc.perform(get("/instructor/contents/new").param("type", "VIDEO")).andExpect(status().isOk());
         mvc.perform(get("/instructor/contents/new").param("type", "DOCUMENT")).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("관리자 접근 시 콘텐츠 화면이 관리자 레이아웃으로 렌더링")
+    @WithUserDetails("admin")
+    void adminContentPagesUseAdminLayout() throws Exception {
+        mvc.perform(get("/instructor/contents")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("이탈 예측")))          // 관리자 사이드바 항목
+                .andExpect(content().string(not(containsString("AI 학습진단"))))    // 강사 사이드바 항목 없음
+                .andExpect(content().string(containsString("data-user-role=\"admin\"")))
+                .andExpect(content().string(containsString("</html>")));
+        mvc.perform(get("/instructor/contents/new").param("type", "VIDEO")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("이탈 예측")))
+                .andExpect(content().string(containsString("</html>")));
+        mvc.perform(get("/instructor/contents/new").param("type", "DOCUMENT")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("이탈 예측")))
+                .andExpect(content().string(containsString("</html>")));
     }
 
     @Test

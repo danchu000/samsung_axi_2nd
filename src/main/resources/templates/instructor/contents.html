@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!-- ADMIN 도 이 화면을 쓰므로(관리자 사이드바 '콘텐츠 관리' → /instructor/contents) 역할에 따라 레이아웃을 분기한다 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:with="isAdmin=${#authorization.expression('hasRole(''ADMIN'')')}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/font/pretendard.css">
-    <link rel="stylesheet" href="/static/css/i-common-style.css">
-    <link rel="stylesheet" href="/static/css/i-sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/i-common-style.css" th:href="${isAdmin} ? '/static/css/common-style.css' : '/static/css/i-common-style.css'">
+    <link rel="stylesheet" href="/static/css/i-sidebar-style.css" th:href="${isAdmin} ? '/static/css/sidebar-style.css' : '/static/css/i-sidebar-style.css'">
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/contents.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
@@ -13,9 +15,9 @@
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 콘텐츠 관리</title>
 </head>
-<body data-user-role="instructor">
-    <header th:replace="~{fragments/instructor :: header('콘텐츠 관리 > 학습 콘텐츠(VOD/문서)')}"></header>
-    <th:block th:replace="~{fragments/instructor :: sidebar('contents')}"/>
+<body data-user-role="instructor" th:attr="data-user-role=${isAdmin} ? 'admin' : 'instructor'">
+    <header th:replace="${isAdmin} ? ~{fragments/admin :: header('콘텐츠 관리 > 학습 콘텐츠(VOD/문서)')} : ~{fragments/instructor :: header('콘텐츠 관리 > 학습 콘텐츠(VOD/문서)')}"></header>
+    <th:block th:replace="${isAdmin} ? ~{fragments/admin :: sidebar('contents')} : ~{fragments/instructor :: sidebar('contents')}"/>
 
     <main class="main-content">
         <section class="main-content-inner">

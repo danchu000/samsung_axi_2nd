@@ -8,7 +8,8 @@
     <th:block th:replace="~{fragments/admin :: sidebar('user-trainee')}"/>
 
   sidebar() 의 active 키:
-    dashboard | analytics-dropout(이탈 예측) | user-trainee | user-instructor | user-admin | contents
+    dashboard | analytics-dropout(이탈 예측) | user-trainee | user-instructor | user-admin
+    | contents(학습 콘텐츠) | contents-qbank(문제은행)
     | courses | schedule | eval-exam(시험 관리) | eval-assignment | eval-grading(시험 채점) | eval-monitoring
     | att-status | att-graduate | att-survey | support-tutoring | support-response
     | notice | alarm
@@ -58,10 +59,15 @@
             </li>
             <!-- 콘텐츠 관리: 업로드/CRUD 는 콘텐츠 컨트롤러(/instructor/contents)에만 구현돼 있고 ADMIN 도 접근 가능하다.
                  instructor/contents*.html 이 ADMIN 접근 시 관리자 레이아웃으로 분기 렌더링한다.
+                 문제은행(/admin/evaluation/questions)은 원래 이 메뉴가 가리키던 화면 — 학습 콘텐츠와 함께 하위 메뉴로 노출한다.
                  (admin-04-evaluation 하위 contents-*.html 은 미이관 정적 stub 이라 연결하지 않는다.) -->
             <li data-page="/instructor/contents" onclick="handleMenuClick(this, '/instructor/contents')">
                 <img src="/static/icons/03-description.svg" alt="content icon" style="width: 26px; margin-left:0px; margin-right: 7px; vertical-align: middle; padding-bottom: 4px;">
-                <span class="menu-text" th:classappend="${active == 'contents'} ? 'active_menu'">콘텐츠 관리</span>
+                <span class="menu-text" th:classappend="${#strings.startsWith(active, 'contents')} ? 'active_menu'">콘텐츠 관리</span>
+                <ul>
+                    <li class="submenu" th:classappend="${active == 'contents'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/instructor/contents'">학습 콘텐츠(VOD/문서)</li>
+                    <li class="submenu" th:classappend="${active == 'contents-qbank'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/evaluation/questions'">문제은행</li>
+                </ul>
             </li>
             <li data-page="/admin/courses" onclick="handleMenuClick(this, '/admin/courses')">
                 <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">

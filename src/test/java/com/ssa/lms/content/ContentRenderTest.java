@@ -50,6 +50,7 @@ class ContentRenderTest {
         mvc.perform(get("/instructor/contents")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("이탈 예측")))          // 관리자 사이드바 항목
                 .andExpect(content().string(not(containsString("AI 학습진단"))))    // 강사 사이드바 항목 없음
+                .andExpect(content().string(containsString("문제은행")))            // 콘텐츠 관리 하위 메뉴
                 .andExpect(content().string(containsString("data-user-role=\"admin\"")))
                 .andExpect(content().string(containsString("</html>")));
         mvc.perform(get("/instructor/contents/new").param("type", "VIDEO")).andExpect(status().isOk())

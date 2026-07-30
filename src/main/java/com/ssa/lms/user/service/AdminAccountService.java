@@ -62,7 +62,9 @@ public class AdminAccountService {
                 .gender(gender)
                 .education(education)
                 .build();
-        return userRepository.save(admin);
+        User saved = userRepository.save(admin);
+        saved.assignProfileImage(DefaultAvatars.urlFor(saved.getId()));
+        return saved;
     }
 
     /** 관리자 정보 수정 — loginId/role 은 불변. */

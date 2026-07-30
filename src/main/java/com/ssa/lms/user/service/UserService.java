@@ -52,7 +52,10 @@ public class UserService {
                 .privacyConsentAt(now)
                 .thirdPartyConsentAt(now)
                 .build();
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        // 가입 화면에 사진 업로드가 없으므로 기본 아바타(이니셜+색상 SVG)를 연결한다
+        saved.assignProfileImage(DefaultAvatars.urlFor(saved.getId()));
+        return saved;
     }
 
     /** 자가 가입이 허용되는 역할만 반환 (TRAINEE / INSTRUCTOR). */

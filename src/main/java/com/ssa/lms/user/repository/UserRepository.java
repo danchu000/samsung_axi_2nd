@@ -26,4 +26,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** 역할·상태별 계정 수 — "마지막 활성 관리자" 비활성화 방지에 사용. */
     long countByRoleAndStatus(Role role, UserStatus status);
+
+    /** 프로필 이미지가 없는 계정 — 기본 아바타 백필(ProfileImageBackfillRunner)에 사용. */
+    List<User> findByProfileImageUrlIsNull();
 }

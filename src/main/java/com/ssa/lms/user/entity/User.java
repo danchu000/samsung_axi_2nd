@@ -133,4 +133,9 @@ public class User extends BaseEntity {
     public void recordLogin(LocalDateTime at) {
         this.lastLoginAt = at;
     }
+
+    /** 프로필 이미지 지정 — 가입 직후 기본 아바타(/avatar/{id}.svg) 연결 등. */
+    public void assignProfileImage(String url) {
+        this.profileImageUrl = url;
+    }
 }

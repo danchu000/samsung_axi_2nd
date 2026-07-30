@@ -104,7 +104,7 @@
 
             <div th:if="${selected != null}" class="trainee-detail-basicinfo">
                 <div class="trainee-photo">
-                    <img th:src="${selected.profileImageUrl != null} ? ${selected.profileImageUrl} : '/static/img/sample-pic-college-student.png'"
+                    <img th:src="${selected.profileImageUrl != null ? selected.profileImageUrl : '/avatar/' + selected.id + '.svg'}"
                          alt="프로필 사진">
                 </div>
                 <div class="trainee-basic-info">

@@ -30,12 +30,22 @@ import java.util.List;
  *
  * 규칙 기반 출제를 실제로 검증하려면 카테고리·난이도가 흩어진 문제가 몇 개 더 필요해서
  * 여기서 시험용 문제 몇 건을 추가로 만든다 (코드 채번은 Q-0004 부터 이어 붙인다).
+ *
+ * <p><b>가드는 마커(시험명) 기반이다.</b> {@code @EventListener} 는 {@code @Order} 가 지정된
+ * 리스너가 무순서(LOWEST_PRECEDENCE) 리스너보다 <b>먼저</b> 실행된다. 그래서
+ * {@code LocalExamVolumeDataInitializer}(@Order(100))가 이 시더보다 먼저 돌아 시험을 만들면,
+ * 과거의 {@code examRepository.count() > 0} 가드는 이 시드를 통째로 건너뛰게 했다
+ * (Q-0004~Q-0009 와 기본 시험 2건이 사라지는 버그). 지금은 "내가 만드는 시험"의 존재
+ * 여부로만 판정한다.</p>
  */
 @Slf4j
 @Component
 @Profile("local")
 @RequiredArgsConstructor
 public class LocalExamDataInitializer {
+
+    /** 이 시드가 이미 돌았는지 판정하는 마커 시험명. */
+    private static final String MARKER = "JavaScript 기초 중간 평가";
 
     private final ExamRepository examRepository;
     private final ExamRefRepository examRefRepository;
@@ -44,7 +54,8 @@ public class LocalExamDataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void seed() {
-        if (examRepository.count() > 0) {
+        // 다른 시더(볼륨/채점/감독)가 먼저 시험을 만들어도 이 시드는 죽으면 안 된다 — count 가드 금지.
+        if (!examRepository.search(null, List.of(Exam.ExamStatus.values()), null, MARKER).isEmpty()) {
             return;
         }
         List<Course> courses = examRefRepository.findAllCourses();
@@ -60,7 +71,7 @@ public class LocalExamDataInitializer {
 
         // 1) 수동 출제 시험 — 문제은행에서 골라 편성
         Exam manual = Exam.builder()
-                .examName("JavaScript 기초 중간 평가")
+                .examName(MARKER)
                 .examType(Exam.ExamType.MIDTERM)
                 .course(course)
                 .instructor(instructor)

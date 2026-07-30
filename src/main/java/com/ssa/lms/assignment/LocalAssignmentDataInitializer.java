@@ -37,12 +37,22 @@ import java.util.List;
  * {@code ApplicationReadyEvent} 는 모든 CommandLineRunner 가 끝난 뒤에 발생하므로 안전하다.</p>
  *
  * <p>MySQL(dev 프로필)용 data.sql 이관은 스키마 확정 후 별도로 진행한다.</p>
+ *
+ * <p><b>가드는 마커(과제 제목) 기반이다.</b> {@code @EventListener} 는 {@code @Order} 가 지정된
+ * 리스너가 무순서(LOWEST_PRECEDENCE) 리스너보다 <b>먼저</b> 실행된다. 그래서
+ * {@code LocalAssignmentVolumeDataInitializer}(@Order(100))가 이 시더보다 먼저 돌아 과제 정의를
+ * 만들면, 과거의 {@code assignmentRepository.count() > 0} 가드는 이 시드를 통째로 건너뛰게 했다
+ * (과제 정의 3종과 AssignmentCriteria 가 사라지는 버그). 지금은 "내가 만드는 과제 정의"의
+ * 존재 여부로만 판정한다.</p>
  */
 @Slf4j
 @Component
 @Profile("local")
 @RequiredArgsConstructor
 public class LocalAssignmentDataInitializer {
+
+    /** 이 시드가 이미 돌았는지 판정하는 마커 과제 제목. */
+    private static final String MARKER_TITLE = "REST API 구현 과제";
 
     private final AssignmentRepository assignmentRepository;
     private final CourseAssignmentRepository courseAssignmentRepository;
@@ -54,12 +64,17 @@ public class LocalAssignmentDataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
-        if (assignmentRepository.count() > 0) {
+        // 볼륨 시더가 먼저 과제를 만들어도 이 시드는 죽으면 안 된다 — count 가드 금지.
+        Long already = em.createQuery(
+                        "select count(a) from Assignment a where a.title = :t", Long.class)
+                .setParameter("t", MARKER_TITLE)
+                .getSingleResult();
+        if (already > 0) {
             return;
         }
 
         Assignment a1 = Assignment.builder()
-                .title("REST API 구현 과제")
+                .title(MARKER_TITLE)
                 .description("Spring Boot 로 게시판 CRUD REST API 를 구현하고 소스와 설명을 제출하세요.")
                 .defaultSubmissionType(CourseAssignment.SubmissionType.DOCUMENT_TEXT)
                 .maxScore(100)

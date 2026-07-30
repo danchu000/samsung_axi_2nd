@@ -25,6 +25,75 @@
         .flash-success { background: #e8f5e9; color: #2e7d32; }
         .flash-error { background: #fdecea; color: #c62828; }
         .course-link { color: inherit; text-decoration: underline; }
+
+        /* ===== 적합성 판정 ===== */
+        .notice-banner { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px;
+            background: var(--color-light-primary); border: 1px solid #cfe3ff; border-radius: 8px;
+            font-size: 13px; color: #1a4b8f; line-height: 1.6; margin-bottom: 18px; }
+        .notice-banner strong { display: block; font-size: 14px; margin-bottom: 2px; }
+
+        .grade-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .grade-card { border: 1px solid var(--color-line-gray); border-left-width: 5px;
+            border-radius: 8px; padding: 14px 16px; background: white; }
+        .grade-card .gc-label { font-size: 14px; font-weight: 700; }
+        .grade-card .gc-count { display: block; font-size: 24px; font-weight: 700; margin: 4px 0 2px;
+            color: var(--color-font-gray); }
+        .grade-card .gc-range { font-size: 12px; color: var(--color-font-gray-light); }
+
+        .card-very { border-left-color: #2e7d32; } .card-very .gc-label { color: #2e7d32; }
+        .card-ok   { border-left-color: #1565c0; } .card-ok   .gc-label { color: #1565c0; }
+        .card-warn { border-left-color: #ef6c00; } .card-warn .gc-label { color: #ef6c00; }
+        .card-bad  { border-left-color: #c62828; } .card-bad  .gc-label { color: #c62828; }
+
+        .grade-badge { display: inline-block; padding: 4px 10px; border-radius: 999px;
+            font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .grade-very { background: #e8f5e9; color: #2e7d32; }
+        .grade-ok   { background: #e3f2fd; color: #1565c0; }
+        .grade-warn { background: #fff3e0; color: #ef6c00; }
+        .grade-bad  { background: #fdecea; color: #c62828; }
+
+        .score-bar { width: 90px; height: 6px; border-radius: 3px; background: #eee;
+            margin: 6px auto 0; overflow: hidden; }
+        .score-bar span { display: block; height: 100%; border-radius: 3px; }
+        .bar-very { background: #2e7d32; }
+        .bar-ok   { background: #1565c0; }
+        .bar-warn { background: #ef6c00; }
+        .bar-bad  { background: #c62828; }
+
+        .applicant-name { font-weight: 600; }
+        .applicant-sub { display: block; font-size: 12px; color: var(--color-font-gray-light); margin-top: 2px; }
+        .cell-score { font-variant-numeric: tabular-nums; }
+        .cell-total { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .row-done { opacity: .45; }
+        .done-text { font-size: 13px; font-weight: 600; color: var(--color-font-gray-light); }
+
+        /* 상세 패널 */
+        .detail-modal { display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,.45); padding: 40px 16px; overflow-y: auto; }
+        .detail-modal.open { display: block; }
+        .detail-box { max-width: 720px; margin: 0 auto; background: white; border-radius: 10px;
+            padding: 24px 26px; }
+        .detail-head { display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid var(--color-line-gray); padding-bottom: 14px; margin-bottom: 6px; }
+        .detail-head h3 { font-size: 18px; margin: 0 0 4px; }
+        .detail-head .dh-sub { font-size: 13px; color: var(--color-font-gray-light); }
+        .detail-close { border: none; background: none; font-size: 22px; cursor: pointer;
+            color: var(--color-font-gray-light); line-height: 1; }
+        .detail-summary { display: flex; gap: 24px; align-items: center; padding: 16px 0 18px; }
+        .detail-summary .ds-total { font-size: 30px; font-weight: 700; }
+        .detail-summary .ds-unit { font-size: 14px; color: var(--color-font-gray-light); font-weight: 400; }
+        .detail-caption { font-size: 14px; font-weight: 700; margin: 14px 0 8px; }
+        .detail-table { width: 100%; border-collapse: collapse; }
+        .detail-table th, .detail-table td { border: 1px solid var(--color-line-gray);
+            padding: 8px 12px; font-size: 13px; }
+        .detail-table thead th { background: var(--color-light-gray); text-align: center; font-weight: 600; }
+        .detail-table td.dt-point { text-align: center; font-weight: 600; width: 90px;
+            font-variant-numeric: tabular-nums; }
+        .detail-table td.dt-max { text-align: center; width: 70px; color: var(--color-font-gray-light); }
+        .detail-table tfoot td { background: #fafafa; font-weight: 700; }
+        .detail-foot { margin-top: 18px; font-size: 12px; color: var(--color-font-gray-light); line-height: 1.6; }
+
+        @media (max-width: 1100px) { .grade-cards { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
@@ -36,15 +105,181 @@
     <main class="main-content">
         <section class="approval-section">
             <div class="section-header">
-                <h2>수강신청 승인 대기</h2>
+                <h2>수강신청 승인</h2>
             </div>
 
             <!-- 처리 결과 메시지 -->
             <div class="flash flash-success" th:if="${message}" th:text="${message}"></div>
             <div class="flash flash-error" th:if="${error}" th:text="${error}"></div>
 
+            <div class="notice-banner">
+                <span>ℹ</span>
+                <span>
+                    <strong>훈련생 선발 적합성 자동 판정</strong>
+                    훈련생 선발 편람(서류전형 40점 + 면접전형 60점 = 100점)에 따라 신청자의 적합도를
+                    자동 산출하여 <b>아주 적합 / 적합 / 미적합 / 부적합</b> 4단계로 표시합니다.
+                    아래 신청자 정보는 화면 구성 확인용 예시 데이터이며, 실제 접수된 신청 건은
+                    하단 <b>승인 대기 신청</b> 영역에서 처리합니다.
+                </span>
+            </div>
+
+            <!-- 등급별 요약 -->
+            <div class="grade-cards">
+                <div class="grade-card" th:each="g : ${gradeSummary}" th:classappend="'card-' + ${g.cssSuffix}">
+                    <span class="gc-label" th:text="${g.label}">아주 적합</span>
+                    <span class="gc-count"><span th:text="${g.count}">0</span>명</span>
+                    <span class="gc-range" th:text="'적합도 ' + ${g.range}">적합도 90% 이상</span>
+                </div>
+            </div>
+
+            <table class="approval-table">
+                <thead>
+                    <tr>
+                        <th>신청자</th>
+                        <th>신청 과정</th>
+                        <th>신청일시</th>
+                        <th>서류전형<br><small>(40점)</small></th>
+                        <th>면접전형<br><small>(60점)</small></th>
+                        <th>총점<br><small>(100점)</small></th>
+                        <th>적합도</th>
+                        <th>처리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="a : ${applicants}" th:id="'row-' + ${a.rowId}">
+                        <td>
+                            <span class="applicant-name" th:text="${a.name}">홍길동</span>
+                            <span class="applicant-sub" th:text="${a.loginId}">gildong</span>
+                        </td>
+                        <td>
+                            <span th:text="${a.courseName}">과정명</span>
+                            <span class="applicant-sub" th:text="${a.courseCode}">COURSE-001</span>
+                        </td>
+                        <td th:text="${#temporals.format(a.appliedAt, 'yyyy-MM-dd HH:mm')}">2026-01-01 10:30</td>
+                        <td class="cell-score" th:text="${a.result.documentScore} + ' / 40'">40 / 40</td>
+                        <td class="cell-score" th:text="${a.result.interviewScore} + ' / 60'">58 / 60</td>
+                        <td class="cell-total" th:text="${a.result.totalScore}">98</td>
+                        <td>
+                            <span class="grade-badge" th:classappend="${a.result.badgeClass}"
+                                  th:text="${a.result.gradeLabel} + ' ' + ${a.result.percent} + '%'">아주 적합 98%</span>
+                            <span class="score-bar">
+                                <span th:classappend="'bar-' + ${a.result.grade.cssSuffix}"
+                                      th:style="'width:' + ${a.result.percent} + '%'"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="approval-actions">
+                                <button type="button" class="btn-small btn-secondary"
+                                        th:attr="data-target=${a.rowId}"
+                                        onclick="openDetail(this.getAttribute('data-target'))">상세</button>
+                                <button type="button" class="btn-small btn-primary"
+                                        th:attr="data-row=${a.rowId}, data-name=${a.name}, data-grade=${a.result.gradeLabel}"
+                                        onclick="decide(this, true)">승인</button>
+                                <button type="button" class="btn-small btn-danger"
+                                        th:attr="data-row=${a.rowId}, data-name=${a.name}, data-grade=${a.result.gradeLabel}"
+                                        onclick="decide(this, false)">반려</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- ===== 항목별 점수 상세 ===== -->
+            <div class="detail-modal" th:each="a : ${applicants}" th:id="'detail-' + ${a.rowId}"
+                 onclick="if (event.target === this) this.classList.remove('open')">
+                <div class="detail-box">
+                    <div class="detail-head">
+                        <div>
+                            <h3 th:text="${a.name} + ' 신청자 적합성 판정'">홍길동 신청자 적합성 판정</h3>
+                            <div class="dh-sub">
+                                <span th:text="${a.courseName}">과정명</span>
+                                (<span th:text="${a.courseCode}">CODE</span>) ·
+                                신청 <span th:text="${#temporals.format(a.appliedAt, 'yyyy-MM-dd HH:mm')}">2026-01-01</span>
+                            </div>
+                        </div>
+                        <button type="button" class="detail-close"
+                                onclick="this.closest('.detail-modal').classList.remove('open')">&times;</button>
+                    </div>
+
+                    <div class="detail-summary">
+                        <div>
+                            <span class="ds-total" th:text="${a.result.totalScore}">98</span><span
+                                  class="ds-unit"> / 100점</span>
+                        </div>
+                        <span class="grade-badge" th:classappend="${a.result.badgeClass}"
+                              th:text="${a.result.gradeLabel} + ' · 적합도 ' + ${a.result.percent} + '%'">아주 적합 · 적합도 98%</span>
+                    </div>
+
+                    <div class="detail-caption">훈련생 선발 서류전형 편람</div>
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>세부내역</th>
+                                <th>배정점수</th>
+                                <th>평가내용</th>
+                                <th>획득점수</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${a.result.documentItems}">
+                                <td th:text="${item.name}">학력</td>
+                                <td class="dt-max" th:text="${item.max}">10</td>
+                                <td th:text="${item.note}">대학원 졸업 → 석사이상</td>
+                                <td class="dt-point" th:text="${item.point}">10</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>계</td>
+                                <td class="dt-max">40</td>
+                                <td></td>
+                                <td class="dt-point" th:text="${a.result.documentScore}">40</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="detail-caption">훈련생 선발 면접전형 편람</div>
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>세부내역</th>
+                                <th>배점</th>
+                                <th>평가방법 · 결과</th>
+                                <th>획득점수</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${a.result.interviewItems}">
+                                <td th:text="${item.name}">훈련의욕 및 직종에 대한 이해도</td>
+                                <td class="dt-max" th:text="${item.max}">15</td>
+                                <td th:text="${item.note}">상(15점) · 교육과정에 대한 기초지식 파악</td>
+                                <td class="dt-point" th:text="${item.point}">15</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>계</td>
+                                <td class="dt-max">60</td>
+                                <td></td>
+                                <td class="dt-point" th:text="${a.result.interviewScore}">58</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <p class="detail-foot">
+                        판정 기준 — 아주 적합 90% 이상 / 적합 75~89% / 미적합 60~74% / 부적합 60% 미만.
+                        상(15~13점) · 중(12~10점) · 하(9점 이하).
+                        적합도는 참고 지표이며 최종 승인 여부는 담당자가 결정합니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ===== 실제 승인 대기 (운영 데이터) ===== -->
+            <div class="section-header" style="margin-top: 34px;">
+                <h2>승인 대기 신청</h2>
+            </div>
             <p style="font-size: 14px; color: var(--color-font-gray); margin: 8px 0 16px;">
-                전체 과정의 승인 대기 신청입니다. 승인 시 정원을 초과할 수 없습니다.
+                실제 접수된 승인 대기 신청입니다. 승인 시 정원을 초과할 수 없습니다.
                 총 <strong th:text="${#lists.size(pendingEnrollments)}">0</strong>건 대기 중.
             </p>
 
@@ -88,5 +323,38 @@
             </table>
         </section>
     </main>
+
+    <script>
+        function openDetail(rowId) {
+            document.getElementById('detail-' + rowId).classList.add('open');
+        }
+
+        // 예시 신청자의 승인/반려 — 화면 시연용이라 서버·DB 를 건드리지 않고 행 상태만 바꾼다.
+        function decide(button, approve) {
+            var rowId = button.getAttribute('data-row');
+            var name = button.getAttribute('data-name');
+            var grade = button.getAttribute('data-grade');
+
+            var message = name + ' 신청자의 수강신청을 ' + (approve ? '승인' : '반려') + '하시겠습니까?';
+            if (approve && (grade === '미적합' || grade === '부적합')) {
+                message = '[' + grade + '] 판정된 신청자입니다.\n' + message;
+            }
+            if (!confirm(message)) {
+                return;
+            }
+
+            var row = document.getElementById('row-' + rowId);
+            row.classList.add('row-done');
+            row.querySelector('.approval-actions').outerHTML =
+                '<span class="done-text">' + (approve ? '승인 처리됨' : '반려 처리됨') + '</span>';
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.detail-modal.open')
+                        .forEach(function (m) { m.classList.remove('open'); });
+            }
+        });
+    </script>
 </body>
 </html>

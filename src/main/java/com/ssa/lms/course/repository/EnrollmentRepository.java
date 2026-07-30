@@ -20,6 +20,11 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
     long countByCourseIdAndStatus(Long courseId, EnrollmentStatus status);
 
+    /** 전체 과정의 특정 상태 신청 목록 — 통합 승인 화면 전용 (신청 오래된 순) */
+    @Query("select e from Enrollment e join fetch e.trainee join fetch e.course " +
+           "where e.status = :status order by e.appliedAt asc")
+    List<Enrollment> findAllByStatusWithTraineeAndCourse(@Param("status") EnrollmentStatus status);
+
     /** 과정 수강생(승인/수료) user id 목록 — CourseQueryService 전용 */
     @Query("select e.trainee.id from Enrollment e where e.course.id = :courseId and e.status in :statuses")
     List<Long> findTraineeIdsByCourseIdAndStatusIn(@Param("courseId") Long courseId,

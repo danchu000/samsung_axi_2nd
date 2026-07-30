@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/common-style.css">
+    <link rel="stylesheet" href="/static/css/sidebar-style.css">
+    <link rel="stylesheet" href="/static/css/btn-style.css">
+
+    <script src="/static/js/sidebar-function.js" defer></script>
+    <script src="/static/js/common-funtion.js" defer></script>
+    <title>Samsung Academy LXP - 수강신청 승인</title>
+    <style>
+        .approval-section { flex: 1; padding: 20px; overflow-y: auto; }
+        .approval-table { width: 100%; border-collapse: collapse; background-color: white; }
+        .approval-table thead { background-color: var(--color-light-gray); }
+        .approval-table th { padding: 12px 15px; text-align: center; font-weight: 600;
+            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid #ddd; }
+        .approval-table td { padding: 12px 15px; font-size: 14px; color: var(--color-font-gray);
+            border-bottom: 1px solid #f0f0f0; text-align: center; }
+        .approval-actions { display: inline-flex; gap: 8px; }
+        .approval-actions form { display: inline; }
+        .empty-row td { padding: 40px 15px; color: var(--color-font-gray-light); }
+        .flash { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+        .flash-success { background: #e8f5e9; color: #2e7d32; }
+        .flash-error { background: #fdecea; color: #c62828; }
+        .course-link { color: inherit; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 공통 레이아웃 fragment (사이드바/헤더) -->
+    <header th:replace="~{fragments/admin :: header('과정/운영 관리 > 수강신청 승인')}"></header>
+    <th:block th:replace="~{fragments/admin :: sidebar('enrollment-approval')}"/>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <section class="approval-section">
+            <div class="section-header">
+                <h2>수강신청 승인 대기</h2>
+            </div>
+
+            <!-- 처리 결과 메시지 -->
+            <div class="flash flash-success" th:if="${message}" th:text="${message}"></div>
+            <div class="flash flash-error" th:if="${error}" th:text="${error}"></div>
+
+            <p style="font-size: 14px; color: var(--color-font-gray); margin: 8px 0 16px;">
+                전체 과정의 승인 대기 신청입니다. 승인 시 정원을 초과할 수 없습니다.
+                총 <strong th:text="${#lists.size(pendingEnrollments)}">0</strong>건 대기 중.
+            </p>
+
+            <table class="approval-table">
+                <thead>
+                    <tr>
+                        <th>과정명</th>
+                        <th>과정코드</th>
+                        <th>신청자</th>
+                        <th>아이디</th>
+                        <th>신청일시</th>
+                        <th>처리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="en : ${pendingEnrollments}">
+                        <td>
+                            <a class="course-link" th:href="@{/admin/courses/{id}(id=${en.courseId})}"
+                               th:text="${en.courseName}">자바 웹 개발</a>
+                        </td>
+                        <td th:text="${en.courseCode}">COURSE-001</td>
+                        <td th:text="${en.traineeName}">홍길동</td>
+                        <td th:text="${en.traineeLoginId}">gildong</td>
+                        <td th:text="${en.appliedAt != null ? #temporals.format(en.appliedAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-01-01 00:00</td>
+                        <td>
+                            <div class="approval-actions">
+                                <form th:action="@{/admin/enrollments/{id}/approve(id=${en.id})}" method="post">
+                                    <button type="submit" class="btn-small btn-primary">승인</button>
+                                </form>
+                                <form th:action="@{/admin/enrollments/{id}/reject(id=${en.id})}" method="post"
+                                      onsubmit="return confirm('수강신청을 반려하시겠습니까?');">
+                                    <button type="submit" class="btn-small btn-danger">반려</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="empty-row" th:if="${#lists.isEmpty(pendingEnrollments)}">
+                        <td colspan="6">승인 대기 중인 수강신청이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

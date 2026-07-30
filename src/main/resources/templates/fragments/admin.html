@@ -10,7 +10,7 @@
   sidebar() 의 active 키:
     dashboard | analytics-dropout(이탈 예측) | user-trainee | user-instructor | user-admin
     | contents(학습 콘텐츠) | contents-qbank(문제은행)
-    | courses | schedule | eval-exam(시험 관리) | eval-assignment | eval-grading(시험 채점) | eval-monitoring
+    | courses | enrollment-approval(수강신청 승인) | schedule | eval-exam(시험 관리) | eval-assignment | eval-grading(시험 채점) | eval-monitoring
     | att-status | att-graduate | att-survey | support-tutoring | support-response
     | notice | alarm
 
@@ -71,9 +71,10 @@
             </li>
             <li data-page="/admin/courses" onclick="handleMenuClick(this, '/admin/courses')">
                 <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
-                <span class="menu-text" th:classappend="${active == 'courses' or active == 'schedule'} ? 'active_menu'">과정/운영 관리</span>
+                <span class="menu-text" th:classappend="${active == 'courses' or active == 'schedule' or active == 'enrollment-approval'} ? 'active_menu'">과정/운영 관리</span>
                 <ul>
                     <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses'">과정 관리</li>
+                    <li class="submenu" th:classappend="${active == 'enrollment-approval'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/enrollments/pending'">수강신청 승인</li>
                     <li class="submenu" th:classappend="${active == 'schedule'} ? 'active_menu'" onclick="event.stopPropagation(); location.href='/admin/courses/schedule'">일정 관리</li>
                 </ul>
             </li>

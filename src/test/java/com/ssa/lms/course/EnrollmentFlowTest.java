@@ -98,6 +98,61 @@ class EnrollmentFlowTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void 통합_승인대기_화면이_대기_신청을_보여준다() throws Exception {
+        Long courseId = recruitingCourse("COURSE-ENR-PEND", 30);
+        User trainee = userRepository.findByLoginId("trainee1").orElseThrow();
+        enrollmentRepository.save(Enrollment.builder()
+                .trainee(trainee).course(courseRepository.findById(courseId).orElseThrow())
+                .status(EnrollmentStatus.APPLIED).appliedAt(LocalDateTime.now()).build());
+
+        String html = mvc.perform(get("/admin/enrollments/pending"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/admin-03-courses/enrollment-approval"))
+                .andReturn().getResponse().getContentAsString();
+        // 렌더 도중 예외는 200 인 채 HTML 이 잘리므로 닫힘 태그까지 확인 (CLAUDE.md 규칙 3)
+        assertThat(html).contains("모집 과정 COURSE-ENR-PEND").contains("</html>");
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void 통합_화면에서_승인하면_APPROVED가_된다() throws Exception {
+        Long courseId = recruitingCourse("COURSE-ENR-4", 30);
+        User trainee = userRepository.findByLoginId("trainee1").orElseThrow();
+        Long enrollId = enrollmentRepository.save(Enrollment.builder()
+                .trainee(trainee).course(courseRepository.findById(courseId).orElseThrow())
+                .status(EnrollmentStatus.APPLIED).appliedAt(LocalDateTime.now()).build()).getId();
+
+        mvc.perform(post("/admin/enrollments/" + enrollId + "/approve").with(csrf()))
+                .andExpect(redirectedUrl("/admin/enrollments/pending"))
+                .andExpect(flash().attributeExists("message"));
+        assertThat(enrollmentRepository.findById(enrollId).orElseThrow().getStatus())
+                .isEqualTo(EnrollmentStatus.APPROVED);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void 통합_화면에서_반려하면_REJECTED가_된다() throws Exception {
+        Long courseId = recruitingCourse("COURSE-ENR-5", 30);
+        User trainee = userRepository.findByLoginId("trainee1").orElseThrow();
+        Long enrollId = enrollmentRepository.save(Enrollment.builder()
+                .trainee(trainee).course(courseRepository.findById(courseId).orElseThrow())
+                .status(EnrollmentStatus.APPLIED).appliedAt(LocalDateTime.now()).build()).getId();
+
+        mvc.perform(post("/admin/enrollments/" + enrollId + "/reject").with(csrf()))
+                .andExpect(redirectedUrl("/admin/enrollments/pending"))
+                .andExpect(flash().attributeExists("message"));
+        assertThat(enrollmentRepository.findById(enrollId).orElseThrow().getStatus())
+                .isEqualTo(EnrollmentStatus.REJECTED);
+    }
+
+    @Test
+    @WithUserDetails("trainee1")
+    void 통합_승인_화면은_관리자만_접근할_수_있다() throws Exception {
+        mvc.perform(get("/admin/enrollments/pending")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void 정원이_찬_과정은_승인시_거부된다() throws Exception {
         Long courseId = recruitingCourse("COURSE-ENR-3", 1);
         Course course = courseRepository.findById(courseId).orElseThrow();

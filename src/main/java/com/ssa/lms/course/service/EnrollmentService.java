@@ -5,6 +5,7 @@ import com.ssa.lms.course.repository.CourseRepository;
 import com.ssa.lms.course.repository.EnrollmentRepository;
 import com.ssa.lms.course.web.EnrollmentView;
 import com.ssa.lms.course.web.MyEnrollmentView;
+import com.ssa.lms.course.web.PendingEnrollmentView;
 import com.ssa.lms.user.entity.User;
 import com.ssa.lms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -84,6 +85,12 @@ public class EnrollmentService {
     }
 
     /* ===== 관리자 ===== */
+
+    /** 전체 과정의 승인 대기(APPLIED) 신청 목록 — 통합 승인 화면 (신청 오래된 순). */
+    public List<PendingEnrollmentView> pendingEnrollments() {
+        return enrollmentRepository.findAllByStatusWithTraineeAndCourse(EnrollmentStatus.APPLIED).stream()
+                .map(PendingEnrollmentView::of).toList();
+    }
 
     public List<EnrollmentView> enrollmentsOf(Long courseId) {
         return enrollmentRepository.findByCourseIdOrderByAppliedAtDesc(courseId).stream()

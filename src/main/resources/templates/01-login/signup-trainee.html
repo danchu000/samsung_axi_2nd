@@ -12,6 +12,8 @@
     body.login-bg {
         background: url('/static/img/login-bg.jpg') no-repeat center center fixed;
         background-size: cover; min-height: 100vh; width: 100vw;
+        /* common-style.css 의 body { height:100vh; overflow:hidden } 해제 — 긴 가입 폼 스크롤 허용 */
+        height: auto; overflow-y: auto;
     }
     .signup-card {
         width: 480px; max-width: 92vw; margin: 4vh auto;

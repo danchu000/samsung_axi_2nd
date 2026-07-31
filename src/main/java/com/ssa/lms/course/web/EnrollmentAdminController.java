@@ -38,4 +38,14 @@ public class EnrollmentAdminController {
         }
         return "redirect:/admin/courses/" + courseId;
     }
+
+    @PostMapping("/{enrollmentId}/restore")
+    public String restore(@PathVariable Long courseId, @PathVariable Long enrollmentId, RedirectAttributes ra) {
+        try {
+            enrollmentService.restore(enrollmentId);
+        } catch (EnrollmentException e) {
+            ra.addFlashAttribute("enrollmentError", e.getMessage());
+        }
+        return "redirect:/admin/courses/" + courseId;
+    }
 }

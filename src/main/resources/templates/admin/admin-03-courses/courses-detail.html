@@ -199,7 +199,13 @@
                                         <button type="submit" class="btn btn-gray" style="padding:4px 10px;">반려</button>
                                     </form>
                                 </span>
-                                <span th:unless="${en.status.name() == 'APPLIED'}" style="color:#999;">-</span>
+                                <span th:if="${en.status.name() == 'CANCELLED' or en.status.name() == 'REJECTED'}">
+                                    <form class="inline-form" th:action="@{/admin/courses/{cid}/enrollments/{eid}/restore(cid=${course.id},eid=${en.id})}" method="post"
+                                          onsubmit="return confirm('이 건을 다시 신청(승인 대기) 상태로 복구하시겠습니까?');">
+                                        <button type="submit" class="btn btn-gray" style="padding:4px 10px;">신청 복구</button>
+                                    </form>
+                                </span>
+                                <span th:if="${en.status.name() == 'APPROVED' or en.status.name() == 'COMPLETED'}" style="color:#999;">-</span>
                             </td>
                         </tr>
                     </tbody>

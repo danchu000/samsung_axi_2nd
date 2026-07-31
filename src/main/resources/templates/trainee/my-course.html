@@ -54,10 +54,14 @@
                             <form class="inline-form"
                                   th:if="${en.status.name() == 'APPLIED' or en.status.name() == 'APPROVED'}"
                                   th:action="@{/trainee/enrollments/{eid}/cancel(eid=${en.enrollmentId})}" method="post"
-                                  onsubmit="return confirm('수강신청을 취소하시겠습니까?');">
+                                  onsubmit="return confirm('수강신청을 취소하시겠습니까? 모집이 마감된 과정은 직접 재신청할 수 없습니다.');">
                                 <button type="submit" class="btn btn-gray" style="padding:4px 12px;">신청 취소</button>
                             </form>
                         </div>
+                        <p th:if="${en.status.name() == 'CANCELLED' or en.status.name() == 'REJECTED'}"
+                           style="margin-top:8px; font-size:12px; color:#999;">
+                            재신청은 과정이 모집중일 때만 가능합니다. 모집이 마감된 과정은 관리자에게 문의해 주세요.
+                        </p>
                     </div>
                 </div>
             </section>

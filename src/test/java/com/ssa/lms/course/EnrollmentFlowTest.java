@@ -153,6 +153,48 @@ class EnrollmentFlowTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void 관리자가_취소된_신청을_복구하면_APPLIED가_된다() throws Exception {
+        // 모집이 끝난(IN_PROGRESS) 과정 — 훈련생 스스로는 재신청할 수 없는 상황
+        Long courseId = courseRepository.save(Course.builder()
+                .courseCode("COURSE-ENR-RESTORE").courseName("복구 검증 과정")
+                .startDate(LocalDate.of(2026, 3, 1)).endDate(LocalDate.of(2026, 8, 1))
+                .capacity(30).status(CourseStatus.IN_PROGRESS).completionProgressRate(80).build()).getId();
+        User trainee = userRepository.findByLoginId("trainee1").orElseThrow();
+        Enrollment cancelled = Enrollment.builder()
+                .trainee(trainee).course(courseRepository.findById(courseId).orElseThrow())
+                .status(EnrollmentStatus.APPLIED).appliedAt(LocalDateTime.now()).build();
+        cancelled.cancel();
+        Long enrollId = enrollmentRepository.save(cancelled).getId();
+
+        // 과정 상세 화면에 복구 버튼이 렌더링된다 (렌더 규칙: </html> 까지 확인)
+        String html = mvc.perform(get("/admin/courses/" + courseId))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(html).contains("/enrollments/" + enrollId + "/restore").contains("</html>");
+
+        mvc.perform(post("/admin/courses/" + courseId + "/enrollments/" + enrollId + "/restore").with(csrf()))
+                .andExpect(redirectedUrl("/admin/courses/" + courseId));
+        assertThat(enrollmentRepository.findById(enrollId).orElseThrow().getStatus())
+                .isEqualTo(EnrollmentStatus.APPLIED);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void 승인_상태는_복구할_수_없다() throws Exception {
+        Long courseId = recruitingCourse("COURSE-ENR-RESTORE-2", 30);
+        User trainee = userRepository.findByLoginId("trainee1").orElseThrow();
+        Long enrollId = enrollmentRepository.save(Enrollment.builder()
+                .trainee(trainee).course(courseRepository.findById(courseId).orElseThrow())
+                .status(EnrollmentStatus.APPROVED).appliedAt(LocalDateTime.now()).build()).getId();
+
+        mvc.perform(post("/admin/courses/" + courseId + "/enrollments/" + enrollId + "/restore").with(csrf()))
+                .andExpect(flash().attributeExists("enrollmentError"));
+        assertThat(enrollmentRepository.findById(enrollId).orElseThrow().getStatus())
+                .isEqualTo(EnrollmentStatus.APPROVED);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void 정원이_찬_과정은_승인시_거부된다() throws Exception {
         Long courseId = recruitingCourse("COURSE-ENR-3", 1);
         Course course = courseRepository.findById(courseId).orElseThrow();

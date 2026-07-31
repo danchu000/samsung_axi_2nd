@@ -120,6 +120,20 @@ public class EnrollmentService {
         e.reject(LocalDateTime.now());
     }
 
+    /**
+     * 관리자: 취소·반려 건을 다시 신청(APPLIED) 상태로 복구한다.
+     * 훈련생 재신청은 모집중(RECRUITING) 과정에만 허용되므로, 모집이 끝난 과정에서
+     * 실수로 취소한 훈련생은 이 경로로만 되살릴 수 있다. 정원 검증은 승인 시점에 이뤄진다.
+     */
+    @Transactional
+    public void restore(Long enrollmentId) {
+        Enrollment e = get(enrollmentId);
+        if (e.getStatus() != EnrollmentStatus.CANCELLED && e.getStatus() != EnrollmentStatus.REJECTED) {
+            throw new EnrollmentException("취소/반려 상태만 신청 상태로 복구할 수 있습니다.");
+        }
+        e.reapply(LocalDateTime.now());
+    }
+
     private Enrollment get(Long id) {
         return enrollmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("수강신청을 찾을 수 없습니다: " + id));

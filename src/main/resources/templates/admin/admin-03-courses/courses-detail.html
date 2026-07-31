@@ -10,7 +10,8 @@
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 과정 상세</title>
     <style>
-        .form-wrap { max-width: 900px; padding: 20px; }
+        /* .main-content 가 overflow:hidden 이라 래퍼가 flex:1 + overflow-y:auto 를 가져야 본문이 스크롤된다 */
+        .form-wrap { max-width: 900px; padding: 20px; flex: 1; min-height: 0; overflow-y: auto; }
         .form-section { background:#fff; margin-bottom:20px; border:1px solid var(--color-line-gray); padding:20px 24px 30px; border-radius:8px; display:flex; flex-direction:column; gap:16px; }
         .section-title { font-size:18px; font-weight:700; color:#333; }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }

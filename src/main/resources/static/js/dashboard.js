@@ -54,9 +54,9 @@ dashboardData.courses.forEach(c => {
         <div>${c.missingCompletion}</div>
     </div>
     <div class="course-actions">
-        <button class="btn btn-secondary" type="button" onclick="location.href='/admin/attendance'">출결</button>
-        <button class="btn btn-secondary" type="button" onclick="location.href='${c.href}'">이수</button>
-        <button class="btn btn-gray" type="button" onclick="location.href='/admin/courses'">과정</button>
+        <button class="btn btn-secondary" type="button" onclick="location.href='${c.attendanceHref}'">출결</button>
+        <button class="btn btn-secondary" type="button" onclick="location.href='${c.completionHref}'">이수</button>
+        <button class="btn btn-gray" type="button" onclick="location.href='${c.detailHref}'">과정</button>
     </div>
     `;
     wrap.appendChild(card);

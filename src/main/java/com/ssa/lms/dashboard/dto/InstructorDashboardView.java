@@ -27,8 +27,14 @@ public record InstructorDashboardView(
                       String pendingSupport, String proctoringExams) {
     }
 
+    /**
+     * 담당 과정 카드. 버튼 3개(출결·이수·과정)의 링크는 모두 강사 화면(/instructor/**)이다.
+     * 예전에는 /admin/attendance, /admin/completion, /admin/courses 를 가리켜 강사가 누르면
+     * 403 이 떴다 — 관리자 전용 경로라 SecurityConfig 에서 막힌다.
+     */
     public record CourseCard(String id, String name, String status, String progress,
-                             String todaySession, String missingCompletion, String href) {
+                             String todaySession, String missingCompletion,
+                             String attendanceHref, String completionHref, String detailHref) {
     }
 
     /** kind = 시험 / 과제. href 는 해당 채점 화면. */

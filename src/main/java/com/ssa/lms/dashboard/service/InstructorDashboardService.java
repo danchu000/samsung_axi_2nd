@@ -132,7 +132,9 @@ public class InstructorDashboardService {
                     completions.isEmpty()
                             ? "이수 판정 이력 없음"
                             : "미이수 " + notPassed + "명 / " + completions.size() + "명",
-                    "/admin/completion?courseId=" + c.getId()));
+                    "/instructor/attendance?courseId=" + c.getId(),
+                    "/instructor/graduate?courseId=" + c.getId(),
+                    "/instructor/courses/" + c.getId()));
         }
         return cards;
     }

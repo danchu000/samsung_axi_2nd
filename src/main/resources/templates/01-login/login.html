@@ -26,14 +26,20 @@
         background-size: cover;
         height: 100vh;
         min-height: 100vh;
-        width: 100vw;
-        overflow: hidden;
+        /* 100vw 는 세로 스크롤바 폭을 포함해 항상 그만큼 가로로 넘친다 — 100% 로 둔다 */
+        width: 100%;
+        /* 가로는 항상 막는다: .right-side 의 슬라이드인 시작 위치가 translateX(-100vw) 라
+           이걸 풀면 화면 밖 요소 때문에 가로 스크롤이 생긴다.
+           세로는 데스크톱에선 기존대로 막고, 작은 화면에서만 아래 미디어쿼리로 auto 로 푼다. */
+        overflow-x: hidden;
+        overflow-y: hidden;
     }
 
     .lxp {
         font-family: 'SamsungSans', sans-serif;
         font-weight: 700;
-        font-size: 9rem;
+        /* 9rem 고정이면 노트북 폭에서 안 줄어든다. 1600px 이상에서는 기존 9rem 그대로다. */
+        font-size: clamp(3rem, 9vw, 9rem);
         text-align: start;
         opacity: 0.8;
         line-height: 2.5;
@@ -49,15 +55,20 @@
         list-style: none;
         padding: 0;
         margin: 0;
-        font-size: 7.5rem;
-        line-height: 7rem;
+        /* 위와 같은 이유. line-height 도 rem 고정이면 글자만 줄고 줄간격이 안 줄어 겹친다 */
+        font-size: clamp(1.75rem, 7.5vw, 7.5rem);
+        line-height: 0.93;
         opacity: 0.8;
     }
 
     .right-side {
         color: var(--gray-900);
+        /* 1366px 에서 30% 는 약 410px 이라 폼이 눌린다 — 최소 폭을 준다 */
         width: 30%;
+        min-width: 360px;
         height: 100%;
+        /* 세로가 짧은 화면에서 폼이 패널 밖으로 밀리면 패널 안에서 스크롤되게 */
+        overflow-y: auto;
         background: rgba(255,255,255,0.18);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         backdrop-filter: blur(12px);
@@ -71,7 +82,9 @@
         z-index: 10;
         display: flex;
         flex-direction: column;
-        justify-content: start;
+        /* 예전엔 start + #logo margin-top 24rem(384px) 고정이라 세로가 짧으면 폼이 화면 밖으로 밀렸다.
+           flex 로 세로 중앙 정렬한다 (signup.html 과 동일한 방식). */
+        justify-content: center;
         transition: transform 2s cubic-bezier(0.4,0,0.2,1);
     }
     .right-side.slide-in {
@@ -80,7 +93,7 @@
     .right-side #logo {
         display: block;
         width: 12rem;
-        margin: 24rem auto 3rem auto;
+        margin: 0 auto 3rem auto;
     }
 
     .signup-link {
@@ -157,6 +170,74 @@
     }
     .login-error { color: #d33; }
     .login-info { color: #2a72d4; }
+
+    /* =====================================================================
+       반응형 — 1920 / 1366 / 1024 / 768 / 375 기준.
+       common-style.css 의 body { height:100vh; overflow:hidden } 은 관리자·강사 화면과
+       공유되므로 절대 건드리지 않고, 여기서 body.login-bg 스코프로만 덮어쓴다.
+       ===================================================================== */
+
+    /* --- ~1440px : 노트북. 폰트는 위 clamp() 가 처리하고, 폼 폭만 조금 넓혀 준다 --- */
+    @media (max-width: 1440px) {
+        .right-side { width: 34%; }
+        .left-side { bottom: 4%; left: 4%; }
+    }
+
+    /* --- ~1024px : 좌우 2단을 세로 스택으로. absolute 해제 --- */
+    @media (max-width: 1024px) {
+        body.login-bg {
+            height: auto;
+            min-height: 100vh;
+            /* 폼이 잘렸을 때 스크롤로 접근할 수 있어야 한다 */
+            overflow-y: auto;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .left-side {
+            position: static;
+            padding: 2.5rem 1.5rem 0;
+        }
+        .lxp { line-height: 1.15; }
+        .right-side {
+            position: static;
+            width: 100%;
+            min-width: 0;
+            height: auto;
+            margin-top: 2rem;
+            padding: 2.5rem 1.5rem;
+            border-radius: 0;
+            overflow-y: visible;
+        }
+        /* 슬라이드인은 가로 이동이라 세로 스택에선 가로 스크롤만 만든다 — 페이드(opacity)만 남긴다 */
+        .right-side,
+        .right-side.slide-in { transform: none; }
+        .right-side #logo { margin: 0 auto 2rem auto; }
+    }
+
+    /* --- ~768px : 폼 전폭(좌우 24px). 배경은 그대로 두고 오버레이로 가독성만 확보 --- */
+    @media (max-width: 768px) {
+        body.login-bg::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            /* 본문 글자가 어두운 색이라 밝은 오버레이를 얹는다 */
+            background: rgba(255, 255, 255, 0.45);
+            z-index: 0;
+            pointer-events: none;
+        }
+        main { position: relative; z-index: 1; }
+        .left-side { padding: 2rem 24px 0; }
+        .right-side { padding: 2rem 24px; }
+        .login-box { width: 100%; max-width: 320px; }
+    }
+
+    /* --- 세로가 짧은 노트북(1366×768 등) : 로고를 줄여 로그인 버튼까지 보이게 --- */
+    @media (min-width: 1025px) and (max-height: 780px) {
+        .right-side #logo { width: 9rem; margin: 0 auto 1.5rem auto; }
+    }
 
 </style>
 <body class="login-bg">

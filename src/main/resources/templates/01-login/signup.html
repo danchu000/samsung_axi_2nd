@@ -14,13 +14,16 @@
         background-size: cover;
         height: 100vh;
         min-height: 100vh;
-        width: 100vw;
-        overflow: hidden;
+        /* 100vw 는 세로 스크롤바 폭만큼 가로로 넘친다 — 100% 로 둔다 */
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: hidden;
     }
     .lxp {
         font-family: 'SamsungSans', sans-serif;
         font-weight: 700;
-        font-size: 9rem;
+        /* 1600px 이상에서는 기존 9rem 그대로, 그 아래에서만 줄어든다 */
+        font-size: clamp(3rem, 9vw, 9rem);
         text-align: start;
         opacity: 0.8;
         line-height: 2.5;
@@ -28,10 +31,10 @@
     .left-side { position: absolute; bottom: 5%; left: 5%; }
     .left-side .left-list {
         list-style: none; padding: 0; margin: 0;
-        font-size: 7.5rem; line-height: 7rem; opacity: 0.8;
+        font-size: clamp(1.75rem, 7.5vw, 7.5rem); line-height: 0.93; opacity: 0.8;
     }
     .right-side {
-        color: var(--gray-900); width: 30%; height: 100%;
+        color: var(--gray-900); width: 30%; min-width: 360px; height: 100%; overflow-y: auto;
         background: rgba(255,255,255,0.18);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -62,6 +65,48 @@
         color: var(--gray-800);
     }
     .back-link:hover { color: var(--color-deep-primary); }
+
+    /* =====================================================================
+       반응형 — login.html 과 같은 원칙. common-style.css 의 전역 body 선언은 건드리지 않고
+       body.login-bg 스코프에서만 덮어쓴다.
+       ===================================================================== */
+
+    @media (max-width: 1440px) {
+        .right-side { width: 34%; }
+        .left-side { bottom: 4%; left: 4%; }
+    }
+
+    /* ~1024px : 좌우 2단 → 세로 스택 */
+    @media (max-width: 1024px) {
+        body.login-bg { height: auto; min-height: 100vh; overflow-y: auto; }
+        main { display: flex; flex-direction: column; min-height: 100vh; }
+        .left-side { position: static; padding: 2.5rem 1.5rem 0; }
+        .lxp { line-height: 1.15; }
+        .right-side {
+            position: static; transform: none;
+            width: 100%; min-width: 0; height: auto;
+            margin-top: 2rem; padding: 2.5rem 1.5rem;
+            border-radius: 0; overflow-y: visible;
+        }
+    }
+
+    /* ~768px : 폼 전폭(좌우 24px) + 가독성 오버레이 */
+    @media (max-width: 768px) {
+        body.login-bg::before {
+            content: ""; position: fixed; inset: 0;
+            background: rgba(255, 255, 255, 0.45);
+            z-index: 0; pointer-events: none;
+        }
+        main { position: relative; z-index: 1; }
+        .left-side { padding: 2rem 24px 0; }
+        .right-side { padding: 2rem 24px; }
+        .signup-type-box { width: 100%; max-width: 320px; }
+    }
+
+    /* 세로가 짧은 노트북 */
+    @media (min-width: 1025px) and (max-height: 780px) {
+        .right-side #logo { width: 9rem; margin: 0 auto 1.5rem auto; }
+    }
 </style>
 <body class="login-bg">
     <main>

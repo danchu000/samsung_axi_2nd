@@ -11,11 +11,15 @@
 <style>
     body.login-bg {
         background: url('/static/img/login-bg.jpg') no-repeat center center fixed;
-        background-size: cover; height: 100vh; width: 100vw; overflow: hidden;
+        /* 100vw → 100% (가로 스크롤 제거) */
+        background-size: cover; height: 100vh; width: 100%;
+        overflow-x: hidden; overflow-y: hidden;
+        /* absolute 중앙 배치 대신 flex 로 세운다 — 세로가 짧으면 아래 미디어쿼리에서 스크롤로 전환된다 */
+        display: flex; align-items: center; justify-content: center;
+        padding: 24px;
     }
     .complete-card {
-        width: 420px; max-width: 92vw;
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; max-width: 420px;
         background: rgba(255,255,255,0.92);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         border-radius: 10px; border: 0.5px solid rgba(255,255,255,0.3);
@@ -34,6 +38,18 @@
         border: none; background: #000; color: #fff; cursor: pointer;
     }
     .go-login-btn:hover { background: var(--color-deep-primary); }
+
+    /* ===== 반응형 ===== */
+    /* 카드가 화면보다 길어지면(세로 짧은 노트북·모바일) 잘리지 않게 스크롤로 전환 */
+    @media (max-width: 768px), (max-height: 620px) {
+        body.login-bg {
+            height: auto; min-height: 100vh;
+            overflow-y: auto;
+            align-items: flex-start;
+            padding: 24px;
+        }
+        .complete-card { margin: 24px auto; padding: 2rem 1.5rem; }
+    }
 </style>
 <body class="login-bg">
     <div class="complete-card">

@@ -715,3 +715,48 @@ main {
 @media (prefers-reduced-motion: reduce) {
     .race-icon, .race-dust { animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   패널·KPI 제목 아이콘 (.h-icon)
+   ──────────────────────────────────────────────────────────────────
+   예전에는 제목 앞에 이모지(📚 ✅ 💬 🤖 📌 📝)를 그대로 넣었다. 이모지는
+   OS·브라우저마다 글꼴이 달라 Windows / macOS / Android 에서 서로 다른
+   그림이 나오고, 크기·기준선도 제각각이라 제목 줄이 흔들렸다.
+
+   사이드바가 이미 쓰고 있는 /static/icons/*.svg 를 mask 로 재사용한다.
+   mask 는 알파 채널만 쓰므로 원본 파일의 fill 색(흰색)과 무관하게
+   background-color 로 색을 정할 수 있다 — 그래서 토큰을 그대로 따른다.
+   ══════════════════════════════════════════════════════════════════ */
+.h-icon {
+    display: inline-block;
+    width: 1.05em;
+    height: 1.05em;
+    vertical-align: -0.16em;
+    margin-right: 7px;
+    flex-shrink: 0;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.h-icon--course      { -webkit-mask-image: url('/static/icons/03-course.svg');      mask-image: url('/static/icons/03-course.svg'); }
+.h-icon--completion  { -webkit-mask-image: url('/static/icons/05-attendance.svg');  mask-image: url('/static/icons/05-attendance.svg'); }
+.h-icon--chat        { -webkit-mask-image: url('/static/icons/06-support.svg');     mask-image: url('/static/icons/06-support.svg'); }
+.h-icon--grading     { -webkit-mask-image: url('/static/icons/04-evaluation.svg');  mask-image: url('/static/icons/04-evaluation.svg'); }
+.h-icon--analytics   { -webkit-mask-image: url('/static/icons/08-analytics.svg');   mask-image: url('/static/icons/08-analytics.svg'); }
+.h-icon--notice      { -webkit-mask-image: url('/static/icons/bell.svg');           mask-image: url('/static/icons/bell.svg'); }
+.h-icon--info        { -webkit-mask-image: url('/static/icons/info.svg');           mask-image: url('/static/icons/info.svg'); }
+.h-icon--user        { -webkit-mask-image: url('/static/icons/02-user.svg');        mask-image: url('/static/icons/02-user.svg'); }
+.h-icon--doc         { -webkit-mask-image: url('/static/icons/03-description.svg'); mask-image: url('/static/icons/03-description.svg'); }
+.h-icon--tasks       { -webkit-mask-image: url('/static/icons/one-page.svg');       mask-image: url('/static/icons/one-page.svg'); }
+.h-icon--proctor     { -webkit-mask-image: url('/static/icons/proctor.svg');        mask-image: url('/static/icons/proctor.svg'); }
+.h-icon--search      { -webkit-mask-image: url('/static/icons/search.svg');         mask-image: url('/static/icons/search.svg'); }
+
+/* mask 미지원 브라우저(구형)에서는 아이콘 자리만 사라지고 제목은 그대로 읽힌다 */
+@supports not ((-webkit-mask-image: url('')) or (mask-image: url(''))) {
+    .h-icon { display: none; }
+}

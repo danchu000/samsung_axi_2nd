@@ -137,7 +137,7 @@
             <!-- KPI — 서버에서 그대로 렌더한다. JS 가 죽어도 인원수는 보여야 한다 -->
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-title">👥 분석 대상</div>
+                    <div class="kpi-title"><i class="h-icon h-icon--user" aria-hidden="true"></i>분석 대상</div>
                     <div class="kpi-main">
                         <div class="big"><span th:text="${prediction.summary.totalTrainees}">0</span>명</div>
                         <div class="sub">수강 중 훈련생 전체</div>
@@ -145,7 +145,7 @@
                 </div>
 
                 <div class="kpi-card risk-high">
-                    <div class="kpi-title">🚨 고위험</div>
+                    <div class="kpi-title"><i class="h-icon h-icon--info" aria-hidden="true"></i>고위험</div>
                     <div class="kpi-main">
                         <div class="big"><span th:text="${prediction.summary.highRisk}">0</span>명</div>
                         <div class="sub">위험도 70% 이상 — 즉시 개입 권장</div>
@@ -156,7 +156,7 @@
                 </div>
 
                 <div class="kpi-card risk-mid">
-                    <div class="kpi-title">⚠️ 중위험</div>
+                    <div class="kpi-title"><i class="h-icon h-icon--info" aria-hidden="true"></i>중위험</div>
                     <div class="kpi-main">
                         <div class="big"><span th:text="${prediction.summary.midRisk}">0</span>명</div>
                         <div class="sub">위험도 40~69% — 관찰 필요</div>
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="kpi-card">
-                    <div class="kpi-title">✅ 안정</div>
+                    <div class="kpi-title"><i class="h-icon h-icon--completion" aria-hidden="true"></i>안정</div>
                     <div class="kpi-main">
                         <div class="big"><span th:text="${prediction.summary.stable}">0</span>명</div>
                         <div class="sub">위험도 40% 미만</div>
@@ -172,7 +172,7 @@
                 </div>
 
                 <div class="kpi-card">
-                    <div class="kpi-title">📊 평균 위험도</div>
+                    <div class="kpi-title"><i class="h-icon h-icon--analytics" aria-hidden="true"></i>평균 위험도</div>
                     <div class="kpi-main">
                         <div class="big"><span th:text="${prediction.summary.avgRisk}">0</span>%</div>
                         <div class="sub">전체 학습자 평균 이탈 위험도</div>
@@ -184,7 +184,7 @@
             <div class="two-col">
                 <div class="panel">
                     <div class="panel-header">
-                        <h3>📈 주간 위험군 비율 추이</h3>
+                        <h3><i class="h-icon h-icon--analytics" aria-hidden="true"></i>주간 위험군 비율 추이</h3>
                         <span class="muted">전체 학습자 대비 %</span>
                     </div>
                     <div class="panel-body">
@@ -195,7 +195,7 @@
 
                 <div class="panel">
                     <div class="panel-header">
-                        <h3>📚 과정별 평균 이탈 위험도</h3>
+                        <h3><i class="h-icon h-icon--course" aria-hidden="true"></i>과정별 평균 이탈 위험도</h3>
                         <span class="muted">60% 이상 빨강 · 40% 이상 주황</span>
                     </div>
                     <div class="panel-body">
@@ -209,7 +209,7 @@
             <div class="two-col">
                 <div class="panel">
                     <div class="panel-header">
-                        <h3>🔎 위험 요인 기여도</h3>
+                        <h3><i class="h-icon h-icon--search" aria-hidden="true"></i>위험 요인 기여도</h3>
                         <span class="muted">예측에 기여한 비중 %</span>
                     </div>
                     <div class="panel-body">
@@ -239,7 +239,7 @@
             <!-- 위험 학습자 명단 — 차트는 경향을, 이 표는 "누구에게 개입할지"를 답한다 -->
             <div class="panel" id="riskTraineePanel">
                 <div class="panel-header">
-                    <h3>🧑‍🎓 위험 학습자 명단</h3>
+                    <h3><i class="h-icon h-icon--user" aria-hidden="true"></i>위험 학습자 명단</h3>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span class="muted">위험도 높은 순 · 상위 8명 표시</span>
                         <button class="btn btn-gray btn-sm" type="button" onclick="location.href='/admin/users/trainees'">훈련생 관리로 이동</button>

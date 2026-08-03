@@ -418,6 +418,12 @@ header .header-logo {
     }
 }
 
+/* .main-wrap 은 max-width 만 있고 좌우 여백이 없어, 1200px 아래에서는 본문이
+   화면 가장자리에 그대로 붙는다. 훈련생 전 화면 공통이라 여기서 한 번에 준다. */
+@media (max-width: 1240px) {
+    .main-wrap { padding: 0 16px; }
+}
+
 @media (max-width: 768px) {
     .gnb > ul > li { font-size: 1rem; padding: 6px 6px; }
     .icon-box { width: 34px; height: 34px; }

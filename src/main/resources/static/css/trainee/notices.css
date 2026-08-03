@@ -135,4 +135,39 @@
 #notice-category, #notice-date, #notice-writer, #notice-views {
   color: var(--color-primary);
   font-weight: 500;
-} 
+}
+
+/* ============================================================
+   반응형 — 브레이크포인트는 로그인 커밋(29331c0)·헤더와 동일하게 768 / 480.
+   상세는 th(라벨 120px) + td 2열 구조라 폭이 좁아지면 라벨이 세로로 눌린다.
+   ============================================================ */
+/* 검색 바 — 375px 에서 입력칸이 136px 까지 눌린다. 검색어 칸을 한 줄 통째로 준다. */
+@media (max-width: 480px) {
+  .filter-section { flex-wrap: wrap; }
+  .filter-section #noticeSearchInput { flex: 1 1 100%; }
+  .filter-section #noticeSortSelect { flex: 1 1 auto; }
+}
+
+@media (max-width: 768px) {
+  .notice-detail-table th { width: 92px; }
+  .notice-detail-table th, .notice-detail-table td { padding: 12px 14px; font-size: 14px; }
+  #notice-content { padding: 16px 14px; min-height: 140px; }
+}
+
+@media (max-width: 480px) {
+  /* 라벨 열을 따로 두기엔 폭이 없다. 라벨을 제목처럼 위에 얹고 값은 전폭으로. */
+  .notice-detail-table, .notice-detail-table tbody, .notice-detail-table tr,
+  .notice-detail-table th, .notice-detail-table td { display: block; width: auto; }
+  .notice-detail-table th {
+    width: auto;
+    border-bottom: 0;
+    padding: 10px 12px 4px;
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+  .notice-detail-table td { border-top: 0; padding: 0 12px 12px; font-size: 14px; }
+  /* 첫 행 위 강조선은 표 형태일 때만 의미가 있다 */
+  .notice-detail-table tr:first-child th { border-top: 2px solid #b3d8ff; }
+  .notice-detail-table tr:first-child td { border-top: 0; }
+  #notice-content { padding: 14px 12px; min-height: 120px; }
+}

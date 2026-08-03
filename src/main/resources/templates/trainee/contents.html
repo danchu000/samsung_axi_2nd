@@ -11,6 +11,16 @@
         .content-li { display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid var(--gray-200); }
         .content-course { font-size:13px; color:var(--gray-600); }
         .prog-badge { font-size:14px; color:var(--color-primary); min-width:44px; text-align:right; }
+        .content-title { flex:1; min-width:0; }
+
+        /* 차시별 학습(learning.html)과 같은 행 구조라 같은 처리를 한다.
+           375px 에서 "학습하기" 버튼이 화면 밖(311~393px)으로 나가 누를 수 없었다. */
+        @media (max-width: 768px) {
+            .content-li { flex-wrap: wrap; gap: 8px 12px; }
+            .content-title { flex: 1 1 calc(100% - 54px); }   /* 아이콘 42 + gap 12 */
+            .prog-badge { margin-left: 54px; text-align: left; }
+            .content-li .btn { margin-left: auto; }
+        }
     </style>
 </head>
 <body data-user-role="trainee">
@@ -29,7 +39,7 @@
                     <li class="content-li" th:each="c : ${contents}">
                         <img th:src="${c.type.name() == 'VIDEO'} ? '/static/icons/content-video.png' : '/static/icons/content-document.png'"
                              alt="유형" style="width:42px;height:42px;object-fit:contain;">
-                        <span style="flex:1;">
+                        <span class="content-title">
                             <span class="content-course" th:text="${c.courseName} + (${c.sessionName != null} ? ' > ' + ${c.sessionName} : '')">과정 &gt; 차시</span><br>
                             <span th:text="${c.title}">콘텐츠명</span>
                             <span style="font-size:14px;color:var(--gray-500);margin-left:8px;"

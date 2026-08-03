@@ -55,3 +55,37 @@
   color: var(--color-primary);
   border: 1px solid #b3d8ff;
 }
+
+/* ============================================================
+   반응형 — 브레이크포인트는 로그인 커밋(29331c0)·헤더와 동일하게 768 / 480.
+   측정(수정 전): 375px 에서 표의 min-content 가 659px 라 페이지가 284px 밀렸다.
+
+   1차 대응은 컬럼 줄이기다. 공지 목록에서 좁은 화면에 실제로 필요한 건
+   제목과 등록일이고, 번호·등록인·조회수는 없어도 목록이 읽힌다.
+   .table-scroll 은 그래도 남는 예외(아주 긴 제목 등)를 표 안에서만
+   스크롤시키기 위한 안전망이다 — 페이지 본문은 밀리지 않는다.
+   ============================================================ */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  /* 1 번호 · 5 등록인 · 6 조회수 숨김 → 카테고리 / 제목 / 등록일만 남긴다 */
+  .notice-table th:nth-child(1), .notice-table td:nth-child(1),
+  .notice-table th:nth-child(5), .notice-table td:nth-child(5),
+  .notice-table th:nth-child(6), .notice-table td:nth-child(6) {
+    display: none;
+  }
+  .notice-table th, .notice-table td { padding: 10px; font-size: 14px; }
+  .notice-table td.title-cell { padding-left: 12px; }
+  /* "등록된 공지가 없습니다" 는 colspan 셀이라 nth-child(1) 에 걸려 통째로 사라진다 */
+  .notice-table td[colspan] { display: table-cell; }
+}
+
+@media (max-width: 480px) {
+  /* 2 카테고리도 숨겨 제목 · 등록일만 남긴다 */
+  .notice-table th:nth-child(2), .notice-table td:nth-child(2) { display: none; }
+  .notice-table th, .notice-table td { padding: 9px 8px; font-size: 13px; }
+  .notice-table td[colspan] { display: table-cell; }
+}

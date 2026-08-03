@@ -38,6 +38,9 @@
                     </select>
                     <button type="submit" id="noticeSearchBtn" class="btn btn-secondary" style="width: 100px;">검색</button>
                 </form>
+                <!-- 좁은 화면에서 표가 페이지 본문을 밀지 않도록 스크롤 상자로 감싼다.
+                     (컬럼을 줄이는 것이 1차 대응이고, 이건 긴 제목 같은 예외용 안전망이다) -->
+                <div class="table-scroll">
                 <table class="basic-table notice-table" style="width:100%;margin-top:24px;">
                     <thead>
                         <tr>
@@ -58,6 +61,7 @@
                         <tr th:if="${#lists.isEmpty(rows)}"><td colspan="6">등록된 공지가 없습니다.</td></tr>
                     </tbody>
                 </table>
+                </div>
                 <div class="notice-pagination" id="noticePagination" th:text="|${currentPage} / ${totalPages} 페이지|"></div>
             </div>
         </section>

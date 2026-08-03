@@ -15,8 +15,27 @@
         .accordion.open .accordion-content { display:block; }
         .content-li { display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid var(--gray-200); }
         .prog-badge { font-size:14px; color:var(--color-primary); min-width:44px; text-align:right; }
+        .content-title { flex:1; min-width:0; }
         .course-select-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
         .course-progress-pill { margin-left:auto; font-weight:600; color:var(--color-primary); }
+
+        /* 좁은 폭 — 한 줄에 [아이콘][제목][진도][상태][버튼] 5개가 몰리면 제목만 짓눌린다.
+           고정 요소가 약 264px(아이콘 40 + 진도 44 + 상태배지 50 + 버튼 82 + gap)라
+           375px 에서 제목에 43px 밖에 안 남아 글자가 세로로 흘렀다.
+           제목을 첫 줄에 통째로 두고 나머지를 아랫줄로 내린다. */
+        @media (max-width: 768px) {
+            .content-li { flex-wrap: wrap; gap: 8px 12px; }
+            .content-title { flex: 1 1 calc(100% - 52px); }   /* 아이콘 40 + gap 12 */
+            .prog-badge { margin-left: 52px; text-align: left; }  /* 아이콘 폭만큼 들여쓰기 */
+            .content-li .btn { margin-left: auto; }
+        }
+
+        @media (max-width: 480px) {
+            .accordion-header { padding: 14px 14px; }
+            .accordion-content { padding: 8px 12px 14px; }
+            .course-select-bar select { max-width: 100%; }
+            .course-progress-pill { margin-left: 0; }   /* 줄바꿈되면 오른쪽 끝에 떠 보인다 */
+        }
     </style>
 </head>
 <body data-user-role="trainee">
@@ -66,7 +85,7 @@
                                 <li class="content-li" th:each="c : ${g.contents}">
                                     <img th:src="${c.type.name() == 'VIDEO'} ? '/static/icons/content-video.png' : '/static/icons/content-document.png'"
                                          alt="유형" style="width:40px;height:40px;object-fit:contain;">
-                                    <span style="flex:1;">
+                                    <span class="content-title">
                                         <span th:text="${c.title}">콘텐츠명</span>
                                         <span style="font-size:14px;color:var(--gray-500);margin-left:8px;"
                                               th:if="${c.durationMinutes > 0}" th:text="${c.durationMinutes} + '분'">분</span>

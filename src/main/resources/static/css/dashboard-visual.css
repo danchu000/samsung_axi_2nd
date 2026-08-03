@@ -17,8 +17,11 @@
  * 훈련기관 운영 화면보다 데모처럼 읽혔다. 색은 "구분"이 아니라 "경고"에만 쓴다.
  */
 
+/* 이 파일은 base CSS(common-style / i-common-style / basic-form-trainee) 뒤에 로드되므로
+   토큰을 그대로 참조한다. 값을 여기서 다시 적지 말 것 — base 의 :root 가 원본이다.
+   fallback 값은 이 파일만 단독으로 열었을 때를 위한 것. */
 :root {
-    --dash-navy: #131D41;        /* 사이드바와 동일 */
+    --dash-navy: var(--color-deep-primary, #131D41);   /* 사이드바와 동일 */
     --dash-navy-soft: #2a3866;
     --dash-navy-tint: #f2f4fa;
 }
@@ -301,7 +304,7 @@ main {
 .worklist-count {
     font-size: 13px;
     font-weight: 700;
-    color: #b45309;
+    color: var(--color-warning);
     white-space: nowrap;
 }
 
@@ -313,7 +316,7 @@ main {
 .sample-mark {
     display: inline-block;
     background: #fff7ed;
-    color: #b45309;
+    color: var(--color-warning);
     border: 1px solid #fed7aa;
     border-radius: 999px;
     padding: 1px 8px;
@@ -441,7 +444,7 @@ main {
 .course-progress .ai-bar > span { background: var(--dash-navy); }
 
 /* 출결이 이수 기준에 못 미치면 알려준다 — 훈련생이 가장 늦게 아는 값이다 */
-.course-card .info-v.warn { color: #b45309; }
+.course-card .info-v.warn { color: var(--color-warning); }
 
 .course-hint {
     margin: 2px 0 10px;
@@ -450,7 +453,7 @@ main {
     border: 1px solid #fed7aa;
     border-radius: 8px;
     font-size: 12.5px;
-    color: #b45309;
+    color: var(--color-warning);
     line-height: 1.5;
 }
 

@@ -93,7 +93,7 @@ a {
 
 select {
     padding: 8px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     border-radius: 4px;
     background-color: white;
     color: var(--color-font-gray);
@@ -108,13 +108,13 @@ select:hover {
 
 select:focus, input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
 }
 
 input, textarea {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     border-radius: 4px;
     font-size: 14px;
     outline: none;
@@ -129,22 +129,70 @@ input[type="checkbox"], input[type="radio"] {
     accent-color: var(--color-primary);
 }
 
+/* ============================================================
+   디자인 토큰 — 단일 원본(single source of truth)
+   이 :root 블록은 common-style.css / i-common-style.css /
+   basic-form-trainee.css 세 파일에 "동일한 내용"으로 존재한다.
+   --header-height 를 제외한 모든 값은 세 곳이 같아야 하며,
+   값을 바꿀 때는 반드시 세 파일을 함께 수정할 것.
+   ============================================================ */
 :root {
     --sidebar-width: 240px;
     --sidebar-collapsed-width: 60px;
+
+    /* --header-height 는 화면군마다 실제로 다르다 — 통일하지 말 것.
+       관리자·강사 화면(common-style / i-common-style): 헤더 1단  →  70px
+       훈련생 화면(basic-form-trainee)               : 헤더 2단  → 100px
+       ↓ 이 파일은 훈련생 화면용이라 100px 이 맞다. */
     --header-height: 100px;
 
-    --color-primary: #0069FF;
-    --color-deep-primary: #131D41;
-    --color-light-primary: #F0F7FF;
-    --color-primary-hover: #3380FF;
-    /* --color-light-primary: #E6F0FF; */
-    
-    --color-light-gray: #F5F5F5;
-    --color-font-gray: #333;
-    --color-font-gray-light: #acacac;
-    
-    --color-line-gray: #e9ecef;
+    /* ── Primary (파랑) ─────────────────────────────────────────
+       화면에 쓰는 파랑은 전부 아래 토큰에서만 가져온다.
+       파랑 hex 를 직접 적지 말 것. */
+    --color-primary: #0069FF;          /* 본색 — 흰 배경 대비 4.70:1 (WCAG AA ✓) */
+    --color-primary-hover: #0056CC;    /* 80% 음영 — hover */
+    --color-primary-active: #0044A3;   /* 65% 음영 — pressed / 선택 상태 */
+    --color-primary-light: #E6F0FF;    /* 배지·알림 배경 */
+    --color-light-primary: #F0F7FF;    /* (기존 이름 유지) 섹션·카드 배경 — primary-light 보다 옅다 */
+    /* rgba() 안에는 var(--color-primary) 를 넣을 수 없다. 반투명 배지 배경은 이 토큰을 쓴다:
+       background: rgba(var(--color-primary-rgb), 0.08); */
+    --color-primary-rgb: 0, 105, 255;
+
+    --color-deep-primary: #131D41;     /* 사이드바·헤더 네이비 (dashboard-visual.css 의 --dash-navy 와 동일 값) */
+
+    /* ── 상태색 ────────────────────────────────────────────────
+       텍스트용 본색은 모두 흰 배경 대비 AA(4.5:1) 이상으로 골랐다. */
+    --color-success: #2E7D32;          /* 5.13:1 */
+    --color-success-bg: #E8F5E9;
+    --color-warning: #B45309;          /* 5.02:1 — #F57C00 은 2.70:1 로 AA 미달이라 채택하지 않음 */
+    --color-warning-bg: #FFF3E0;
+    --color-danger: #C62828;           /* 5.62:1 */
+    --color-danger-bg: #FDECEA;
+    --color-info: var(--color-primary);
+    --color-info-bg: var(--color-primary-light);
+
+    /* ── 회색 스케일 ───────────────────────────────────────────
+       괄호 안은 흰 배경 위 대비비.
+       본문 텍스트는 --gray-500 이 하한선. --gray-400 이하는 본문에 쓰지 말 것. */
+    --gray-50:  #FAFAFA;   /* 배경 */
+    --gray-100: #F2F2F2;   /* 배경 */
+    --gray-200: #E5E5E5;   /* 배경·옅은 구분선 */
+    --gray-300: #CCCCCC;   /* 구분선·테두리 전용 */
+    --gray-400: #949494;   /*  3.03:1 — 비본문·disabled 전용. 본문 텍스트 금지 */
+    --gray-500: #767676;   /*  4.54:1 — 본문 텍스트 최소선 (AA 통과) */
+    --gray-600: #666666;   /*  5.74:1 — 보조 텍스트 */
+    --gray-800: #333333;   /* 12.63:1 — 본문 기본 */
+    --gray-900: #222222;   /* 15.91:1 — 제목·강조 */
+
+    /* ── 기존 이름(하위 호환) — 위 스케일을 가리키도록 정리 ── */
+    --color-light-gray: var(--gray-100);        /* was #F5F5F5 */
+    --color-font-gray: var(--gray-800);         /* was #333 — 동일 값 */
+    /* 매핑표상 #acacac 는 --gray-400 이지만, 이 토큰은 .applicant-sub / .dh-sub /
+       .empty-row / .badge-label 등 본문 텍스트에 쓰이고 있다.
+       "gray-400 은 본문 금지" 규칙에 따라 한 단계 위(--gray-500)로 둔다. */
+    --color-font-gray-light: var(--gray-500);   /* was #acacac (2.27:1, AA 미달) */
+
+    --color-line-gray: var(--gray-200);         /* was #e9ecef */
 }
 
 html {
@@ -213,7 +261,7 @@ header .header-logo {
     color: rgba(255, 255, 255, 0.5);
 }
 .gnb > ul > li ul {
-    box-shadow: 0 4px 12px rgba(30,107,255,0.05);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.05);
     display: none;
     position: absolute;
     left: 50%;
@@ -221,7 +269,7 @@ header .header-logo {
     top: 90%;
     height: auto;
     background: #fff;
-    color: #222;
+    color: var(--gray-900);
     min-width: 120px;
     z-index: 10;
     flex-direction: column;

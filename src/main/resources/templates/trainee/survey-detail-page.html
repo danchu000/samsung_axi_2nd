@@ -40,6 +40,19 @@
 </div>
 
 <style>
+  /* 이 파일은 <html>/<body> 없는 조각이 단독 페이지로 렌더돼 base CSS 를 타지 않는다.
+     전 화면 폰트 통일을 위해 Pretendard 를 여기서 직접 선언한다. */
+  @font-face {
+    font-family: 'Pretendard Variable';
+    src: url('/static/font/PretendardVariable.woff2') format('woff2');
+    font-weight: 45 920;
+    font-style: normal;
+    font-display: swap;
+  }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  }
+
   .survey-detail-page{ display:flex; flex-direction:column; gap:14px; }
   .page-head{
     display:flex; justify-content:space-between; align-items:flex-end; gap:12px; padding:18px 18px 0 18px;

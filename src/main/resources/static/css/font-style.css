@@ -1,7 +1,10 @@
-(/* Local font definitions from the project's `font/` folder */)
+/* 프로젝트 로컬 폰트 선언.
+   경로는 /static/font/ 절대경로여야 한다 — 이 파일이 /static/css/ 에 있어서
+   'font/...' 상대경로는 /static/css/font/ 로 해석돼 전부 404 였다.
+   (1행이 괄호로 감싸여 있어 CSS 파서가 첫 @font-face 를 통째로 삼키던 문제도 함께 수정) */
 @font-face {
 	font-family: 'SamsungSans';
-	src: url('font/samsungsharpsans.otf') format('opentype');
+	src: url('/static/font/samsungsharpsans.otf') format('opentype');
 	font-weight: 400;
 	font-style: normal;
 	font-display: swap;
@@ -9,7 +12,7 @@
 
 @font-face {
 	font-family: 'SamsungSans';
-	src: url('font/samsungsharpsans-medium.otf') format('opentype');
+	src: url('/static/font/samsungsharpsans-medium.otf') format('opentype');
 	font-weight: 500;
 	font-style: normal;
 	font-display: swap;
@@ -17,14 +20,14 @@
 
 @font-face {
 	font-family: 'SamsungSans';
-	src: url('font/samsungsharpsans-bold.otf') format('opentype');
+	src: url('/static/font/samsungsharpsans-bold.otf') format('opentype');
 	font-weight: 700;
 	font-style: normal;
 	font-display: swap;
 }
 @font-face {
 	font-family: 'Paperlogy';
-	src: url('font/Paperlogy-1Thin.ttf') format('truetype');
+	src: url('/static/font/Paperlogy-1Thin.ttf') format('truetype');
 	font-weight: 100;
 	font-style: normal;
 	font-display: swap;
@@ -32,7 +35,7 @@
 
 @font-face {
 	font-family: 'Paperlogy';
-	src: url('font/Paperlogy-3Light.ttf') format('truetype');
+	src: url('/static/font/Paperlogy-3Light.ttf') format('truetype');
 	font-weight: 300;
 	font-style: normal;
 	font-display: swap;
@@ -40,7 +43,7 @@
 
 @font-face {
 	font-family: 'Paperlogy';
-	src: url('font/Paperlogy-5Medium.ttf') format('truetype');
+	src: url('/static/font/Paperlogy-5Medium.ttf') format('truetype');
 	font-weight: 500;
 	font-style: normal;
 	font-display: swap;

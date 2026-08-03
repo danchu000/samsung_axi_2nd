@@ -94,6 +94,19 @@
 </div>
 
 <style>
+  /* 이 화면은 window.open 단독 페이지라 base CSS(common-style 등)를 타지 않는다.
+     전 화면 폰트 통일을 위해 Pretendard 를 여기서 직접 선언한다. */
+  @font-face {
+    font-family: 'Pretendard Variable';
+    src: url('/static/font/PretendardVariable.woff2') format('woff2');
+    font-weight: 45 920;
+    font-style: normal;
+    font-display: swap;
+  }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  }
+
   /* --- modal base --- */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,0.45);

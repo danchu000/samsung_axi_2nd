@@ -1,3 +1,12 @@
+/* Pretendard Variable — 온프레미스 로컬 폰트 (외부 CDN 미사용).
+   local() 은 쓰지 않는다: PC 에 설치된 Pretendard 를 집어가면 기기별 렌더 차이가 다시 생긴다. */
+@font-face {
+    font-family: 'Pretendard Variable';
+    src: url('/static/font/PretendardVariable.woff2') format('woff2');
+    font-weight: 45 920;
+    font-style: normal;
+    font-display: swap;
+}
 
 :root {
     --sidebar-width: 240px;
@@ -29,7 +38,7 @@ a {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
     height: 100vh;
     overflow: hidden;
 }

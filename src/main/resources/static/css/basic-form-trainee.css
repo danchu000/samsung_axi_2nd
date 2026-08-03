@@ -1,3 +1,38 @@
+/* Pretendard Variable — 온프레미스 로컬 폰트 (외부 CDN 미사용).
+   local() 은 쓰지 않는다: PC 에 설치된 Pretendard 를 집어가면 기기별 렌더 차이가 다시 생긴다. */
+@font-face {
+    font-family: 'Pretendard Variable';
+    src: url('/static/font/PretendardVariable.woff2') format('woff2');
+    font-weight: 45 920;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Paperlogy — 훈련생 홈의 제목·강조용 (trainee/index.css).
+   실제 존재하는 웨이트는 Thin(100)/Light(300)/Medium(500) 3종뿐이다.
+   700 을 선언하지 않는 것은 의도적이다 — 없는 굵기를 매핑하면 가짜 볼드가 된다. */
+@font-face {
+    font-family: 'Paperlogy';
+    src: url('/static/font/Paperlogy-1Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Paperlogy';
+    src: url('/static/font/Paperlogy-3Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Paperlogy';
+    src: url('/static/font/Paperlogy-5Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* 기본 Reset CSS */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -26,6 +61,7 @@ footer, header, hgroup, menu, nav, section {
     display: block;
 }
 body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
     line-height: 1;
     height: 100%;
     display: flex;

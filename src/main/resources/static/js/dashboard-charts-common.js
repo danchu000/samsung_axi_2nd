@@ -28,20 +28,45 @@
 (function (global) {
     'use strict';
 
+    /*
+     * canvas 는 CSS 변수를 직접 못 쓰므로 :root 의 디자인 토큰을 읽어 해석해 둔다.
+     * 폴백 값은 css/common-style.css 의 토큰과 같은 값이다 — 여기서 색을 새로 정하지 않는다.
+     * (예전엔 이 파일이 자체 팔레트(#10b981 등)를 써서 같은 "정상/주의/위험"이
+     *  화면마다 다른 색으로 보였다.)
+     */
+    function token(name, fallback) {
+        try {
+            var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+            return (v && v.trim()) ? v.trim() : fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
     var INK = '#101828', SUB = '#667085', LINE = '#eef0f6';
     /* 기본은 사이드바와 같은 남색. 색은 "구분"이 아니라 **경고**에만 쓴다. */
     var NAVY = '#131D41', NAVY2 = '#2a3866', NAVY3 = '#5a6a9a';
-    var AMBER = '#f59e0b', RED = '#ef4444', GREEN = '#10b981';
+    var AMBER = token('--color-warning', '#B45309'),
+        RED = token('--color-danger', '#C62828'),
+        GREEN = token('--color-success', '#2E7D32');
 
-    function setup(id) {
+    /**
+     * @param id            캔버스 id
+     * @param desiredHeight 내용에 맞춘 높이(px). 넘기지 않으면 마크업의 height 속성을 쓴다.
+     *
+     * 높이를 내용에 맞추는 이유 — 막대가 2개인데 캔버스가 240px 로 고정돼 있으면
+     * 행 간격이 100px 넘게 벌어져 "빈 화면"으로 보인다. 행 수에 맞춰 줄인다.
+     */
+    function setup(id, desiredHeight) {
         var cv = document.getElementById(id);
         if (!cv) return null;
         var dpr = global.devicePixelRatio || 1;
         var w = cv.clientWidth || cv.parentNode.clientWidth || 420;
         // 아래 cv.height 대입이 height 속성을 dpr 배 값으로 덮어쓴다 — 매번 다시 읽으면
         // HiDPI(배율>100%) 화면에서 리사이즈할 때마다 높이가 dpr 배씩 자란다. 원본을 한 번만 저장한다.
-        var h = Number(cv.dataset.baseHeight || cv.getAttribute('height')) || 240;
-        cv.dataset.baseHeight = h;
+        var base = Number(cv.dataset.baseHeight || cv.getAttribute('height')) || 240;
+        cv.dataset.baseHeight = base;
+        var h = desiredHeight ? Math.round(desiredHeight) : base;
         cv.width = w * dpr;
         cv.height = h * dpr;
         cv.style.height = h + 'px';
@@ -50,6 +75,11 @@
         ctx.clearRect(0, 0, w, h);
         ctx.font = '12px Pretendard, sans-serif';
         return { ctx: ctx, w: w, h: h };
+    }
+
+    /** 캔버스만 먼저 확인한다 — 행 수를 알아야 높이를 정할 수 있어서 setup 전에 쓴다. */
+    function exists(id) {
+        return !!document.getElementById(id);
     }
 
     /** 값이 없을 때. 빈 그래프를 그리면 "0"인지 "모름"인지 구분이 안 된다. */
@@ -72,9 +102,33 @@
         ctx.fill();
     }
 
-    function cut(s, n) {
+    /**
+     * 글자 수가 아니라 <b>실제 폭</b>으로 자른다.
+     * 글자 수로 자르면 "데이터 분석 실무"(8자)는 살아남고 "데이터 분석 실무 과정"은
+     * "데이터 분석 실…" 이 되는 식으로, 정작 자리가 남는데도 이름이 잘렸다.
+     */
+    function fitText(ctx, s, maxW) {
         s = String(s == null ? '' : s);
-        return s.length > n ? s.slice(0, n - 1) + '…' : s;
+        if (ctx.measureText(s).width <= maxW) return s;
+        var lo = 0, hi = s.length;
+        while (lo < hi) {
+            var mid = (lo + hi + 1) >> 1;
+            if (ctx.measureText(s.slice(0, mid) + '…').width <= maxW) lo = mid; else hi = mid - 1;
+        }
+        return lo > 0 ? s.slice(0, lo) + '…' : '…';
+    }
+
+    /**
+     * 라벨 칸(좌측 여백)의 폭을 실제 라벨에 맞춰 정한다.
+     * 고정값(108px)이면 짧은 이름일 땐 여백이 남고 긴 이름은 잘렸다.
+     */
+    function labelGutter(ctx, labels, minW, maxW) {
+        var widest = 0;
+        for (var i = 0; i < labels.length; i++) {
+            var t = ctx.measureText(String(labels[i] == null ? '' : labels[i])).width;
+            if (t > widest) widest = t;
+        }
+        return Math.round(Math.max(minW, Math.min(maxW, widest + 16)));
     }
 
     global.DashCharts = {
@@ -85,18 +139,26 @@
          * rows: [{ name, progress, elapsed }]
          */
         courseProgress: function (id, rows, emptyMsg) {
-            var s = setup(id); if (!s) return;
+            if (!exists(id)) return;
             rows = rows || [];
-            if (!rows.length) { empty(s, emptyMsg || '표시할 과정이 없습니다'); return; }
+            if (!rows.length) {
+                var se = setup(id); if (!se) return;
+                empty(se, emptyMsg || '표시할 과정이 없습니다'); return;
+            }
 
-            var ctx = s.ctx, padL = 108, padR = 46, top = 12;
-            var barH = 14, gap = (s.h - top - 10) / rows.length;
+            // 행 수에 맞춘 높이 — 막대 2개에 240px 를 쓰면 가운데가 텅 빈다
+            var ROW = 34, TOP = 12, BOT = 10;
+            var s = setup(id, Math.min(TOP + rows.length * ROW + BOT, 420)); if (!s) return;
+
+            var ctx = s.ctx, padR = 46, top = TOP;
+            var padL = labelGutter(ctx, rows.map(function (r) { return r.name; }), 74, s.w * 0.38);
+            var barH = 14, gap = (s.h - top - BOT) / rows.length;
 
             rows.forEach(function (r, i) {
                 var y = top + i * gap, full = s.w - padL - padR;
 
                 ctx.fillStyle = INK; ctx.textAlign = 'right';
-                ctx.fillText(cut(r.name, 9), padL - 10, y + barH - 1);
+                ctx.fillText(fitText(ctx, r.name, padL - 12), padL - 10, y + barH - 1);
 
                 ctx.fillStyle = '#f3f4f6';
                 rrect(ctx, padL, y, full, barH, 7);
@@ -154,23 +216,31 @@
                 ctx.textAlign = 'center'; ctx.fillStyle = INK;
                 ctx.fillText(r.done + '/' + r.total, x + bw / 2, padT + gh - hh - 6);
                 ctx.fillStyle = SUB;
-                ctx.fillText(cut(r.label, 7), x + bw / 2, s.h - 12);
+                // 라벨 칸은 막대 슬롯 폭 — 글자 수가 아니라 실제 폭 기준으로 자른다
+                ctx.fillText(fitText(ctx, r.label, slot - 6), x + bw / 2, s.h - 12);
             });
         },
 
         /** 가로 막대. rows: [{ label, value }] (0~100) */
         hbar: function (id, rows, emptyMsg) {
-            var s = setup(id); if (!s) return;
+            if (!exists(id)) return;
             rows = rows || [];
-            if (!rows.length) { empty(s, emptyMsg || '데이터가 없습니다'); return; }
+            if (!rows.length) {
+                var se = setup(id); if (!se) return;
+                empty(se, emptyMsg || '데이터가 없습니다'); return;
+            }
 
-            var ctx = s.ctx, padL = 92, padR = 44, top = 8;
-            var barH = 12, gap = (s.h - top - 6) / rows.length;
+            var ROW = 30, TOP = 8, BOT = 6;
+            var s = setup(id, Math.min(TOP + rows.length * ROW + BOT, 420)); if (!s) return;
+
+            var ctx = s.ctx, padR = 44, top = TOP;
+            var padL = labelGutter(ctx, rows.map(function (r) { return r.label; }), 64, s.w * 0.38);
+            var barH = 12, gap = (s.h - top - BOT) / rows.length;
 
             rows.forEach(function (r, i) {
                 var y = top + i * gap, full = s.w - padL - padR;
                 ctx.fillStyle = INK; ctx.textAlign = 'right';
-                ctx.fillText(cut(r.label, 8), padL - 10, y + barH - 1);
+                ctx.fillText(fitText(ctx, r.label, padL - 12), padL - 10, y + barH - 1);
 
                 ctx.fillStyle = '#f3f4f6';
                 rrect(ctx, padL, y, full, barH, 6);

@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/static/**", "/css/**", "/js/**", "/img/**",
                                 "/icons/**", "/font/**", "/favicon.ico").permitAll()
                         .requestMatchers("/", "/login", "/signup/**", "/error").permitAll()
+                        // 약관·방침 — 가입 동의 대상 문서라 로그인 전에도 열려야 한다
+                        .requestMatchers("/terms", "/privacy").permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                         // 역할별 URL 경계 — 구체 경로가 먼저 와야 한다 (권한정의서 기준, a-requests.md P1-6)
                         // B 도메인: 관리자 모듈 중 강사도 접근 가능한 영역

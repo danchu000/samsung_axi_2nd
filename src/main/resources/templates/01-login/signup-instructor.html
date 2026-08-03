@@ -45,6 +45,13 @@
     .consent-box { border-top: 1px solid var(--gray-300); margin-top: 1.5rem; padding-top: 1.2rem; }
     .consent-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 0.7rem; font-size: 0.9rem; }
     .consent-row input { margin-top: 3px; }
+    /* 동의 대상 문서를 새 창으로 — 입력 중인 폼 값을 잃지 않게 한다 */
+    .consent-row label { flex: 1; }
+    .consent-link {
+        flex-shrink: 0; font-size: 0.82rem; color: var(--gray-600);
+        text-decoration: underline; text-underline-offset: 2px; white-space: nowrap;
+    }
+    .consent-link:hover { color: var(--color-primary); }
     .form-buttons { display: flex; gap: 10px; margin-top: 1.8rem; }
     .form-buttons button {
         flex: 1; padding: 11px 0; font-size: 1rem; border-radius: 5px; cursor: pointer; border: 1px solid #000;
@@ -131,11 +138,13 @@
             <div class="consent-row">
                 <input type="checkbox" th:field="*{privacyConsent}" id="privacyConsent">
                 <label for="privacyConsent">[필수] 개인정보 수집·이용에 동의합니다.</label>
+                <a th:href="@{/privacy}" href="/privacy" target="_blank" rel="noopener" class="consent-link">전문 보기</a>
             </div>
             <div class="field-error" th:if="${#fields.hasErrors('privacyConsent')}" th:errors="*{privacyConsent}"></div>
             <div class="consent-row">
                 <input type="checkbox" th:field="*{thirdPartyConsent}" id="thirdPartyConsent">
                 <label for="thirdPartyConsent">[필수] 개인정보 제3자 제공에 동의합니다.</label>
+                <a th:href="@{/privacy}" href="/privacy" target="_blank" rel="noopener" class="consent-link">전문 보기</a>
             </div>
             <div class="field-error" th:if="${#fields.hasErrors('thirdPartyConsent')}" th:errors="*{thirdPartyConsent}"></div>
         </div>

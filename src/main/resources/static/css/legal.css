@@ -1,0 +1,166 @@
+/*
+ * 약관·방침 문서 페이지 공용 스타일 (이용약관 / 개인정보처리방침).
+ * 로그인 전에도 열리는 화면이라 사이드바 없이 문서 본문만 세운다.
+ * 색·간격은 common-style.css 의 :root 토큰만 쓴다 — 여기서 새 색을 정하지 않는다.
+ */
+
+.legal-page {
+    background: var(--gray-100, #f5f7fa);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+}
+
+.legal-doc {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--white, #fff);
+    border: 1px solid var(--gray-200, #e6e9f0);
+    border-radius: 12px;
+    padding: 48px 56px 56px;
+    box-shadow: 0 2px 16px rgba(16, 24, 40, 0.06);
+}
+
+.legal-doc .legal-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--gray-600);
+    text-decoration: none;
+    margin-bottom: 28px;
+}
+
+.legal-doc .legal-home:hover { color: var(--color-primary); }
+
+.legal-doc h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gray-900, #101828);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.legal-meta {
+    font-size: 13px;
+    color: var(--gray-500);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--gray-200, #e6e9f0);
+}
+
+.legal-lead {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--gray-700);
+    background: var(--gray-50, #fafbfc);
+    border-left: 3px solid var(--color-primary);
+    border-radius: 0 8px 8px 0;
+    padding: 18px 20px;
+    margin: 0 0 36px;
+}
+
+.legal-doc h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900, #101828);
+    margin: 40px 0 14px;
+    padding-top: 4px;
+}
+
+.legal-doc h2:first-of-type { margin-top: 0; }
+
+.legal-doc h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 22px 0 8px;
+}
+
+.legal-doc p,
+.legal-doc li {
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--gray-700);
+}
+
+.legal-doc p { margin: 0 0 12px; }
+
+.legal-doc ul,
+.legal-doc ol {
+    margin: 0 0 12px;
+    padding-left: 20px;
+}
+
+.legal-doc li { margin-bottom: 6px; }
+
+.legal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 14px;
+}
+
+.legal-table th,
+.legal-table td {
+    border: 1px solid var(--gray-200, #e6e9f0);
+    padding: 11px 14px;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.7;
+    color: var(--gray-700);
+}
+
+.legal-table th {
+    background: var(--gray-50, #fafbfc);
+    font-weight: 600;
+    color: var(--gray-800);
+    white-space: nowrap;
+}
+
+/* 기관이 채워야 하는 값 — 배포 전 반드시 실제 값으로 교체할 것 */
+.legal-fill {
+    background: #FFF8E1;
+    border-bottom: 1px dashed var(--color-warning);
+    padding: 0 4px;
+    font-weight: 600;
+    color: var(--color-warning);
+}
+
+.legal-note {
+    font-size: 13.5px;
+    color: var(--gray-600);
+    background: var(--gray-50, #fafbfc);
+    border: 1px solid var(--gray-200, #e6e9f0);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 20px 0 0;
+    line-height: 1.75;
+}
+
+.legal-footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-200, #e6e9f0);
+    font-size: 13px;
+    color: var(--gray-500);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.legal-footer a { color: var(--gray-600); text-decoration: none; }
+.legal-footer a:hover { color: var(--color-primary); }
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+    .legal-page { padding: 20px 12px 48px; }
+    .legal-doc { padding: 28px 20px 36px; border-radius: 10px; }
+    .legal-doc h1 { font-size: 22px; }
+    .legal-doc h2 { font-size: 16px; margin-top: 30px; }
+    .legal-doc p, .legal-doc li { font-size: 14px; }
+
+    /* 표가 화면을 밀어내지 않도록 가로 스크롤을 표 안에 가둔다 */
+    .legal-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .legal-table { min-width: 520px; }
+}

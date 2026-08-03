@@ -14,18 +14,45 @@
         .mc-flash.ok { background: var(--color-success-bg); color: var(--color-success); }
         .mc-flash.err { background: var(--color-danger-bg); color: var(--color-danger); }
         .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-        .course-card { background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        /* 카드마다 내용 높이가 다르다(진도 바가 있는 카드 / 없는 카드) — 세로 flex 로 두고
+           액션 줄을 아래로 밀어 한 행의 CTA 높이를 맞춘다. */
+        .course-card { background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);
+                       display:flex; flex-direction:column; }
         .course-card h3 { font-size:17px; font-weight:700; margin-bottom:6px; }
         .course-meta { font-size:13px; color:var(--gray-500); margin-bottom:12px; }
-        .badge-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+        /* align-self 는 필수 — 카드가 세로 flex 라 이게 없으면 배지가 카드 폭 전체로 늘어난다 */
+        .badge-status { display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-bottom:8px; }
         .badge-APPLIED { background:var(--color-warning-bg); color:var(--color-warning); }
         .badge-APPROVED { background:var(--color-success-bg); color:var(--color-success); }
         .badge-REJECTED { background:var(--color-danger-bg); color:var(--color-danger); }
         .badge-CANCELLED { background:#e2e3e5; color:#383d41; }
         .badge-COMPLETED { background:#cce5ff; color:#004085; }
         .empty-hint { color:var(--gray-500); font-size:14px; padding:16px 0; }
-        .card-actions { margin-top:12px; display:flex; gap:8px; align-items:center; }
+
+        /* 진도 — 카드에서 가장 먼저 읽혀야 하는 정보다. 바가 주, 숫자는 보조. */
+        .card-progress { margin:2px 0 14px; }
+        .progress-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+        .progress-label { font-size:12px; color:var(--gray-600); }
+        .progress-value { font-size:14px; font-weight:700; color:var(--color-primary); font-variant-numeric:tabular-nums; }
+        .progress-track { height:8px; border-radius:999px; background:var(--gray-200); overflow:hidden; }
+        .progress-fill { display:block; height:100%; border-radius:999px; background:var(--color-primary); transition:width .4s ease; }
+        .progress-fill.is-done { background:var(--color-success); }
+        .progress-value.is-done { color:var(--color-success); }
+
+        /* 진도 개념이 없는 상태(승인대기·취소·반려)에서 바 자리를 대신하는 안내 */
+        .card-hint { margin:2px 0 14px; font-size:12px; line-height:1.5; color:var(--gray-500); }
+        .card-hint.wait { background:var(--color-warning-bg); color:var(--color-warning); padding:8px 10px; border-radius:8px; font-weight:600; }
+
+        .card-actions { margin-top:auto; padding-top:4px; display:flex; gap:8px; align-items:center; }
         .inline-form { display:inline; }
+        /* 주 CTA — 카드당 하나. 남는 폭을 차지해 시선이 먼저 닿게 한다. */
+        .btn-cta { flex:1 1 auto; width:auto; display:inline-flex; align-items:center; justify-content:center;
+                   padding:9px 16px; font-weight:600; text-decoration:none; line-height:1.2; }
+        /* 보조 액션 — 오른쪽 끝으로 밀고 무게를 낮춘다. */
+        .card-actions .cancel-form { margin-left:auto; flex:0 0 auto; }
+        /* 주 CTA 가 없는 카드(승인대기)에서는 혼자 오른쪽 끝에 떠 보이지 않게 왼쪽으로 되돌린다 */
+        .card-actions .cancel-form:only-child { margin-left:0; }
+        .btn-quiet { padding:6px 10px; font-size:12px; border-color:var(--gray-200); }
     </style>
 </head>
 <body>
@@ -49,19 +76,41 @@
                             <span th:text="${en.category} ?: '미분류'">카테고리</span><br>
                             <span th:text="|${en.startDate} ~ ${en.endDate}|">기간</span>
                         </div>
+                        <!-- 진도 바 — 학습이 실제로 진행되는 상태에서만 의미가 있다 -->
+                        <div class="card-progress" th:if="${en.status.name() == 'APPROVED' or en.status.name() == 'COMPLETED'}">
+                            <div class="progress-head">
+                                <span class="progress-label">진도율</span>
+                                <span class="progress-value" th:classappend="${en.progressRate >= 100} ? 'is-done'"
+                                      th:text="|${#numbers.formatDecimal(en.progressRate,1,1)}%|">0.0%</span>
+                            </div>
+                            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                 th:aria-valuenow="${#numbers.formatDecimal(en.progressRate,1,1,'POINT')}"
+                                 th:aria-label="|${en.courseName} 진도율|">
+                                <!-- 'POINT' 를 지정하는 이유: 로케일에 따라 소수점이 콤마로 나오면 width 값이 깨진다 -->
+                                <span class="progress-fill" th:classappend="${en.progressRate >= 100} ? 'is-done'"
+                                      th:style="|width:${#numbers.formatDecimal(en.progressRate,1,1,'POINT')}%|"></span>
+                            </div>
+                        </div>
+                        <p th:if="${en.status.name() == 'APPLIED'}" class="card-hint wait">
+                            승인 대기 중 — 관리자 승인 후 학습을 시작할 수 있습니다.
+                        </p>
+                        <p th:if="${en.status.name() == 'CANCELLED' or en.status.name() == 'REJECTED'}" class="card-hint">
+                            재신청은 과정이 모집중일 때만 가능합니다. 모집이 마감된 과정은 관리자에게 문의해 주세요.
+                        </p>
+
                         <div class="card-actions">
-                            <span style="font-size:13px; color:var(--gray-600);" th:text="|진도율 ${#numbers.formatDecimal(en.progressRate,1,1)}%|">진도율</span>
-                            <form class="inline-form"
+                            <a th:if="${en.status.name() == 'APPROVED' or en.status.name() == 'COMPLETED'}"
+                               class="btn btn-primary btn-cta"
+                               th:href="@{/trainee/learning(courseId=${en.courseId})}"
+                               th:text="${en.status.name() == 'COMPLETED' ? '학습 내용 다시 보기'
+                                          : (en.progressRate > 0 ? '이어서 학습' : '학습 시작')}">이어서 학습</a>
+                            <form class="inline-form cancel-form"
                                   th:if="${en.status.name() == 'APPLIED' or en.status.name() == 'APPROVED'}"
                                   th:action="@{/trainee/enrollments/{eid}/cancel(eid=${en.enrollmentId})}" method="post"
                                   onsubmit="return confirm('수강신청을 취소하시겠습니까? 모집이 마감된 과정은 직접 재신청할 수 없습니다.');">
-                                <button type="submit" class="btn btn-gray" style="padding:4px 12px;">신청 취소</button>
+                                <button type="submit" class="btn btn-gray btn-quiet">신청 취소</button>
                             </form>
                         </div>
-                        <p th:if="${en.status.name() == 'CANCELLED' or en.status.name() == 'REJECTED'}"
-                           style="margin-top:8px; font-size:12px; color:var(--gray-500);">
-                            재신청은 과정이 모집중일 때만 가능합니다. 모집이 마감된 과정은 관리자에게 문의해 주세요.
-                        </p>
                     </div>
                 </div>
             </section>

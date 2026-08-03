@@ -12,14 +12,14 @@
         .course-block h3 { font-size:16px; font-weight:700; margin:0 0 10px; display:flex; align-items:center; gap:12px; }
         .rate-pill { font-size:13px; font-weight:700; color:#1c3d6e; background:#eef3fb; border:1px solid #cdd9ee; border-radius:12px; padding:3px 12px; }
         table.att-table { border-collapse:collapse; width:100%; font-size:14px; }
-        table.att-table th, table.att-table td { border-bottom:1px solid #eee; padding:10px 12px; text-align:center; }
-        table.att-table th { background:#fafafa; color:#555; font-weight:600; }
+        table.att-table th, table.att-table td { border-bottom:1px solid var(--gray-200); padding:10px 12px; text-align:center; }
+        table.att-table th { background:var(--gray-50); color:var(--gray-600); font-weight:600; }
         .att-badge { display:inline-block; min-width:52px; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
-        .att-PRESENT { background:#d4edda; color:#155724; }
-        .att-LATE    { background:#fff3cd; color:#856404; }
-        .att-ABSENT  { background:#f8d7da; color:#721c24; }
+        .att-PRESENT { background:var(--color-success-bg); color:var(--color-success); }
+        .att-LATE    { background:var(--color-warning-bg); color:var(--color-warning); }
+        .att-ABSENT  { background:var(--color-danger-bg); color:var(--color-danger); }
         .att-EXCUSED { background:#e2e3ff; color:#3730a3; }
-        .empty-state { color:#999; font-size:15px; padding:40px 0; text-align:center; }
+        .empty-state { color:var(--gray-500); font-size:15px; padding:40px 0; text-align:center; }
     </style>
 </head>
 <body>
@@ -33,7 +33,7 @@
         </section>
 
         <section class="main-wrap">
-            <p class="page-desc" style="color:#777; margin-bottom:20px;">
+            <p class="page-desc" style="color:var(--gray-500); margin-bottom:20px;">
                 온라인 학습 접속 기준으로 산정된 나의 차시별 출결 상태입니다.
             </p>
 

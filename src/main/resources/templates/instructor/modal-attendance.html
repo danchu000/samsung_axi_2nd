@@ -36,7 +36,7 @@
   /* ===== header ===== */
   .modal-header{
     padding:16px 20px;
-    border-bottom:1px solid #eee;
+    border-bottom:1px solid var(--gray-200);
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
@@ -52,12 +52,12 @@
   .student-name{
     font-size:18px;
     font-weight:900;
-    color:#111;
+    color:var(--gray-900);
   }
 
   .summary{
     font-size:13px;
-    color:#666;
+    color:var(--gray-600);
   }
 
   .btn-close{
@@ -70,7 +70,7 @@
   /* ===== filter ===== */
   .filter-bar{
     padding:12px 20px;
-    border-bottom:1px solid #f0f0f0;
+    border-bottom:1px solid var(--gray-100);
     display:flex;
     gap:10px;
     flex-wrap:wrap;
@@ -81,7 +81,7 @@
   .filter-bar select{
     height:34px;
     padding:0 10px;
-    border:1px solid #d6d6d6;
+    border:1px solid var(--gray-300);
     border-radius:8px;
     font-size:13px;
   }
@@ -90,7 +90,7 @@
     height:34px;
     padding:0 12px;
     border-radius:8px;
-    border:1px solid #d6d6d6;
+    border:1px solid var(--gray-300);
     background:#fff;
     cursor:pointer;
   }
@@ -109,14 +109,14 @@
 
   th, td{
     padding:12px 10px;
-    border-bottom:1px solid #eee;
+    border-bottom:1px solid var(--gray-200);
     text-align:center;
     white-space:nowrap;
   }
 
   th{
-    background:#fafafa;
-    color:#555;
+    background:var(--gray-50);
+    color:var(--gray-600);
   }
 
   td.left{
@@ -131,14 +131,14 @@
     font-size:12px;
   }
 
-  .present{ background:#e8f1ff; color:#1e6bff; }
-  .late{ background:#fff3e0; color:#a56600; }
-  .absent{ background:#fdecea; color:#b42318; }
-  .leave{ background:#eee; color:#555; }
-  .sick{ background:#e8f5e9; color:#2e7d32; }
+  .present{ background:#e8f1ff; color:var(--color-primary); }
+  .late{ background:var(--color-warning-bg); color:var(--color-warning); }
+  .absent{ background:var(--color-danger-bg); color:var(--color-danger); }
+  .leave{ background:var(--gray-200); color:var(--gray-600); }
+  .sick{ background:var(--color-success-bg); color:var(--color-success); }
 
   .btn-detail{
-    border:1px solid #d6d6d6;
+    border:1px solid var(--gray-300);
     background:#fff;
     padding:6px 12px;
     border-radius:8px;
@@ -148,7 +148,7 @@
 
   /* ===== inline detail ===== */
   .detail-row{
-    background:#fafbfc;
+    background:var(--gray-50);
   }
 
   .detail-box{

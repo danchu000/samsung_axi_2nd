@@ -23,12 +23,12 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
             transition: all 0.2s;
         }
 
         .pagination button:hover:not(:disabled) {
-            background: #f5f5f5;
+            background: var(--gray-100);
             border-color: var(--color-primary);
             color: var(--color-primary);
         }
@@ -47,5 +47,5 @@
         .pagination .page-info {
             margin: 0 16px;
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
         }

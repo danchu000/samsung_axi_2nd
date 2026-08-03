@@ -73,7 +73,7 @@
                                     <span th:if="${notice.prev == null}">없음</span>
                                     <p class="between" th:if="${notice.prev != null}">
                                         <a th:href="@{/admin/notice/{id}(id=${notice.prev.id})}" th:text="${notice.prev.title}">이전</a>
-                                        <span style="color:#999;" th:text="${notice.prev.date}">2026-01-01</span>
+                                        <span style="color:var(--gray-500);" th:text="${notice.prev.date}">2026-01-01</span>
                                     </p>
                                 </td>
                             </tr>
@@ -83,7 +83,7 @@
                                     <span th:if="${notice.next == null}">없음</span>
                                     <p class="between" th:if="${notice.next != null}">
                                         <a th:href="@{/admin/notice/{id}(id=${notice.next.id})}" th:text="${notice.next.title}">다음</a>
-                                        <span style="color:#999;" th:text="${notice.next.date}">2026-01-01</span>
+                                        <span style="color:var(--gray-500);" th:text="${notice.next.date}">2026-01-01</span>
                                     </p>
                                 </td>
                             </tr>

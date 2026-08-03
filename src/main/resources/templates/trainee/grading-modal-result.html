@@ -29,7 +29,7 @@ flex-direction: column;
 .modal-header {
 display: flex; justify-content: space-between; align-items: center;
 padding: 16px 18px;
-border-bottom: 1px solid #eee;
+border-bottom: 1px solid var(--gray-200);
 background: #fff;
 }
 .modal-title { margin: 0; font-size: 18px; }
@@ -39,21 +39,21 @@ background: #fff;
 /* Meta */
 .modal-meta {
 padding: 12px 18px;
-border-bottom: 1px solid #f0f0f0;
-background: #fafafa;
+border-bottom: 1px solid var(--gray-100);
+background: var(--gray-50);
 display: grid;
 gap: 8px;
 }
 .meta-row { display: grid; grid-template-columns: 1.2fr 1.8fr 1fr; gap: 12px; }
 .meta-item { display: flex; gap: 8px; align-items: center; }
-.label { font-size: 12px; color: #666; min-width: 60px; }
-.value { font-size: 13px; color: #222; }
+.label { font-size: 12px; color: var(--gray-600); min-width: 60px; }
+.value { font-size: 13px; color: var(--gray-900); }
 .strong { font-weight: 700; }
-.divider { margin: 0 8px; color: #bbb; }
-.muted { color: #666; }
+.divider { margin: 0 8px; color: var(--gray-400); }
+.muted { color: var(--gray-600); }
 
 .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; display: inline-flex; align-items: center; }
-.badge-wip { background: #eef3ff; color: #2a57ff; }
+.badge-wip { background: #eef3ff; color: var(--color-primary); }
 
 /* Body layout */
 .modal-body {
@@ -65,7 +65,7 @@ min-height: 0; /* scroll enable */
 
 /* Left panel */
 .panel-left {
-border-right: 1px solid #eee;
+border-right: 1px solid var(--gray-200);
 padding: 14px;
 display: flex;
 flex-direction: column;
@@ -77,29 +77,29 @@ min-height: 0;
 margin: 0; padding: 0;
 list-style: none;
 overflow: auto;
-border: 1px solid #eee;
+border: 1px solid var(--gray-200);
 border-radius: 10px;
 }
 .question-item {
 padding: 12px;
-border-bottom: 1px solid #f0f0f0;
+border-bottom: 1px solid var(--gray-100);
 cursor: pointer;
 }
 .question-item:last-child { border-bottom: 0; }
 .question-item.active { background: #f6f8ff; }
 .q-main { display: flex; justify-content: space-between; font-weight: 600; }
-.q-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: #444; }
+.q-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--gray-800); }
 .status-pending { color: #b06a00; }
 .status-done { color: #1a7f37; }
 
 .summary-box {
-border: 1px solid #eee;
+border: 1px solid var(--gray-200);
 border-radius: 10px;
 padding: 12px;
 background: #fff;
 }
 .sum-row { display: flex; justify-content: space-between; padding: 6px 0; }
-.sum-row.total { border-top: 1px dashed #eee; margin-top: 6px; padding-top: 10px; }
+.sum-row.total { border-top: 1px dashed var(--gray-200); margin-top: 6px; padding-top: 10px; }
 
 /* Right panel */
 .panel-right {
@@ -113,7 +113,7 @@ gap: 12px;
 .question-header {
 display: flex; justify-content: space-between; align-items: center;
 gap: 12px;
-border: 1px solid #eee;
+border: 1px solid var(--gray-200);
 border-radius: 10px;
 padding: 12px;
 background: #fff;
@@ -121,7 +121,7 @@ background: #fff;
 .question-title { margin: 0; font-size: 16px; }
 
 .content-block {
-border: 1px solid #eee;
+border: 1px solid var(--gray-200);
 border-radius: 10px;
 background: #fff;
 overflow: hidden;
@@ -129,18 +129,18 @@ overflow: hidden;
 .block-title {
 padding: 10px 12px;
 font-weight: 700;
-background: #fafafa;
-border-bottom: 1px solid #f0f0f0;
+background: var(--gray-50);
+border-bottom: 1px solid var(--gray-100);
 font-size: 13px;
 }
-.block-body { padding: 12px; font-size: 13px; color: #222; }
+.block-body { padding: 12px; font-size: 13px; color: var(--gray-900); }
 .scroll-box { max-height: 160px; overflow: auto; line-height: 1.6; background: #fff; }
 .grading-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .inline { display: flex; gap: 8px; align-items: center; }
 
 .input, .textarea {
 width: 100%;
-border: 1px solid #ddd;
+border: 1px solid var(--gray-300);
 border-radius: 8px;
 padding: 10px 12px;
 font-size: 13px;
@@ -150,7 +150,7 @@ box-sizing: border-box;
 
 /* Footer */
 .modal-footer {
-border-top: 1px solid #eee;
+border-top: 1px solid var(--gray-200);
 padding: 12px 18px;
 background: #fff;
 display: flex;
@@ -161,7 +161,7 @@ gap: 12px;
 
 /* Buttons (간단 버전) */
 .btn {
-border: 1px solid #ddd;
+border: 1px solid var(--gray-300);
 background: #fff;
 padding: 9px 12px;
 border-radius: 10px;
@@ -169,9 +169,9 @@ cursor: pointer;
 font-size: 13px;
 }
 .btn-small { padding: 7px 10px; border-radius: 8px; font-size: 12px; }
-.btn-ghost { background: #fafafa; }
-.btn-primary { border-color: #2a57ff; background: #2a57ff; color: #fff; }
-.btn-danger { border-color: #d92d20; background: #d92d20; color: #fff; }
+.btn-ghost { background: var(--gray-50); }
+.btn-primary { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.btn-danger { border-color: var(--color-danger); background: var(--color-danger); color: #fff; }
 
 .file-link { text-decoration: none; margin-right: 10px; }
 </style>

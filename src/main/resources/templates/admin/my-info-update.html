@@ -41,14 +41,14 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
         }
 
         .manager-table td {
             padding: 12px 15px;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
         }
 
@@ -66,11 +66,11 @@
         }
 
         .manager-table tbody tr.row-inactive:hover {
-            background-color: #eeeeee;
+            background-color: var(--gray-200);
         }
 
         .manager-table tbody tr.row-inactive td {
-            color: #999;
+            color: var(--gray-500);
         }
 
         .attendance-rate {
@@ -116,14 +116,14 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
         }
 
         .manager-table td {
             padding: 12px 15px;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
         }
 
@@ -160,7 +160,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
         .photo-upload-btn {
             width: 100%;
@@ -174,7 +174,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
 
         .manager-basic-info {
@@ -319,7 +319,7 @@
         .date-range-input input[type="date"] {
             flex: 1;
             padding: 6px 10px;
-            border: 1px solid #666;
+            border: 1px solid var(--gray-600);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -328,7 +328,7 @@
 
         .date-range-input input[type="date"]:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         /* Password modal styles */
@@ -360,7 +360,7 @@
         .modal-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .modal-row label { font-size: 13px; color: var(--color-font-gray); }
         .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top: 8px; }
-        .modal-error { color: #dc3545; font-size: 13px; display: none; }
+        .modal-error { color: var(--color-danger); font-size: 13px; display: none; }
 
         .name-status-container{
             display: flex;

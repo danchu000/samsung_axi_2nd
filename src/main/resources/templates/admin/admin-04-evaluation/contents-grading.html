@@ -125,18 +125,18 @@
                 <form id="testForm">
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="testName">시험명</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testName">시험명</label>
                             <input type="text" class="form-input" id="testName" name="testName" required>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="testStatus">상태</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testStatus">상태</label>
                             <select class="form-select" id="testStatus" name="testStatus">
                                 <option value="active">활성화</option>
                                 <option value="inactive">비활성화</option>
                             </select>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="testType">유형</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testType">유형</label>
                             <select class="form-select" id="testType" name="testType">
                                 <option value="단위시험">단위시험</option>
                                 <option value="중간고사">중간고사</option>
@@ -146,21 +146,21 @@
                     </div>
                     <div style="display:flex;gap:24px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="timeLimit">제한시간 (분)</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="timeLimit">제한시간 (분)</label>
                             <input type="number" class="form-input" id="timeLimit" name="timeLimit" min="1" value="60">
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="passScore">합격점수</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="passScore">합격점수</label>
                             <input type="number" class="form-input" id="passScore" name="passScore" min="0" max="100" value="70">
                         </div>
                         <!-- 문항수 선택 -->
                         <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="totalQuestionCount">총 문항수</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="totalQuestionCount">총 문항수</label>
                             <input type="number" class="form-input" id="totalQuestionCount" name="totalQuestionCount" min="1" value="20" required>
                         </div>
                     </div>
                     <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                        <label style="font-size:15px;font-weight:600;color:#333;" for="testDescription">시험설명</label>
+                        <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testDescription">시험설명</label>
                         <textarea class="form-input" id="testDescription" name="testDescription" rows="2" placeholder="시험에 대한 설명을 입력하세요." style="height:150px;resize: none;"></textarea>
                     </div>
                     <!-- 수동 문제 추가 영역 (랜덤출제 미사용 시 표시) -->
@@ -294,7 +294,7 @@
                         <span>👉 현재 총 문항 수: <span id="currentCount">10</span> / <span id="maxCount">20</span></span>
                         <span style="color:#e67e22;font-size:15px;">⚠ Loop/for Hard 문제 부족 (2개만 존재)</span>
                     </div>
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <div style="margin-bottom:18px;">
                         <div style="display:flex;align-items:center;gap:18px;margin-bottom:10px;">
                             <input type="checkbox" id="autoScore" name="autoScore" checked>
@@ -305,10 +305,10 @@
                             <span>점</span>
                         </div>
                     </div>
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <div class="section-title" style="font-size:18px;margin-bottom:10px;">👀 시험 미리보기</div>
                     <button type="button" class="btn btn-preview" id="previewBtn">랜덤 샘플 생성</button>
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                 </form>
                 <div style="display:flex;gap:16px;justify-content:flex-end;margin-top:30px;">
                     <button type="submit" class="btn btn-save">저장</button>
@@ -389,10 +389,10 @@
             if (!list) return;
             list.innerHTML = '';
             if (manualQuestions.length === 0) {
-                list.innerHTML = '<div style="color:#888;font-size:14px;">추가된 문제가 없습니다.</div>';
+                list.innerHTML = '<div style="color:var(--gray-500);font-size:14px;">추가된 문제가 없습니다.</div>';
             } else {
                 manualQuestions.forEach((q, idx) => {
-                    list.innerHTML += `<div style="background:#f8f9fa;border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    list.innerHTML += `<div style="background:var(--gray-50);border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
                         <span style="font-size:15px;">${q}</span>
                         <button type="button" style="font-size:13px;padding:2px 10px;" onclick="removeManualQuestion(${idx})">삭제</button>
                     </div>`;
@@ -477,10 +477,10 @@
             const list = document.getElementById('questionList');
             list.innerHTML = '';
             if (pageData.length === 0) {
-                list.innerHTML = '<div style="color:#888;font-size:14px;">검색 결과가 없습니다.</div>';
+                list.innerHTML = '<div style="color:var(--gray-500);font-size:14px;">검색 결과가 없습니다.</div>';
             } else {
                 pageData.forEach((q, idx) => {
-                    list.innerHTML += `<div style="background:#f8f9fa;border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    list.innerHTML += `<div style="background:var(--gray-50);border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
                         <span style="font-size:15px;">[${q.category1} > ${q.category2} > ${q.category3}] ${q.title} / ${q.author}</span>
                         <button type="button" style="font-size:13px;padding:2px 10px;" onclick="addQuestionToManual('${q.title}')">추가</button>
                     </div>`;
@@ -491,7 +491,7 @@
             pag.innerHTML = '';
             const totalPages = Math.ceil(total/perPage);
             for (let i=1; i<=totalPages; i++) {
-                pag.innerHTML += `<button type="button" class="btn" style="padding:2px 8px;${i===page?'background:#e0e0e0;':''}" onclick="filterQuestions(${i},${perPage})">${i}</button>`;
+                pag.innerHTML += `<button type="button" class="btn" style="padding:2px 8px;${i===page?'background:var(--gray-200);':''}" onclick="filterQuestions(${i},${perPage})">${i}</button>`;
             }
         }
         window.addQuestionToManual = function(title) {
@@ -535,8 +535,8 @@
             rules.forEach((rule, idx) => {
                 let diffStr = Object.entries(rule.difficulty).map(([k,v]) => `${k} ${v}`).join(' / ');
                 ruleList.innerHTML += `
-                <div class="rule-card" style="background:#f8f9fa;border-radius:8px;padding:18px 20px 14px 20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.03);position:relative;">
-                    <div class="rule-info" style="font-size:15px;color:#333;line-height:1.7;">
+                <div class="rule-card" style="background:var(--gray-50);border-radius:8px;padding:18px 20px 14px 20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.03);position:relative;">
+                    <div class="rule-info" style="font-size:15px;color:var(--gray-800);line-height:1.7;">
                         <div><strong>대분류 > 중분류 > 소분류</strong></div>
                         <div>${rule.subject} > ${rule.topic ? rule.topic : "-"} > ${rule.subtopic ? rule.subtopic : "-"}</div>
                         <div style="margin-top:8px;"><strong>난이도</strong></div>
@@ -559,10 +559,10 @@
             if (!list) return;
             list.innerHTML = '';
             if (manualQuestions.length === 0) {
-                list.innerHTML = '<div style="color:#888;font-size:14px;">추가된 문제가 없습니다.</div>';
+                list.innerHTML = '<div style="color:var(--gray-500);font-size:14px;">추가된 문제가 없습니다.</div>';
             } else {
                 manualQuestions.forEach((q, idx) => {
-                    list.innerHTML += `<div style="background:#f8f9fa;border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    list.innerHTML += `<div style="background:var(--gray-50);border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
                         <span style="font-size:15px;">${q}</span>
                         <button type="button" class="btn btn-gray" onclick="removeManualQuestion(${idx})">삭제</button>
                     </div>`;

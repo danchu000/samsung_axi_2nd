@@ -42,7 +42,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
 
         .trainee-basic-info {
@@ -195,7 +195,7 @@
         }
 
         .form-group label .required {
-            color: #c62828;
+            color: var(--color-danger);
             margin-left: 2px;
         }
 
@@ -204,7 +204,7 @@
         .form-group select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 6px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -216,7 +216,7 @@
         .form-group textarea:focus,
         .form-group select:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .form-group textarea {
@@ -268,7 +268,7 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
             height: 68px; /* 고정 높이 */
             vertical-align: middle;
         }
@@ -277,7 +277,7 @@
             /* padding: 12px 15px; */
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -772,7 +772,7 @@
                         ${row.changed === 'O' ? `<div class="flex-center">O </div>` : row.changed}
                     </td>
                     <td><button class="btn-xs btn-secondary" onclick="showSessionDetail('${row.sessionId}', ${idx})">상세보기</button></td>
-                    <td style="text-align:left;padding-left:12px; color:#666">${row.note}</td>
+                    <td style="text-align:left;padding-left:12px; color:var(--gray-600)">${row.note}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -846,7 +846,7 @@
                                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                                         ${changeHistory.map(h => `
                                             <tr>
-                                                <td style="padding:8px;border-bottom:1px solid #f0f0f0;text-align:left;">
+                                                <td style="padding:8px;border-bottom:1px solid var(--gray-100);text-align:left;">
                                                     <div><strong>${h.datetime || '-'}</strong></div>
                                                     <div>변경자: ${h.user || '-'}</div>
                                                     <div>변경 내용: ${h.content || '-'}</div>
@@ -855,12 +855,12 @@
                                             </tr>
                                         `).join('')}
                                     </table>
-                                ` : '<div style="color:#666">변경이력 없음</div>'}
+                                ` : '<div style="color:var(--gray-600)">변경이력 없음</div>'}
                             </div>
 
                             ${rowNote ? `<div style="margin-top:8px;"><strong>비고:</strong> ${rowNote}</div>` : ''}
 
-                            ${row.specialNote ? `<div style="margin-top:8px;color:#c62828;"><strong>특이사항:</strong> ${row.specialNote}</div>` : ''}
+                            ${row.specialNote ? `<div style="margin-top:8px;color:var(--color-danger);"><strong>특이사항:</strong> ${row.specialNote}</div>` : ''}
 
                             <button class="btn-xs btn-edit" style="margin-top:12px;" onclick="closeSessionDetail()">수정하기</button>
                         </div>`;
@@ -870,7 +870,7 @@
             } catch (err) {
                 // fallback: use local attendanceData row if available
                 const row = attendanceData[idx] || {};
-                modalContent.innerHTML = `\n                    <div><strong>차시:</strong> ${row.session || sessionId}</div>\n                    <div><strong>일자:</strong> ${row.date || ''}</div>\n                    <div style="margin-top:8px;color:#666;">세부정보를 불러오지 못했습니다.</div>`;
+                modalContent.innerHTML = `\n                    <div><strong>차시:</strong> ${row.session || sessionId}</div>\n                    <div><strong>일자:</strong> ${row.date || ''}</div>\n                    <div style="margin-top:8px;color:var(--gray-600);">세부정보를 불러오지 못했습니다.</div>`;
                 console.warn('showSessionDetail fetch error', err);
             }
         }
@@ -924,7 +924,7 @@
                 <button class="modal-close" onclick="closeSessionDetail()">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="sessionDetailContent" style="font-size:14px;color:#333;"></div>
+                <div id="sessionDetailContent" style="font-size:14px;color:var(--gray-800);"></div>
             </div>
         </div>
     </div>
@@ -937,7 +937,7 @@
                 <button class="modal-close" onclick="closeChangeHistoryDetail()">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="historyDetailContent" style="white-space:pre-line;font-size:14px;color:#333;"></div>
+                <div id="historyDetailContent" style="white-space:pre-line;font-size:14px;color:var(--gray-800);"></div>
             </div>
             <div>
                 <button>수정하기</button>

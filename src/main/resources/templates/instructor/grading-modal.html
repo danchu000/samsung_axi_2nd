@@ -34,13 +34,13 @@
         }
         .grading-modal-divider {
             width: 1.5px;
-            background: #e0e4ea;
+            background: var(--gray-200);
             height: 100%;
         }
         .grading-modal-title {
             font-size: 18px;
             font-weight: 700;
-            color: #1976D2;
+            color: var(--color-primary);
             margin-bottom: 18px;
         }
         .grading-modal-close {
@@ -48,7 +48,7 @@
             top: 18px;
             right: 24px;
             font-size: 22px;
-            color: #888;
+            color: var(--gray-500);
             background: none;
             border: none;
             cursor: pointer;
@@ -83,31 +83,31 @@
                 <div class="grading-modal-divider"></div>
                 <div class="grading-modal-half">
                     <div class="grading-modal-title">모범 답안</div>
-                    <div style="background:#f8f9fa;padding:16px 14px;border-radius:8px;min-height:120px;">
+                    <div style="background:var(--gray-50);padding:16px 14px;border-radius:8px;min-height:120px;">
                         4<br>4<br>4
                     </div>
                     <div class="grading-modal-title">학생 답안</div>
-                    <div style="background:#f8f9fa;padding:16px 14px;border-radius:8px;min-height:120px;">
+                    <div style="background:var(--gray-50);padding:16px 14px;border-radius:8px;min-height:120px;">
                         4<br>4<br>4
                     </div>
                 </div>
             </div>
-            <div style="background:#fff; border-radius:12px; border:1.5px solid #e0e4ea; box-shadow:0 2px 8px 0 rgba(0,0,0,0.03); padding:28px 24px 20px 24px;">
+            <div style="background:#fff; border-radius:12px; border:1.5px solid var(--gray-200); box-shadow:0 2px 8px 0 rgba(0,0,0,0.03); padding:28px 24px 20px 24px;">
                 <div style="display:flex; gap:24px; align-items:center; margin-bottom:18px;">
-                    <div style="font-size:15px; color:#1976D2; font-weight:600;">문제 배점</div>
-                    <div style="font-size:15px; color:#333;">20점</div>
-                    <div style="font-size:15px; color:#1976D2; font-weight:600; margin-left:32px;">통과점수</div>
-                    <div style="font-size:15px; color:#333;">14점</div>
-                    <div style="font-size:15px; color:#1976D2; font-weight:600; margin-left:32px;">입력점수</div>
-                    <input type="number" min="0" max="20" value="0" style="width:60px; font-size:15px; padding:4px 8px; border-radius:6px; border:1px solid #e0e4ea;">
+                    <div style="font-size:15px; color:var(--color-primary); font-weight:600;">문제 배점</div>
+                    <div style="font-size:15px; color:var(--gray-800);">20점</div>
+                    <div style="font-size:15px; color:var(--color-primary); font-weight:600; margin-left:32px;">통과점수</div>
+                    <div style="font-size:15px; color:var(--gray-800);">14점</div>
+                    <div style="font-size:15px; color:var(--color-primary); font-weight:600; margin-left:32px;">입력점수</div>
+                    <input type="number" min="0" max="20" value="0" style="width:60px; font-size:15px; padding:4px 8px; border-radius:6px; border:1px solid var(--gray-200);">
                 </div>
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:14px; color:#1976D2; font-weight:600; margin-bottom:6px;">피드백 (학생에게 공개)</div>
-                    <textarea style="width:100%; min-height:48px; border-radius:8px; border:1px solid #e0e4ea; padding:12px 14px; font-size:14px; color:#333; resize:vertical; background:#f8f9fa;"></textarea>
+                    <div style="font-size:14px; color:var(--color-primary); font-weight:600; margin-bottom:6px;">피드백 (학생에게 공개)</div>
+                    <textarea style="width:100%; min-height:48px; border-radius:8px; border:1px solid var(--gray-200); padding:12px 14px; font-size:14px; color:var(--gray-800); resize:vertical; background:var(--gray-50);"></textarea>
                 </div>
                 <div>
-                    <div style="font-size:14px; color:#1976D2; font-weight:600; margin-bottom:6px;">내부 메모 (관리자/강사용)</div>
-                    <textarea style="width:100%; min-height:48px; border-radius:8px; border:1px solid #e0e4ea; padding:12px 14px; font-size:14px; color:#333; resize:vertical; background:#f8f9fa;"></textarea>
+                    <div style="font-size:14px; color:var(--color-primary); font-weight:600; margin-bottom:6px;">내부 메모 (관리자/강사용)</div>
+                    <textarea style="width:100%; min-height:48px; border-radius:8px; border:1px solid var(--gray-200); padding:12px 14px; font-size:14px; color:var(--gray-800); resize:vertical; background:var(--gray-50);"></textarea>
                 </div>
             </div>
             <button class="btn btn-secondary">저장하기</button>

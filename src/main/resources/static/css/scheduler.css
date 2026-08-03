@@ -20,7 +20,7 @@
 
 .nav-btn {
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     border-radius: 8px;
     width: 40px;
     height: 40px;
@@ -30,11 +30,11 @@
     cursor: pointer;
     transition: all 0.2s;
     font-size: 18px;
-    color: #333;
+    color: var(--gray-800);
 }
 
 .nav-btn:hover {
-    background: #f5f5f5;
+    background: var(--gray-100);
     border-color: var(--color-deep-primary);
     color: var(--color-deep-primary);
 }
@@ -42,7 +42,7 @@
 .current-month {
     font-size: 24px;
     font-weight: 700;
-    color: #222;
+    color: var(--gray-900);
     min-width: 180px;
     text-align: center;
 }
@@ -69,12 +69,12 @@
     text-align: center;
     font-weight: 700;
     font-size: 13px;
-    color: #666;
+    color: var(--gray-600);
     padding: 10px 0;
 }
 
 .weekday.sunday {
-    color: #dc3545;
+    color: var(--color-danger);
 }
 
 .weekday.saturday {
@@ -139,20 +139,20 @@
 .day-number {
     font-size: 14px;
     font-weight: 700;
-    color: #333;
+    color: var(--gray-800);
     margin-bottom: 6px;
 }
 
 .calendar-day.sunday .day-number {
-    color: #dc3545;
+    color: var(--color-danger);
 }
 
 .calendar-day.saturday .day-number {
-    color: #1976d2;
+    color: var(--color-primary);
 }
 
 .calendar-day.other-month .day-number {
-    color: #999;
+    color: var(--gray-500);
 }
 
 /* 수업 표시 */
@@ -175,13 +175,13 @@
 }
 
 .class-kdt {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: var(--color-info-bg);
+    color: var(--color-primary-active);
 }
 
 .class-highschool {
-    background: #fff3e0;
-    color: #f57c00;
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 
 .class-advanced {
@@ -191,7 +191,7 @@
 
 .more-classes {
     font-size: 10px;
-    color: #666;
+    color: var(--gray-600);
     margin-top: 2px;
     font-weight: 600;
 }
@@ -204,7 +204,7 @@
 }
 
 .class-item {
-    background: #f8f9fa;
+    background: var(--gray-50);
     border-radius: 12px;
     padding: 16px;
 }
@@ -223,27 +223,27 @@
 
 .class-time {
     font-size: 14px;
-    color: #333;
+    color: var(--gray-800);
     margin-top: 8px;
 }
 
 .class-name {
     font-size: 16px;
     font-weight: 700;
-    color: #222;
+    color: var(--gray-900);
 }
 
 .class-info {
     display: flex;
     gap: 12px;
     font-size: 14px;
-    color: #333;
+    color: var(--gray-800);
 }
 
 .no-classes {
     text-align: center;
     padding: 40px 20px;
-    color: #333;
+    color: var(--gray-800);
     font-size: 14px;
 }
 

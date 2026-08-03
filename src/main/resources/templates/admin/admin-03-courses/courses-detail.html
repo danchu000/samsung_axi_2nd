@@ -13,31 +13,31 @@
         /* .main-content 가 overflow:hidden 이라 래퍼가 flex:1 + overflow-y:auto 를 가져야 본문이 스크롤된다 */
         .form-wrap { max-width: 900px; padding: 20px; flex: 1; min-height: 0; overflow-y: auto; }
         .form-section { background:#fff; margin-bottom:20px; border:1px solid var(--color-line-gray); padding:20px 24px 30px; border-radius:8px; display:flex; flex-direction:column; gap:16px; }
-        .section-title { font-size:18px; font-weight:700; color:#333; }
+        .section-title { font-size:18px; font-weight:700; color:var(--gray-800); }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
         .form-row-triple { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
-        .form-label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
-        .meta-value { font-size:14px; color:#333; }
+        .form-label { display:block; font-size:13px; font-weight:600; color:var(--gray-500); margin-bottom:4px; }
+        .meta-value { font-size:14px; color:var(--gray-800); }
         .status-badge { display:inline-block; padding:4px 12px; border-radius:12px; background:#e7f1ff; color:#1c6dd0; font-size:13px; font-weight:600; }
         .button-group { display:flex; justify-content:space-between; align-items:center; padding-bottom:30px; }
         .button-group-right { display:flex; gap:12px; }
         .inline-form { display:inline; }
-        .status-select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; }
+        .status-select { padding:8px 12px; border:1px solid var(--gray-300); border-radius:8px; }
         /* 과목/차시/강사/수강생 섹션 */
         .list-table { width:100%; border-collapse:collapse; }
-        .list-table th, .list-table td { border-bottom:1px solid #eee; padding:10px 12px; font-size:14px; text-align:left; }
-        .list-table th { color:#777; font-weight:600; background:#fafafa; }
-        .subject-block { border:1px solid #eee; border-radius:8px; padding:12px 16px; }
+        .list-table th, .list-table td { border-bottom:1px solid var(--gray-200); padding:10px 12px; font-size:14px; text-align:left; }
+        .list-table th { color:var(--gray-500); font-weight:600; background:var(--gray-50); }
+        .subject-block { border:1px solid var(--gray-200); border-radius:8px; padding:12px 16px; }
         .subject-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; }
-        .session-row { font-size:13px; color:#555; padding:4px 0 4px 12px; }
+        .session-row { font-size:13px; color:var(--gray-600); padding:4px 0 4px 12px; }
         .mini-form { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-top:8px; }
-        .mini-form input, .mini-form select { padding:8px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; }
+        .mini-form input, .mini-form select { padding:8px 10px; border:1px solid var(--gray-300); border-radius:6px; font-size:13px; }
         .chip { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; border-radius:16px; padding:4px 10px; font-size:13px; margin:0 6px 6px 0; }
-        .empty-hint { color:#999; font-size:13px; }
+        .empty-hint { color:var(--gray-500); font-size:13px; }
         .badge-status { padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600; }
-        .badge-APPLIED { background:#fff3cd; color:#856404; }
-        .badge-APPROVED { background:#d4edda; color:#155724; }
-        .badge-REJECTED { background:#f8d7da; color:#721c24; }
+        .badge-APPLIED { background:var(--color-warning-bg); color:var(--color-warning); }
+        .badge-APPROVED { background:var(--color-success-bg); color:var(--color-success); }
+        .badge-REJECTED { background:var(--color-danger-bg); color:var(--color-danger); }
         .badge-CANCELLED { background:#e2e3e5; color:#383d41; }
         .badge-COMPLETED { background:#cce5ff; color:#004085; }
     </style>
@@ -92,7 +92,7 @@
             <!-- 구성 과목 / 차시 -->
             <div class="form-section">
                 <h3 class="section-title">구성 과목 / 차시</h3>
-                <p th:if="${curriculumError}" class="field-error" th:text="${curriculumError}" style="color:#dc3545;"></p>
+                <p th:if="${curriculumError}" class="field-error" th:text="${curriculumError}" style="color:var(--color-danger);"></p>
 
                 <p th:if="${subjects.isEmpty()}" class="empty-hint">등록된 과목이 없습니다. 아래에서 과목을 추가하세요.</p>
 
@@ -106,7 +106,7 @@
                             </form>
                         </span>
                     </div>
-                    <div th:if="${subject.description}" style="color:#777; font-size:13px; margin:4px 0 8px;" th:text="${subject.description}">설명</div>
+                    <div th:if="${subject.description}" style="color:var(--gray-500); font-size:13px; margin:4px 0 8px;" th:text="${subject.description}">설명</div>
 
                     <!-- 과목명 수정 -->
                     <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects/{sid}(cid=${course.id},sid=${subject.id})}" method="post">
@@ -140,7 +140,7 @@
 
                 <!-- 과목 추가 -->
                 <form class="mini-form" th:action="@{/admin/courses/{cid}/subjects(cid=${course.id})}" method="post"
-                      style="border-top:1px solid #eee; padding-top:12px;">
+                      style="border-top:1px solid var(--gray-200); padding-top:12px;">
                     <input type="text" name="name" placeholder="새 과목명" required style="min-width:200px;">
                     <input type="text" name="description" placeholder="설명(선택)" style="min-width:220px;">
                     <button type="submit" class="btn btn-primary">+ 과목 추가</button>
@@ -150,7 +150,7 @@
             <!-- 담당 강사 -->
             <div class="form-section">
                 <h3 class="section-title">담당 강사</h3>
-                <p th:if="${instructorError}" class="field-error" th:text="${instructorError}" style="color:#dc3545;"></p>
+                <p th:if="${instructorError}" class="field-error" th:text="${instructorError}" style="color:var(--color-danger);"></p>
 
                 <div>
                     <p th:if="${instructors.isEmpty()}" class="empty-hint">배정된 강사가 없습니다.</p>
@@ -158,7 +158,7 @@
                         <span th:text="${ins.name}">강사명</span>
                         <span th:if="${ins.primary}" style="color:#1c6dd0; font-weight:700;">(대표)</span>
                         <form class="inline-form" th:action="@{/admin/courses/{cid}/instructors/{mid}/delete(cid=${course.id},mid=${ins.mappingId})}" method="post">
-                            <button type="submit" style="border:none; background:none; cursor:pointer; color:#999;">✕</button>
+                            <button type="submit" style="border:none; background:none; cursor:pointer; color:var(--gray-500);">✕</button>
                         </form>
                     </span>
                 </div>
@@ -179,7 +179,7 @@
             <!-- 수강신청 현황 -->
             <div class="form-section">
                 <h3 class="section-title">수강신청 현황</h3>
-                <p th:if="${enrollmentError}" class="field-error" th:text="${enrollmentError}" style="color:#dc3545;"></p>
+                <p th:if="${enrollmentError}" class="field-error" th:text="${enrollmentError}" style="color:var(--color-danger);"></p>
                 <p th:if="${enrollments.isEmpty()}" class="empty-hint">수강신청 내역이 없습니다.</p>
 
                 <table class="list-table" th:unless="${enrollments.isEmpty()}">
@@ -206,7 +206,7 @@
                                         <button type="submit" class="btn btn-gray" style="padding:4px 10px;">신청 복구</button>
                                     </form>
                                 </span>
-                                <span th:if="${en.status.name() == 'APPROVED' or en.status.name() == 'COMPLETED'}" style="color:#999;">-</span>
+                                <span th:if="${en.status.name() == 'APPROVED' or en.status.name() == 'COMPLETED'}" style="color:var(--gray-500);">-</span>
                             </td>
                         </tr>
                     </tbody>

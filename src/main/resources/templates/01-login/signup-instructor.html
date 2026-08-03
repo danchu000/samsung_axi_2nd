@@ -26,21 +26,21 @@
     /* Paperlogy 는 Thin/Light/Medium 3종뿐이라 600 이면 가짜 볼드가 합성된다. 실제 있는 500 사용. */
     .signup-card h2 { text-align: center; font-size: 1.4rem; font-weight: 500; margin: 0 0 1.5rem; }
     .field { margin-bottom: 1.1rem; }
-    .field > label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; color: #333; }
+    .field > label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--gray-800); }
     .field .req { color: #d33; margin-left: 2px; }
     .field input[type=text], .field input[type=password], .field input[type=email],
     .field input[type=date], .field select {
-        width: 100%; padding: 9px 12px; border: 1px solid #999; border-radius: 4px;
+        width: 100%; padding: 9px 12px; border: 1px solid var(--gray-400); border-radius: 4px;
         font-size: 0.95rem; box-sizing: border-box; font-family: inherit;
     }
     .field input:focus, .field select:focus {
         border-color: var(--color-primary); outline: none;
-        box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+        box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
     }
     .radio-group { display: flex; gap: 1.5rem; align-items: center; }
     .radio-group label { display: flex; align-items: center; gap: 5px; font-size: 0.95rem; cursor: pointer; }
     .field-error { color: #d33; font-size: 0.8rem; margin-top: 0.3rem; }
-    .consent-box { border-top: 1px solid #ddd; margin-top: 1.5rem; padding-top: 1.2rem; }
+    .consent-box { border-top: 1px solid var(--gray-300); margin-top: 1.5rem; padding-top: 1.2rem; }
     .consent-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 0.7rem; font-size: 0.9rem; }
     .consent-row input { margin-top: 3px; }
     .form-buttons { display: flex; gap: 10px; margin-top: 1.8rem; }
@@ -50,7 +50,7 @@
     .btn-submit { background: #000; color: #fff; }
     .btn-submit:hover { background: var(--color-deep-primary); border-color: var(--color-deep-primary); }
     .btn-back { background: #fff; color: #000; }
-    .btn-back:hover { background: #f0f0f0; }
+    .btn-back:hover { background: var(--gray-100); }
 </style>
 <body class="login-bg">
     <form class="signup-card" th:action="@{/signup/instructor}" th:object="${signupForm}" method="post">

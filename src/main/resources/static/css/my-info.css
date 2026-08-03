@@ -25,14 +25,14 @@
     font-weight: 600;
     font-size: 14px;
     color: var(--color-font-gray);
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid var(--gray-300);
 }
 
 .manager-table td {
     padding: 12px 15px;
     font-size: 14px;
     color: var(--color-font-gray);
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gray-100);
     text-align: center;
 }
 
@@ -50,11 +50,11 @@
 }
 
 .manager-table tbody tr.row-inactive:hover {
-    background-color: #eeeeee;
+    background-color: var(--gray-200);
 }
 
 .manager-table tbody tr.row-inactive td {
-    color: #999;
+    color: var(--gray-500);
 }
 
 .attendance-rate {
@@ -100,14 +100,14 @@
     font-weight: 600;
     font-size: 14px;
     color: var(--color-font-gray);
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid var(--gray-300);
 }
 
 .manager-table td {
     padding: 12px 15px;
     font-size: 14px;
     color: var(--color-font-gray);
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gray-100);
     text-align: center;
 }
 
@@ -141,7 +141,7 @@
     aspect-ratio: 3/4;
     border-radius: 8px;
     object-fit: cover;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
 }
 
 .manager-basic-info {

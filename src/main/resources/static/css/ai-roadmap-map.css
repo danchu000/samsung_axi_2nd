@@ -189,7 +189,7 @@
 /* ===== 상세 패널 ===== */
 .map-detail {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--gray-200);
     border-radius: 12px;
     padding: 18px 20px;
     margin-top: 16px;

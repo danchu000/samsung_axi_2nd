@@ -12,24 +12,24 @@
     <title>Samsung Academy LXP - 출결현황</title>
     <style>
         .toolbar { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; }
-        .toolbar label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
-        .toolbar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; min-width:280px; }
+        .toolbar label { display:block; font-size:13px; font-weight:600; color:var(--gray-500); margin-bottom:4px; }
+        .toolbar select { padding:8px 12px; border:1px solid var(--gray-300); border-radius:8px; min-width:280px; }
         .flash-msg { background:#e7f6ec; color:#1b7a3d; border:1px solid #b6e0c4; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px; }
         .matrix-wrap { overflow-x:auto; }
         table.att-matrix { border-collapse:collapse; width:100%; font-size:13px; }
-        table.att-matrix th, table.att-matrix td { border:1px solid #eee; padding:8px 10px; text-align:center; white-space:nowrap; }
-        table.att-matrix th { background:#fafafa; color:#555; font-weight:600; }
+        table.att-matrix th, table.att-matrix td { border:1px solid var(--gray-200); padding:8px 10px; text-align:center; white-space:nowrap; }
+        table.att-matrix th { background:var(--gray-50); color:var(--gray-600); font-weight:600; }
         table.att-matrix td.name-cell, table.att-matrix th.name-cell { text-align:left; position:sticky; left:0; background:#fff; z-index:1; font-weight:600; }
         .att-badge { display:inline-block; min-width:44px; padding:3px 8px; border-radius:10px; font-size:12px; font-weight:600; }
-        .att-PRESENT { background:#d4edda; color:#155724; }
-        .att-LATE    { background:#fff3cd; color:#856404; }
-        .att-ABSENT  { background:#f8d7da; color:#721c24; }
+        .att-PRESENT { background:var(--color-success-bg); color:var(--color-success); }
+        .att-LATE    { background:var(--color-warning-bg); color:var(--color-warning); }
+        .att-ABSENT  { background:var(--color-danger-bg); color:var(--color-danger); }
         .att-EXCUSED { background:#e2e3ff; color:#3730a3; }
-        .att-NONE    { color:#bbb; }
+        .att-NONE    { color:var(--gray-500); }
         .rate-cell { font-weight:700; }
-        .empty-hint { color:#999; font-size:14px; padding:24px 0; }
+        .empty-hint { color:var(--gray-500); font-size:14px; padding:24px 0; }
         .override-form { display:inline-flex; gap:4px; align-items:center; }
-        .override-form select { padding:2px 4px; font-size:11px; border:1px solid #ddd; border-radius:6px; }
+        .override-form select { padding:2px 4px; font-size:11px; border:1px solid var(--gray-300); border-radius:6px; }
         .override-form button { padding:2px 6px; font-size:11px; }
         details.cell-edit summary { cursor:pointer; list-style:none; }
         details.cell-edit[open] summary { margin-bottom:4px; }

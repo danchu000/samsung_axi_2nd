@@ -9,25 +9,25 @@
     <style>
         .myinfo-wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         .info-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 24px; }
-        .info-card h3 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 16px; }
+        .info-card h3 { font-size: 16px; font-weight: 600; color: var(--gray-800); margin-bottom: 16px; }
         .form-row { display: flex; align-items: center; margin-bottom: 14px; }
-        .form-row > label { width: 130px; font-weight: 600; font-size: 14px; color: #444; }
+        .form-row > label { width: 130px; font-weight: 600; font-size: 14px; color: var(--gray-800); }
         .form-row .field { flex: 1; }
         .form-row input[type=text], .form-row input[type=email], .form-row input[type=date],
         .form-row input[type=password] {
-            width: 100%; max-width: 340px; padding: 8px 10px; border: 1px solid #ccc;
+            width: 100%; max-width: 340px; padding: 8px 10px; border: 1px solid var(--gray-300);
             border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-        .form-row input[readonly] { background: #f5f5f5; }
+        .form-row input[readonly] { background: var(--gray-100); }
         .radio-group { display: flex; gap: 18px; }
         .radio-group label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
-        .field-error { color: #c62828; font-size: 12px; margin-top: 4px; display: block; }
+        .field-error { color: var(--color-danger); font-size: 12px; margin-top: 4px; display: block; }
         .form-actions { text-align: right; margin-top: 8px; }
         .flash { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
-        .flash-success { background: #e8f5e9; color: #2e7d32; }
-        .flash-error { background: #fdecea; color: #c62828; }
+        .flash-success { background: var(--color-success-bg); color: var(--color-success); }
+        .flash-error { background: var(--color-danger-bg); color: var(--color-danger); }
         .status-badge { padding: 3px 10px; border-radius: 12px; font-size: 13px; }
-        .status-active { background: #e8f5e9; color: #2e7d32; }
-        .status-other { background: #eee; color: #666; }
+        .status-active { background: var(--color-success-bg); color: var(--color-success); }
+        .status-other { background: var(--gray-200); color: var(--gray-600); }
     </style>
 </head>
 <body>
@@ -131,7 +131,7 @@
                     </div>
                 </form>
 
-                <p style="font-size:13px; color:#888; text-align:center;">
+                <p style="font-size:13px; color:var(--gray-500); text-align:center;">
                     계정 상태·역할 변경 및 탈퇴 문의는 담당 관리자에게 문의해 주세요.
                 </p>
             </div>

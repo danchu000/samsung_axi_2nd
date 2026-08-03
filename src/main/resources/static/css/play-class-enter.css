@@ -12,7 +12,7 @@
     display: block;
     max-width: 80%;
     width: fit-content;
-    background: #007bff;
+    background: var(--color-primary);
     color: #fff;
     padding: 10px 16px;
     border-radius: 18px 18px 4px 18px;
@@ -50,7 +50,7 @@
     width: 340px;
     height: calc(100vh - 64px);
     background: #181818;
-    border-left: 1.5px solid #222;
+    border-left: 1.5px solid var(--gray-900);
     display: flex;
     flex-direction: column;
     z-index: 100;
@@ -75,7 +75,7 @@
     font-size: 1.1rem;
     font-weight: 600;
     
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--gray-900);
     padding: 10px 10px 10px 10px;
     display: flex;
     gap: 8px;
@@ -83,7 +83,7 @@
 .comm-memo-input-area {
     width: 100%;
     background: #202020;
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--gray-900);
     padding: 10px 10px 10px 10px;
     display: flex;
     flex-direction: column;
@@ -103,7 +103,7 @@
     box-sizing: border-box;
 }
 .comm-memo-save-btn {
-    background: #007bff;
+    background: var(--color-primary);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -115,7 +115,7 @@
     width: 100%;
 }
 .comm-memo-save-btn:hover {
-    background: #0056b3;
+    background: var(--color-primary-hover);
 }
 .header .comm-toggle-btn {
     margin-left: auto;
@@ -130,7 +130,7 @@
     transition: background 0.2s;
 }
 .header .comm-toggle-btn:hover {
-    background: #333;
+    background: var(--gray-800);
 }
 .comm-content {
     flex: 1 1 0;
@@ -142,7 +142,7 @@
 .comm-input-area {
     width: 100%;
     background: #202020;
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--gray-900);
     padding: 10px 10px 10px 10px;
     display: flex;
     gap: 8px;
@@ -153,7 +153,7 @@
 }
 
 .comm-send-btn:hover {
-    background: #0056b3;
+    background: var(--color-primary-hover);
 }
 html, body {
     height: 100%;
@@ -181,7 +181,7 @@ body {
     font-size: 1.2rem;
     font-weight: 500;
     letter-spacing: 1px;
-    border-bottom: 1.5px solid #222;
+    border-bottom: 1.5px solid var(--gray-900);
     box-sizing: border-box;
 }
 .lecture-area {
@@ -203,7 +203,7 @@ scrollbar-width: thin;    /* Firefox */
 }
 .student-list-scroll::-webkit-scrollbar {
 height: 8px;
-background: #f0f0f0;
+background: var(--gray-100);
 }
 .student-list-scroll::-webkit-scrollbar-thumb {
 background: #d1d1d1;
@@ -224,7 +224,7 @@ height: 55px;
 background: #fff;
 border-radius: 16px;
 box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-border: 1px solid #e0e0e0;
+border: 1px solid var(--gray-200);
 padding: 12px 20px 12px 16px;
 max-width: 320px;
 }
@@ -244,7 +244,7 @@ height: 38px;
 border-radius: 50%;
 margin-right: 16px;
 object-fit: cover;
-background: #f0f0f0;
+background: var(--gray-100);
 }
 .student-card .student-info {
 display: flex;
@@ -255,10 +255,10 @@ gap: 4px;
 .student-card .student-name {
 font-size: 16px;
 font-weight: 600;
-color: #222;
+color: var(--gray-900);
 }
 .student-card .student-status-label {
 font-size: 13px;
-color: #888;
+color: var(--gray-500);
 font-weight: 500;
 }

@@ -52,7 +52,7 @@
             border: 1px solid var(--color-line-gray);
             border-radius: 20px;
             font-size: 14px;
-            color: #333;
+            color: var(--gray-800);
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
@@ -66,7 +66,7 @@
             color: white;
             border-color: var(--color-primary);
             transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+            box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
         }
 
         .student-btn.active {
@@ -82,8 +82,8 @@
 
         .student-btn.all:hover,
         .student-btn.all.active {
-            background: #0056b3;
-            border-color: #0056b3;
+            background: var(--color-primary-hover);
+            border-color: var(--color-primary-hover);
         }
 
         .student-btn .status-dot {
@@ -227,13 +227,13 @@
             grid-auto-rows: minmax(150px, auto);
         }
 
-        .video-item.severity-critical { border-color: #D32F2F; }
+        .video-item.severity-critical { border-color: var(--color-danger); }
         .video-item.severity-warn { border-color: #F9A825; }
         .video-item .video-placeholder {
             width: 100%; height: 100%; min-height: 140px;
             display: flex; align-items: center; justify-content: center;
-            color: #777; font-size: 13px; text-align: center; padding: 8px;
-            background: repeating-linear-gradient(45deg, #111, #111 10px, #1a1a1a 10px, #1a1a1a 20px);
+            color: var(--gray-500); font-size: 13px; text-align: center; padding: 8px;
+            background: repeating-linear-gradient(45deg, var(--gray-900), var(--gray-900) 10px, #1a1a1a 10px, #1a1a1a 20px);
         }
         .video-item .video-meta {
             position: absolute; bottom: 8px; left: 8px; right: 8px;
@@ -250,7 +250,7 @@
         .proctor-table th { background: #f5f6f8; font-weight: 600; white-space: nowrap; }
         .proctor-table td.actions { white-space: nowrap; }
         .proctor-table input[type=text] { padding: 5px 8px; border: 1px solid var(--color-line-gray); border-radius: 4px; width: 190px; }
-        .sev-critical { color: #D32F2F; font-weight: 700; }
+        .sev-critical { color: var(--color-danger); font-weight: 700; }
         .sev-warn { color: #F9A825; font-weight: 600; }
 
         .event-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 10000; align-items: center; justify-content: center; }
@@ -277,7 +277,7 @@
                         th:classappend="${row.live} ? '' : 'inactive'"
                         th:attr="onclick=|filterStudent('${row.attemptId}', this)|"
                         th:title="${row.statusLabel}">
-                    <span class="status-dot" th:style="${row.live} ? 'background:#00ff00' : 'background:#888;box-shadow:none'"></span>
+                    <span class="status-dot" th:style="${row.live} ? 'background:#00ff00' : 'background:var(--gray-400);box-shadow:none'"></span>
                     <span th:text="${row.traineeName}">응시자</span>
                 </button>
             </div>
@@ -373,7 +373,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(monitor.rows)}">
-                    <td colspan="10" style="text-align:center; color:#888;">응시 기록이 없습니다.</td>
+                    <td colspan="10" style="text-align:center; color:var(--gray-500);">응시 기록이 없습니다.</td>
                 </tr>
             </tbody>
         </table>

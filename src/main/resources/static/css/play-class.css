@@ -23,7 +23,7 @@ main.main-content .content-header {
 }
 
 .content-header > span {
-    color: #666;
+    color: var(--gray-600);
 }
 
 .breadcrumb-item {
@@ -43,18 +43,18 @@ main.main-content .content-header {
 .breadcrumb-label {
     font-size: 14px;
     font-weight: 600;
-    color: #999;
+    color: var(--gray-500);
     text-transform: uppercase;
 }
 
 .breadcrumb-value {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--gray-800);
 }
 
 .breadcrumb-separator {
-    color: #ddd;
+    color: var(--gray-300);
     font-size: 18px;
     margin: 0 4px;
 }
@@ -64,11 +64,11 @@ main.main-content .content-header {
 }
 
 .breadcrumb-subject {
-    color: #555;
+    color: var(--gray-600);
 }
 
 .breadcrumb-content {
-    color: #666;
+    color: var(--gray-600);
 }
 
 /* 2) 강의 콘텐츠 카드(본문) */
@@ -76,7 +76,7 @@ main.main-content .content-header {
     background: #fff;
     border-radius: 12px;
     padding: 45px 50px;
-    border: 1.5px solid #e0e0e0;
+    border: 1.5px solid var(--gray-200);
 }
 
 /* 3) 텍스트 스타일 */
@@ -84,11 +84,11 @@ main.main-content .content-header {
     font-size: 1.6rem;
     font-weight: 700;
     margin-bottom: 16px;
-    color: #222;
+    color: var(--gray-900);
 }
 
 .main-content .class-meta {
-    color: #888;
+    color: var(--gray-500);
     font-size: 1rem;
     margin-bottom: 24px;
 }
@@ -101,18 +101,18 @@ main.main-content .content-header {
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 10px;
-    color: #007bff;
+    color: var(--color-primary);
 }
 
 .main-content .class-desc {
     font-size: 1.1rem;
-    color: #444;
+    color: var(--gray-800);
     margin-bottom: 18px;
 }
 
 /* 4) 학습자료 박스 */
 .main-content .class-materials {
-    background: #f8f9fa;
+    background: var(--gray-50);
     border-radius: 8px;
     padding: 18px 20px;
     margin-bottom: 18px;
@@ -125,7 +125,7 @@ main.main-content .content-header {
 
 .main-content .class-materials li {
     margin-bottom: 8px;
-    color: #555;
+    color: var(--gray-600);
 }
 
 /* 5) 하단 액션 영역 */

@@ -24,7 +24,7 @@
         .section-header h2 {
             font-size: 24px;
             font-weight: 600;
-            color: #333;
+            color: var(--gray-800);
         }
 
         /* 필터 영역 */
@@ -46,7 +46,7 @@
         .filter-row label {
             margin-right: 8px;
             font-weight: 500;
-            color: #333;
+            color: var(--gray-800);
         }
 
         .filter-item {
@@ -72,11 +72,11 @@
             grid-template-columns: 50px 50px 1.5fr 2.5fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;
             gap: 16px;
             padding: 16px 20px;
-            background: #f5f5f5;
+            background: var(--gray-100);
             border-bottom: 2px solid var(--color-line-gray);
             font-weight: 600;
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
             border-radius: 8px 8px 0 0;
         }
 
@@ -132,7 +132,7 @@
 
         .test-number {
             font-weight: 600;
-            color: #333;
+            color: var(--gray-800);
         }
 
         .test-course { display: flex; flex-direction: column; gap: 4px; text-align: left; }
@@ -144,13 +144,13 @@
 
         .course-name {
             font-weight: 600;
-            color: #333;
+            color: var(--gray-800);
             font-size: 15px;
         }
 
         .course-id {
             font-size: 13px;
-            color: #999;
+            color: var(--gray-500);
         }
 
         .test-name {
@@ -161,7 +161,7 @@
 
         .instructor-name {
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
         }
 
         .test-time-info {
@@ -172,12 +172,12 @@
         }
 
         .test-date {
-            color: #333;
+            color: var(--gray-800);
             font-weight: 500;
         }
 
         .test-time {
-            color: #999;
+            color: var(--gray-500);
         }
 
         .submission-info {
@@ -188,12 +188,12 @@
         }
 
         .submitted {
-            color: #388E3C;
+            color: var(--color-success);
             font-weight: 600;
         }
 
         .not-submitted {
-            color: #F57C00;
+            color: var(--color-warning);
             font-weight: 600;
         }
 
@@ -210,18 +210,18 @@
         }
 
         .status-active {
-            background: #E3F2FD;
-            color: #1976D2;
+            background: var(--color-info-bg);
+            color: var(--color-primary-active);
         }
 
         .status-closed {
-            background: #F5F5F5;
-            color: #999;
+            background: var(--gray-100);
+            color: var(--gray-500);
         }
 
         .status-upcoming {
-            background: #FFF3E0;
-            color: #F57C00;
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
         }
 
         #pageNumbers {
@@ -240,7 +240,7 @@
         }
 
         .page-number-btn:hover {
-            background: #f5f5f5;
+            background: var(--gray-100);
         }
 
         .page-number-btn.active {
@@ -251,7 +251,7 @@
 
         .page-info {
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
         }
 
         /* 시험 운영 설정 배지 — 모의 테스트 / 문제 세트 / 성적 공개 */
@@ -263,7 +263,7 @@
             font-weight: 600;
             white-space: nowrap;
         }
-        .tag-practice { background: #FFF3E0; color: #EF6C00; }
+        .tag-practice { background: var(--color-warning-bg); color: var(--color-warning); }
         .tag-set { background: #EDE7F6; color: #5E35B1; }
         .tag-release { background: #ECEFF1; color: #546E7A; font-weight: 500; }
 
@@ -282,7 +282,7 @@
 
             <!-- 처리 결과 안내 -->
             <div th:if="${message}" class="alert-message"
-                 style="margin-bottom:16px;padding:12px 16px;border-radius:6px;background:#E3F2FD;color:#1976D2;font-size:14px;"
+                 style="margin-bottom:16px;padding:12px 16px;border-radius:6px;background:var(--color-info-bg);color:var(--color-primary-active);font-size:14px;"
                  th:text="${message}"></div>
 
             <!-- 필터 영역 -->
@@ -377,9 +377,9 @@
                                   th:text="${row.status}">상태</span>
                             <!-- 내역서 요건: 본인인증 강제 여부를 목록에서 바로 확인할 수 있어야 한다 -->
                             <span th:if="${row.requireIdentityVerification}"
-                                  style="font-size:11px;color:#388E3C;">본인인증</span>
+                                  style="font-size:11px;color:var(--color-success);">본인인증</span>
                             <span th:unless="${row.requireIdentityVerification}"
-                                  style="font-size:11px;color:#D32F2F;">인증없음</span>
+                                  style="font-size:11px;color:var(--color-danger);">인증없음</span>
                         </div>
                         <div>
                             <button class="btn btn-secondary" type="button"
@@ -387,7 +387,7 @@
                         </div>
                     </div>
                     <div th:if="${#lists.isEmpty(rows)}"
-                         style="padding:40px;text-align:center;color:#888;font-size:14px;">
+                         style="padding:40px;text-align:center;color:var(--gray-500);font-size:14px;">
                         등록된 시험이 없습니다.
                     </div>
                 </div>

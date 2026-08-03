@@ -12,20 +12,20 @@
     <title>Samsung Academy LXP - 강사 이수 관리</title>
     <style>
         .toolbar { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; }
-        .toolbar label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
-        .toolbar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; min-width:280px; }
+        .toolbar label { display:block; font-size:13px; font-weight:600; color:var(--gray-500); margin-bottom:4px; }
+        .toolbar select { padding:8px 12px; border:1px solid var(--gray-300); border-radius:8px; min-width:280px; }
         .readonly-hint { background:#eef3fb; color:#33466b; border:1px solid #cdd9ee; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:13px; }
         table.grad-table { border-collapse:collapse; width:100%; font-size:13px; }
-        table.grad-table th, table.grad-table td { border-bottom:1px solid #eee; padding:10px 12px; text-align:center; }
-        table.grad-table th { background:#fafafa; color:#555; font-weight:600; }
+        table.grad-table th, table.grad-table td { border-bottom:1px solid var(--gray-200); padding:10px 12px; text-align:center; }
+        table.grad-table th { background:var(--gray-50); color:var(--gray-600); font-weight:600; }
         .badge { display:inline-block; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
-        .res-PASS { background:#d4edda; color:#155724; }
-        .res-FAIL { background:#f8d7da; color:#721c24; }
+        .res-PASS { background:var(--color-success-bg); color:var(--color-success); }
+        .res-FAIL { background:var(--color-danger-bg); color:var(--color-danger); }
         .res-PENDING { background:#e2e3e5; color:#383d41; }
         .cs-CONFIRMED { background:#cfe2ff; color:#084298; }
-        .cs-EXPECTED { background:#fff3cd; color:#856404; }
+        .cs-EXPECTED { background:var(--color-warning-bg); color:var(--color-warning); }
         .cs-PENDING { background:#e2e3e5; color:#383d41; }
-        .empty-hint { color:#999; font-size:14px; padding:24px 0; }
+        .empty-hint { color:var(--gray-500); font-size:14px; padding:24px 0; }
     </style>
 </head>
 <body data-user-role="instructor">

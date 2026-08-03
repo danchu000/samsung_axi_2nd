@@ -6,7 +6,7 @@
     border-radius: 6px;
     font-size: 15px;
     background: #f9fafb;
-    color: #333;
+    color: var(--gray-800);
     outline: none;
     transition: border-color 0.2s;
 }
@@ -24,7 +24,7 @@
    아래 첫 선언이 뒤쪽 선언로 덮어써질 수 있음(같은 셀렉터). */
 .modal-date-row .date-separator {
     font-size: 15px;
-    color: #666;
+    color: var(--gray-600);
     margin-left: 6px;
 }
 
@@ -112,7 +112,7 @@
     align-items: center;
     padding: 20px;
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--gray-200);
     border-radius: 8px;
     margin-bottom: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -129,7 +129,7 @@
 .btn-move {
     padding: 4px 8px;
     font-size: 11px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     background: white;
     border-radius: 4px;
     cursor: pointer;
@@ -151,7 +151,7 @@
 .btn-move:disabled:hover {
     background: white;
     color: inherit;
-    border-color: #ddd;
+    border-color: var(--gray-300);
 }
 
 .content-item:last-child {
@@ -167,7 +167,7 @@
 .content-order {
     font-size: 16px;
     font-weight: 600;
-    color: #666;
+    color: var(--gray-600);
     text-align: center;
 }
 
@@ -185,12 +185,12 @@
 .content-title {
     font-size: 15px;
     font-weight: 500;
-    color: #333;
+    color: var(--gray-800);
 }
 
 .content-meta {
     font-size: 13px;
-    color: #666;
+    color: var(--gray-600);
 }
 
 .content-actions {
@@ -208,13 +208,13 @@
 .subject-name {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--gray-800);
     margin-bottom: 4px;
 }
 
 .subject-code {
     font-size: 12px;
-    color: #999;
+    color: var(--gray-500);
 }
 
 .subject-actions {
@@ -225,7 +225,7 @@
 .btn-icon {
     padding: 6px 12px;
     font-size: 13px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     background: white;
     border-radius: 6px;
     cursor: pointer;
@@ -250,7 +250,7 @@
 }
 
 .btn-icon:hover {
-    background: #f8f9fa;
+    background: var(--gray-50);
 }
 
 .btn-icon:hover .btn-text {
@@ -267,7 +267,7 @@
 
 .subject-info-item {
     font-size: 16px;
-    color: #666;
+    color: var(--gray-600);
     display: flex;
     gap: 8px;
     align-items: center;
@@ -283,7 +283,7 @@
     background: white;
     border: 1px solid var(--color-line-gray);
     border-radius: 8px;
-    color: #999;
+    color: var(--gray-500);
 }
 
 /* A의 폼 영역에서 textarea/disabled 스타일이 따로 존재 */
@@ -294,8 +294,8 @@
 
 .form-input:disabled,
 .form-select:disabled {
-    background: #f5f5f5;
-    color: #999;
+    background: var(--gray-100);
+    color: var(--gray-400);
     cursor: not-allowed;
 }
 
@@ -314,7 +314,7 @@
     gap: 8px;
     cursor: pointer;
     font-size: 14px;
-    color: #555;
+    color: var(--gray-600);
 }
 
 .radio-item input[type="radio"],
@@ -338,7 +338,7 @@
 
 .input-unit {
     font-size: 14px;
-    color: #666;
+    color: var(--gray-600);
     font-weight: 600;
     min-width: 40px;
 }
@@ -356,7 +356,7 @@
 
 /* ⚠️ A의 date-separator 두 번째 선언(위 모달용을 덮어쓸 수 있음) */
 .date-range .date-separator {
-    color: #999;
+    color: var(--gray-400);
     font-weight: 600;
 }
 
@@ -369,7 +369,7 @@
 
 .progress-period {
     font-size: 14px;
-    color: #666;
+    color: var(--gray-600);
 }
 
 /* A의 history-table은 margin-top 사용 */
@@ -438,13 +438,13 @@
     justify-content: center;
     width: 120px;
     height: 140px;
-    background: #f8f9fa;
+    background: var(--gray-50);
     border-radius: 16px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--gray-200);
     cursor: pointer;
     font-size: 16px;
     font-weight: 500;
-    color: #333;
+    color: var(--gray-800);
     position: relative;
 }
 .type-card:hover {

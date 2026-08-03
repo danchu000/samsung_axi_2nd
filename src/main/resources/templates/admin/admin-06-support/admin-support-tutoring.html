@@ -34,8 +34,8 @@
         align-items: center;
         gap: 5px;
         font-size: 15px;
-        color: #444;
-        background: #f5f5f5;
+        color: var(--gray-800);
+        background: var(--gray-100);
         border-radius: 7px;
         padding: 4px 12px;
     }
@@ -52,12 +52,12 @@
         margin-bottom: 0;
     }
     .tab-btn {
-        background: #f5f5f5;
+        background: var(--gray-100);
         border: none;
         border-radius: 24px;
         padding: 12px 32px;
         font-size: 17px;
-        color: #666;
+        color: var(--gray-600);
         font-weight: 500;
         cursor: pointer;
         transition: background 0.2s, color 0.2s;
@@ -73,7 +73,7 @@
         position: absolute;
         left: 0%;
         top: 110%;
-        background: #444;
+        background: var(--gray-800);
         color: #fff;
         padding: 7px 16px;
         border-radius: 7px;
@@ -92,7 +92,7 @@
             gap: 16px;
         }
         .tutoring-request-card {
-            background: #f8f9fa;
+            background: var(--gray-50);
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             padding: 18px 22px;
@@ -115,23 +115,23 @@
         .tutoring-request-name {
             font-size: 17px;
             font-weight: 600;
-            color: #333;
+            color: var(--gray-800);
         }
         .tutoring-request-time {
             font-size: 13px;
-            color: #888;
+            color: var(--gray-500);
             background: #e3e7fa;
             border-radius: 6px;
             padding: 2px 10px;
         }
         .tutoring-request-course {
             font-size: 15px;
-            color: #444;
+            color: var(--gray-800);
             font-weight: 500;
         }
         .tutoring-request-type {
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
         }
         .tutoring-request-types{
             display: flex;
@@ -141,7 +141,7 @@
             .qna-card, .tutoring-card {
                 flex: 1;
                 min-width: 180px;
-                background: #f8f9fa;
+                background: var(--gray-50);
                 border-radius: 12px;
                 padding: 18px 22px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -157,7 +157,7 @@
             }
             .card-title {
                 font-size: 15px;
-                color: #888;
+                color: var(--gray-500);
                 margin-bottom: 7px;
             }
             .card-value {
@@ -168,17 +168,17 @@
             .card-value-sub {
                 font-size: 17px;
                 font-weight: 600;
-                color: #333;
+                color: var(--gray-800);
                 margin-bottom: 4px;
             }
             .card-desc {
                 font-size: 14px;
-                color: #888;
+                color: var(--gray-500);
             }
             .card-value-danger {
                 font-size: 17px;
                 font-weight: 600;
-                color: #d32f2f;
+                color: var(--color-danger);
                 margin-bottom: 4px;
             }
             /* scroll-animation: 긴 텍스트 좌우 스크롤, 줄바꿈X, 말줄임표 */
@@ -206,7 +206,7 @@
         .qna-card, .tutoring-card {
             flex: 1;
             min-width: 180px;
-            background: #f8f9fa;
+            background: var(--gray-50);
             border-radius: 12px;
             padding: 18px 22px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -232,11 +232,11 @@
         .qna-search { width:260px; }
         .qna-table-wrap { overflow-x:auto; }
         .qna-table { width:100%; border-collapse:collapse; font-size:14px; }
-        .qna-table th, .qna-table td { padding:10px 12px; border-bottom:1px solid #eee; text-align:left; vertical-align:middle; }
-        .qna-table th { background:#fafafa; color:#666; font-weight:600; }
+        .qna-table th, .qna-table td { padding:10px 12px; border-bottom:1px solid var(--gray-200); text-align:left; vertical-align:middle; }
+        .qna-table th { background:var(--gray-50); color:var(--gray-600); font-weight:600; }
         .qna-table tbody tr:hover { background:#fbfbff; }
         .qna-badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:13px; }
-        .qna-badge.wait { background:#fff3cd; color:#856404; }
+        .qna-badge.wait { background:var(--color-warning-bg); color:var(--color-warning); }
         .qna-badge.open { background:#e3e7fa; color:#2a5ada; }
         .qna-manage-btn { padding:6px 10px; font-size:13px; }
     </style>
@@ -338,7 +338,7 @@
                                         <td><a class="btn btn-secondary" th:href="@{/admin/support/tutoring/{id}(id=${room.id})}">상세보기</a></td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(rooms)}">
-                                        <td colspan="8" style="text-align:center; color:#888;">등록된 튜터링이 없습니다.</td>
+                                        <td colspan="8" style="text-align:center; color:var(--gray-500);">등록된 튜터링이 없습니다.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -445,7 +445,7 @@
                                         <td><a class="btn btn-secondary" th:href="@{/admin/support/qna/{id}(id=${row.id})}">상세보기</a></td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(rows)}">
-                                        <td colspan="9" style="text-align:center; color:#888;">등록된 질문이 없습니다.</td>
+                                        <td colspan="9" style="text-align:center; color:var(--gray-500);">등록된 질문이 없습니다.</td>
                                     </tr>
                                 </tbody>
                             </table>

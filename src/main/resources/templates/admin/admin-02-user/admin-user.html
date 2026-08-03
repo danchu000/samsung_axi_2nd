@@ -14,17 +14,17 @@
         .manager-table { width: 100%; border-collapse: collapse; background-color: white; }
         .manager-table thead { background-color: var(--color-light-gray); }
         .manager-table th { padding: 12px 15px; text-align: center; font-weight: 600;
-            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid #ddd; }
+            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid var(--gray-300); }
         .manager-table td { padding: 12px 15px; font-size: 14px; color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0; text-align: center; }
-        .manager-table tbody tr.row-inactive td { color: #aaa; }
+            border-bottom: 1px solid var(--gray-100); text-align: center; }
+        .manager-table tbody tr.row-inactive td { color: var(--gray-500); }
         .empty-row td { padding: 40px 15px; color: var(--color-font-gray-light); }
         .flash { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
-        .flash-success { background: #e8f5e9; color: #2e7d32; }
-        .flash-error { background: #fdecea; color: #c62828; }
+        .flash-success { background: var(--color-success-bg); color: var(--color-success); }
+        .flash-error { background: var(--color-danger-bg); color: var(--color-danger); }
         .status-badge { padding: 3px 10px; border-radius: 12px; font-size: 13px; }
-        .status-active { background: #e8f5e9; color: #2e7d32; }
-        .status-other { background: #eee; color: #666; }
+        .status-active { background: var(--color-success-bg); color: var(--color-success); }
+        .status-other { background: var(--gray-200); color: var(--gray-600); }
         .row-actions { display: inline-flex; gap: 6px; }
         .row-actions form { display: inline; }
     </style>

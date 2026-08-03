@@ -40,7 +40,7 @@
 
             <!-- 서비스가 던진 검증 오류(기준 배점 합계 불일치, 중복 배정 등)는 전역 오류로 붙는다. -->
             <div th:if="${#fields.hasGlobalErrors()}"
-                 style="margin-bottom:16px;padding:12px 14px;border-radius:8px;background:#fdecea;color:#b42318;">
+                 style="margin-bottom:16px;padding:12px 14px;border-radius:8px;background:var(--color-danger-bg);color:var(--color-danger);">
                 <div th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</div>
             </div>
 
@@ -56,7 +56,7 @@
                             <option th:each="c : ${courseOptions}"
                                     th:value="${c.id}" th:text="${c.label()}">과정</option>
                         </select>
-                        <div class="form-help" style="color:#b42318;"
+                        <div class="form-help" style="color:var(--color-danger);"
                              th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}"></div>
                     </div>
                 </div>
@@ -132,11 +132,11 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(assignmentOptions)}">
-                            <td colspan="5" style="color:#777;">등록된 과제가 없습니다. 아래에서 먼저 과제를 등록하세요.</td>
+                            <td colspan="5" style="color:var(--gray-500);">등록된 과제가 없습니다. 아래에서 먼저 과제를 등록하세요.</td>
                         </tr>
                     </tbody>
                 </table>
-                <div class="form-help" style="color:#b42318;"
+                <div class="form-help" style="color:var(--color-danger);"
                      th:if="${#fields.hasErrors('assignmentId')}" th:errors="*{assignmentId}"></div>
             </div>
 
@@ -179,7 +179,7 @@
                     <div class="form-group">
                         <label class="form-label required" for="score">배점</label>
                         <input type="number" class="form-input" id="score" min="1" th:field="*{score}" required>
-                        <div class="form-help" style="color:#b42318;"
+                        <div class="form-help" style="color:var(--color-danger);"
                              th:if="${#fields.hasErrors('score')}" th:errors="*{score}"></div>
                     </div>
                     <div class="form-group">
@@ -219,7 +219,7 @@
                                     th:value="${i.id}"
                                     th:text="${i.name} + ' (' + ${i.loginId} + ')'">강사</option>
                         </select>
-                        <div class="form-help" style="color:#b42318;"
+                        <div class="form-help" style="color:var(--color-danger);"
                              th:if="${#fields.hasErrors('graderId')}" th:errors="*{graderId}"></div>
                     </div>
                 </div>
@@ -311,17 +311,17 @@
 
     <style>
         .step-title { font-size: 20px; font-weight: 700; margin-bottom: 18px; color: var(--color-primary); }
-        .step-box { background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; padding: 28px 32px 32px 32px; margin-bottom: 32px; }
+        .step-box { background: #fff; border-radius: 10px; border: 1px solid var(--gray-200); padding: 28px 32px 32px 32px; margin-bottom: 32px; }
         .form-row { display: flex; gap: 24px; margin-bottom: 18px; }
         .form-group { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .form-label { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 2px; }
-        .form-label.required::after { content: '*'; color: #dc3545; margin-left: 4px; }
-        .form-input, .form-select { padding: 10px 14px; border: 1px solid #ddd; border-radius: 7px; font-size: 15px; }
+        .form-label { font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 2px; }
+        .form-label.required::after { content: '*'; color: var(--color-danger); margin-left: 4px; }
+        .form-input, .form-select { padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 15px; }
         .form-input:focus, .form-select:focus { border-color: var(--color-primary); outline: none; }
-        .step-indicator { font-size: 15px; color: #888; margin-bottom: 8px; }
+        .step-indicator { font-size: 15px; color: var(--gray-500); margin-bottom: 8px; }
         .assignment-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .assignment-table th, .assignment-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
-        .assignment-table th { background: #f8f9fa; font-weight: 600; }
+        .assignment-table th, .assignment-table td { border: 1px solid var(--gray-200); padding: 10px; text-align: center; }
+        .assignment-table th { background: var(--gray-50); font-weight: 600; }
         .assignment-table tbody tr:hover { background: #f5faff; cursor: pointer; }
         .button-group { display: flex; justify-content: space-between; gap: 16px; margin-top: 32px; }
         .step-box + .step-box { margin-top: 0; }

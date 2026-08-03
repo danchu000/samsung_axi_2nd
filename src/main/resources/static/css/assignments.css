@@ -18,7 +18,7 @@
 .section-header h2 {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: var(--gray-800);
 }
 
 /* =========================
@@ -42,7 +42,7 @@
 .filter-row label {
   margin-right: 8px;
   font-weight: 500;
-  color: #333;
+  color: var(--gray-800);
 }
 
 .filter-item {
@@ -75,11 +75,11 @@
   display: grid;
   gap: 16px;
   padding: 16px 20px;
-  background: #f5f5f5;
+  background: var(--gray-100);
   border-bottom: 2px solid var(--color-line-gray);
   font-weight: 600;
   font-size: 14px;
-  color: #666;
+  color: var(--gray-600);
   border-radius: 8px 8px 0 0;
 }
 
@@ -133,7 +133,7 @@
 .assignment-number,
 .grading-number {
   font-weight: 600;
-  color: #333;
+  color: var(--gray-800);
 }
 
 .assignment-course,
@@ -146,13 +146,13 @@
 
 .course-name {
   font-weight: 600;
-  color: #333;
+  color: var(--gray-800);
   font-size: 15px;
 }
 
 .course-id {
   font-size: 13px;
-  color: #999;
+  color: var(--gray-500);
 }
 
 /* 과제명/시험명(표현만 다르고 스타일 동일) */
@@ -165,7 +165,7 @@
 
 .instructor-name {
   font-size: 14px;
-  color: #666;
+  color: var(--gray-600);
 }
 
 /* 마감/기간 */
@@ -177,12 +177,12 @@
 }
 
 .deadline-date {
-  color: #333;
+  color: var(--gray-800);
   font-weight: 500;
 }
 
 .deadline-time {
-  color: #999;
+  color: var(--gray-500);
 }
 
 /* 제출 현황 */
@@ -194,12 +194,12 @@
 }
 
 .submitted {
-  color: #388E3C;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .not-submitted {
-  color: #F57C00;
+  color: var(--color-warning);
   font-weight: 600;
 }
 
@@ -221,34 +221,34 @@
 
 /* --- assignment 원본 상태 --- */
 .status-active {
-  background: #E3F2FD;
-  color: #1976D2;
+  background: var(--color-info-bg);
+  color: var(--color-primary-active);
 }
 
 .status-closed {
-  background: #F5F5F5;
-  color: #999;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .status-upcoming {
-  background: #FFF3E0;
-  color: #F57C00;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 /* --- grading 원본 상태 --- */
 .status-completed {
-  background: #E8F5E9;
-  color: #388E3C;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .status-pending {
-  background: #FFF3E0;
-  color: #F57C00;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .status-not-submitted {
-  background: #FFEBEE;
-  color: #D32F2F;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 /* --- 너 스크립트에서 쓰는 상태 클래스(추가 지원) ---
@@ -257,13 +257,13 @@
    pending    -> status-pending (이미 위에 있음)
 */
 .status-disabled {
-  background: #F5F5F5;
-  color: #999;
+  background: var(--gray-100);
+  color: var(--gray-400);
 }
 
 .status-in-progress {
-  background: #E3F2FD;
-  color: #1976D2;
+  background: var(--color-info-bg);
+  color: var(--color-primary-active);
 }
 
 /* =========================
@@ -309,27 +309,27 @@
 .eval-type {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--gray-800);
 }
 
 .eval-type.test {
-  color: #1976D2;
+  color: var(--color-primary);
 }
 
 .eval-type.assignment {
-  color: #388E3C;
+  color: var(--color-success);
 }
 
 /* 점수 표시(grading에서 쓰는 경우) */
 .score-display {
   font-size: 15px;
   font-weight: 600;
-  color: #333;
+  color: var(--gray-800);
 }
 
 .score-display .total {
   font-size: 13px;
-  color: #999;
+  color: var(--gray-500);
   font-weight: 400;
 }
 
@@ -356,15 +356,16 @@
 }
 
 .btn-grade-primary:hover {
-  background: var(--color-primary-dark);
+  /* --color-primary-dark 는 어디에도 정의된 적이 없어 hover 시 배경이 투명해지고 있었다 */
+  background: var(--color-primary-hover);
 }
 
 .btn-grade-secondary {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--gray-100);
+  color: var(--gray-600);
   border: 1px solid var(--color-line-gray);
 }
 
 .btn-grade-secondary:hover {
-  background: #e0e0e0;
+  background: var(--gray-200);
 }

@@ -23,16 +23,16 @@
 .dash-title h2 {
     margin: 0;
     font-size: 20px;
-    color: #222;
+    color: var(--gray-900);
 }
 .dash-title p {
     margin: 0;
     font-size: 13px;
-    color: #777;
+    color: var(--gray-500);
 }
 .dash-date {
     font-size: 13px;
-    color: #666;
+    color: var(--gray-600);
     
     white-space: nowrap;
 }
@@ -61,7 +61,7 @@
 }
 .kpi-label {
     
-    color: #333;
+    color: var(--gray-800);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -69,14 +69,14 @@
 .kpi-value {
     font-size: 22px;
     
-    color: #222;
+    color: var(--gray-900);
     letter-spacing: -0.3px;
     line-height: 1;
     white-space: nowrap;
 }
 .kpi-sub {
     font-size: 12px;
-    color: #777;
+    color: var(--gray-500);
     margin-top: -6px;
 }
 .kpi-actions {
@@ -113,13 +113,13 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    background: #fafafa;
+    background: var(--gray-50);
 }
 .panel-header h3 {
     margin: 0;
     font-size: 15px;
     
-    color: #333;
+    color: var(--gray-800);
 }
 .panel-body {
     padding: 14px 16px;
@@ -136,7 +136,7 @@
     gap: 10px;
 }
 .list-item {
-    border: 1px solid #eee;
+    border: 1px solid var(--gray-200);
     border-radius: 10px;
     padding: 12px 12px;
     display: flex;
@@ -154,7 +154,7 @@
 .item-title {
     font-size: 14px;
     
-    color: #222;
+    color: var(--gray-900);
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;
@@ -165,7 +165,7 @@
     gap: 10px;
     flex-wrap: wrap;
     font-size: 12px;
-    color: #777;
+    color: var(--gray-500);
 }
 .item-actions {
     display: flex;
@@ -176,7 +176,7 @@
 
 /* course cards */
 .course-card {
-    border: 1px solid #eee;
+    border: 1px solid var(--gray-200);
     border-radius: 10px;
     padding: 12px;
     display: flex;
@@ -192,7 +192,7 @@
 .course-name {
     font-size: 14px;
     
-    color: #222;
+    color: var(--gray-900);
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -203,13 +203,13 @@
     
     padding: 4px 10px;
     border-radius: 999px;
-    background: #f5f5f5;
-    color: #666;
+    background: var(--gray-100);
+    color: var(--gray-600);
     white-space: nowrap;
 }
 .course-info {
     font-size: 12px;
-    color: #777;
+    color: var(--gray-500);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -234,12 +234,12 @@
     gap: 10px;
     padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid #eee;
+    border: 1px solid var(--gray-200);
 }
 .note-title {
     font-size: 13px;
     
-    color: #222;
+    color: var(--gray-900);
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;

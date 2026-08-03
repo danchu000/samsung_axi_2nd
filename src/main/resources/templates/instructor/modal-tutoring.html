@@ -164,7 +164,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 18px 20px;
-    border-bottom: 1px solid var(--color-line-gray, #eaeaea);
+    border-bottom: 1px solid var(--color-line-gray, var(--gray-200));
     background: #fff;
   }
 
@@ -177,7 +177,7 @@
   .modal-title {
     font-size: 18px;
     font-weight: 700;
-    color: #222;
+    color: var(--gray-900);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -190,9 +190,9 @@
     cursor: pointer;
     padding: 6px;
     border-radius: 8px;
-    color: #555;
+    color: var(--gray-600);
   }
-  .modal-close:hover { background: #f5f5f5; }
+  .modal-close:hover { background: var(--gray-100); }
 
   /* =========================
      Badges
@@ -207,16 +207,16 @@
     font-weight: 700;
     white-space: nowrap;
   }
-  .badge-type { background: #E3F2FD; color: #1976D2; }
-  .badge-type.qna { background: #E8F5E9; color: #388E3C; }
+  .badge-type { background: var(--color-info-bg); color: var(--color-primary-active); }
+  .badge-type.qna { background: var(--color-success-bg); color: var(--color-success); }
 
   /* =========================
      Summary
      ========================= */
   .modal-summary {
     padding: 14px 20px 16px 20px;
-    border-bottom: 1px solid var(--color-line-gray, #eaeaea);
-    background: #fafafa;
+    border-bottom: 1px solid var(--color-line-gray, var(--gray-200));
+    background: var(--gray-50);
   }
   .summary-row {
     display: flex;
@@ -232,13 +232,13 @@
   }
   .summary-item .label {
     font-size: 13px;
-    color: #777;
+    color: var(--gray-500);
     font-weight: 600;
     width: 52px;
   }
   .summary-item .value {
     font-size: 14px;
-    color: #222;
+    color: var(--gray-900);
     font-weight: 600;
   }
   .summary-actions { margin-top: 10px; }
@@ -262,7 +262,7 @@
   }
 
   .panel {
-    border: 1px solid var(--color-line-gray, #eaeaea);
+    border: 1px solid var(--color-line-gray, var(--gray-200));
     border-radius: 12px;
     background: #fff;
     display: flex;
@@ -271,14 +271,14 @@
   }
   .panel-header {
     padding: 12px 14px;
-    border-bottom: 1px solid var(--color-line-gray, #eaeaea);
-    background: #fafafa;
+    border-bottom: 1px solid var(--color-line-gray, var(--gray-200));
+    background: var(--gray-50);
   }
   .panel-header h4 {
     margin: 0;
     font-size: 14px;
     font-weight: 700;
-    color: #333;
+    color: var(--gray-800);
   }
   .panel-scroll {
     padding: 14px;
@@ -301,7 +301,7 @@
     flex: 0 0 64px;
     font-size: 12px;
     font-weight: 800;
-    color: #666;
+    color: var(--gray-600);
     text-align: center;
     padding-top: 6px;
   }
@@ -309,7 +309,7 @@
     flex: 1;
     border-radius: 10px;
     padding: 12px 12px;
-    background: #f7f7f9;
+    background: var(--gray-50);
     border: 1px solid #efeff2;
   }
   .msg.requester .bubble { background: #fff; }
@@ -317,14 +317,14 @@
 
   .msg .text {
     font-size: 14px;
-    color: #333;
+    color: var(--gray-800);
     line-height: 1.6;
     white-space: pre-line;
   }
   .msg .meta {
     margin-top: 8px;
     font-size: 12px;
-    color: #999;
+    color: var(--gray-500);
     display: flex;
     justify-content: space-between;
     gap: 10px;
@@ -336,7 +336,7 @@
     gap: 8px;
     align-items: center;
     font-size: 13px;
-    color: #1976D2;
+    color: var(--color-primary);
     cursor: pointer;
   }
   .attachment:hover { text-decoration: underline; }
@@ -346,26 +346,26 @@
      ========================= */
   .right-box {
     padding: 12px 14px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gray-100);
   }
   .right-box:last-child { border-bottom: none; }
   .right-box-title {
     font-size: 13px;
     font-weight: 800;
-    color: #333;
+    color: var(--gray-800);
     margin-bottom: 10px;
   }
   .right-list {
     margin: 0;
     padding-left: 18px;
-    color: #444;
+    color: var(--gray-800);
     font-size: 13px;
     line-height: 1.6;
   }
   .history-list {
     margin: 0;
     padding-left: 18px;
-    color: #666;
+    color: var(--gray-600);
     font-size: 13px;
     line-height: 1.6;
   }
@@ -375,8 +375,8 @@
      ========================= */
   .modal-footer {
     padding: 16px 20px;
-    border-top: 1px solid var(--color-line-gray, #eaeaea);
-    background: #fafafa;
+    border-top: 1px solid var(--color-line-gray, var(--gray-200));
+    background: var(--gray-50);
   }
   .footer-top {
     display: flex;
@@ -389,12 +389,12 @@
     margin: 0;
     font-size: 14px;
     font-weight: 800;
-    color: #333;
+    color: var(--gray-800);
   }
 
   .form-select {
     height: 36px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     border-radius: 8px;
     padding: 0 10px;
     background: #fff;
@@ -403,7 +403,7 @@
 
   .form-textarea {
     width: 100%;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     border-radius: 10px;
     padding: 12px;
     font-size: 14px;
@@ -423,7 +423,7 @@
 
   .help-text {
     font-size: 12px;
-    color: #999;
+    color: var(--gray-500);
     margin-left: 8px;
   }
 
@@ -432,15 +432,15 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #555;
+    color: var(--gray-600);
     user-select: none;
   }
 
   /* 버튼은 너 프로젝트 btn-style.css 기준이 있겠지만, 없을 때도 깨지지 않게 최소만 */
   .btn { height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
-  .btn-primary { background: var(--color-primary, #007bff); color: #fff; }
-  .btn-secondary { background: #f2f2f2; color: #333; border-color: #ddd; }
-  .btn-gray { background: #f5f5f5; color: #333; border-color: #ddd; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-800); border-color: var(--gray-300); }
+  .btn-gray { background: var(--gray-100); color: var(--gray-800); border-color: var(--gray-300); }
 </style>
 
 <script>

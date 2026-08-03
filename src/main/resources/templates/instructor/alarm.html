@@ -184,7 +184,7 @@
         </section>
         <style>
         .table-history th, .table-history td {
-            border-bottom:1px solid #e0e0e0;
+            border-bottom:1px solid var(--gray-200);
             padding:10px 8px;
             text-align:left;
             background:#fff;
@@ -236,7 +236,7 @@
                 tbody.innerHTML += `
                     <tr>
                         <td><input type="checkbox" class="alarm-checkbox"></td>
-                        <td><span style="color:${alarm.status==='읽지않음' ? '#e74c3c' : '#888'};font-weight:600;">${alarm.status}</span></td>
+                        <td><span style="color:${alarm.status==='읽지않음' ? '#C62828' : '#949494'};font-weight:600;">${alarm.status}</span></td>
                         <td>${alarm.id}</td>
                         <td>${alarm.title}</td>
                         <td class="alarm-content-cell" tabindex="0" title="${alarm.content}"><span class="alarm-content-inner">${alarm.content}</span></td>
@@ -306,7 +306,7 @@
             const list = document.getElementById('aiAlarmList');
             list.innerHTML = '';
             aiAlarms.forEach(alarm => {
-                let color = alarm.metric.includes('출석') ? '#e74c3c' : '#e67e22';
+                let color = alarm.metric.includes('출석') ? '#C62828' : '#e67e22';
                 let title = alarm.type === 'student' ? '출석/수강률 위험 학생' : '위험 과정';
                 let content = '';
                 if (alarm.type === 'student') {

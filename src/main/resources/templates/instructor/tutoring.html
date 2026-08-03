@@ -17,12 +17,12 @@
     .tab-row { margin-bottom: 0; }
 
     .tab-btn{
-    background:#f5f5f5;
+    background:var(--gray-100);
     border:none;
     border-radius:24px;
     padding:12px 32px;
     font-size:17px;
-    color:#666;
+    color:var(--gray-600);
     font-weight:500;
     cursor:pointer;
     transition:background .2s, color .2s;
@@ -41,7 +41,7 @@
     position:absolute;
     left:0%;
     top:110%;
-    background:#444;
+    background:var(--gray-800);
     color:#fff;
     padding:7px 16px;
     border-radius:7px;
@@ -68,7 +68,7 @@
     .tutoring-card{
     flex:1;
     min-width:180px;
-    background:#f8f9fa;
+    background:var(--gray-50);
     border-radius:12px;
     padding:18px 22px;
     box-shadow:0 2px 8px rgba(0,0,0,0.04);
@@ -77,22 +77,22 @@
     justify-content:center;
     }
 
-    .card-title{ font-size:15px; color:#888; margin-bottom:7px; }
+    .card-title{ font-size:15px; color:var(--gray-500); margin-bottom:7px; }
     .card-value{ font-size:28px; font-weight:700; color:#2a5ada; }
 
     .card-value-sub{
     font-size:17px;
     font-weight:600;
-    color:#333;
+    color:var(--gray-800);
     margin-bottom:4px;
     }
 
-    .card-desc{ font-size:14px; color:#888; }
+    .card-desc{ font-size:14px; color:var(--gray-500); }
 
     .card-value-danger{
     font-size:17px;
     font-weight:600;
-    color:#d32f2f;
+    color:var(--color-danger);
     margin-bottom:4px;
     }
 
@@ -146,14 +146,14 @@
     .qna-table th,
     .qna-table td{
     padding:10px 12px;
-    border-bottom:1px solid #eee;
+    border-bottom:1px solid var(--gray-200);
     text-align:left;
     vertical-align:middle;
     }
 
     .qna-table th{
-    background:#fafafa;
-    color:#666;
+    background:var(--gray-50);
+    color:var(--gray-600);
     font-weight:600;
     }
 
@@ -168,7 +168,7 @@
     font-size:13px;
     }
 
-    .qna-badge.wait{ background:#fff3cd; color:#856404; }
+    .qna-badge.wait{ background:var(--color-warning-bg); color:var(--color-warning); }
     .qna-badge.open{ background:#e3e7fa; color:#2a5ada; }
     </style>
 </head>

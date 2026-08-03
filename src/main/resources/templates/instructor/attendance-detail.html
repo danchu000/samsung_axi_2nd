@@ -42,7 +42,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
 
         .trainee-basic-info {
@@ -195,7 +195,7 @@
         }
 
         .form-group label .required {
-            color: #c62828;
+            color: var(--color-danger);
             margin-left: 2px;
         }
 
@@ -204,7 +204,7 @@
         .form-group select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 6px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -216,7 +216,7 @@
         .form-group textarea:focus,
         .form-group select:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .form-group textarea {
@@ -268,7 +268,7 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
             height: 68px; /* 고정 높이 */
             vertical-align: middle;
         }
@@ -277,7 +277,7 @@
             /* padding: 12px 15px; */
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -421,7 +421,7 @@
                             <td>70분</td>
                             <td>O</td>
                             <td>X</td>
-                            <td style="text-align:left;padding-left:12px; color:#666">정상 이수</td>
+                            <td style="text-align:left;padding-left:12px; color:var(--gray-600)">정상 이수</td>
                             <td><button class="btn-xs btn-secondary" disabled>수정하기</button></td>
                         </tr>
 
@@ -433,7 +433,7 @@
                             <td>0분</td>
                             <td>X</td>
                             <td>O</td>
-                            <td style="text-align:left;padding-left:12px; color:#666">인정(사유: 병가)</td>
+                            <td style="text-align:left;padding-left:12px; color:var(--gray-600)">인정(사유: 병가)</td>
                             <td><button class="btn-xs btn-secondary" disabled>수정하기</button></td>
                         </tr>
 
@@ -445,7 +445,7 @@
                             <td>48분</td>
                             <td>O</td>
                             <td>X</td>
-                            <td style="text-align:left;padding-left:12px; color:#666">부분이수 12분</td>
+                            <td style="text-align:left;padding-left:12px; color:var(--gray-600)">부분이수 12분</td>
                             <td><button class="btn-xs btn-secondary" disabled>수정하기</button></td>
                         </tr>
 
@@ -457,7 +457,7 @@
                             <td>40분</td>
                             <td>X</td>
                             <td>X</td>
-                            <td style="text-align:left;padding-left:12px; color:#666">조퇴(개인사정)</td>
+                            <td style="text-align:left;padding-left:12px; color:var(--gray-600)">조퇴(개인사정)</td>
                             <td><button class="btn-xs btn-secondary" disabled>수정하기</button></td>
                         </tr>
                     </tbody>

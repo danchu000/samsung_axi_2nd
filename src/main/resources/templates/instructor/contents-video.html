@@ -84,8 +84,8 @@
 
                     <div class="form-group" style="width:100%;">
                         <label class="form-label">영상 미리보기</label>
-                        <div id="videoPreviewArea" style="width:100%;background:#f8f9fa; border-radius:8px; padding:16px; text-align:center; min-height:180px;">
-                            <span style="color:#aaa;">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>
+                        <div id="videoPreviewArea" style="width:100%;background:var(--gray-50); border-radius:8px; padding:16px; text-align:center; min-height:180px;">
+                            <span style="color:var(--gray-500);">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>
                         </div>
                     </div>
 
@@ -132,7 +132,7 @@
                 if (file) {
                     area.innerHTML = '<video src="' + URL.createObjectURL(file) + '" controls style="width:100%; aspect-ratio:16/9; border-radius:8px; background:#000;"></video>';
                 } else {
-                    area.innerHTML = '<span style="color:#aaa;">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>';
+                    area.innerHTML = '<span style="color:var(--gray-500);">업로드할 영상을 선택하면 미리보기가 표시됩니다.</span>';
                 }
             });
         }

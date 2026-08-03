@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="/static/css/font-style.css">
     <title>Samsung Academy LXP - 학습 콘텐츠</title>
     <style>
-        .content-li { display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #eee; }
-        .content-course { font-size:13px; color:#666; }
-        .prog-badge { font-size:14px; color:#007bff; min-width:44px; text-align:right; }
+        .content-li { display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid var(--gray-200); }
+        .content-course { font-size:13px; color:var(--gray-600); }
+        .prog-badge { font-size:14px; color:var(--color-primary); min-width:44px; text-align:right; }
     </style>
 </head>
 <body data-user-role="trainee">
@@ -24,7 +24,7 @@
         </section>
         <section class="main-content">
             <section class="main-content-inner main-wrap">
-                <p th:if="${#lists.isEmpty(contents)}" style="color:#999;">학습 가능한 콘텐츠가 없습니다.</p>
+                <p th:if="${#lists.isEmpty(contents)}" style="color:var(--gray-500);">학습 가능한 콘텐츠가 없습니다.</p>
                 <ul style="list-style:none; padding:0; margin:0;">
                     <li class="content-li" th:each="c : ${contents}">
                         <img th:src="${c.type.name() == 'VIDEO'} ? '/static/icons/content-video.png' : '/static/icons/content-document.png'"
@@ -32,7 +32,7 @@
                         <span style="flex:1;">
                             <span class="content-course" th:text="${c.courseName} + (${c.sessionName != null} ? ' > ' + ${c.sessionName} : '')">과정 &gt; 차시</span><br>
                             <span th:text="${c.title}">콘텐츠명</span>
-                            <span style="font-size:14px;color:#999;margin-left:8px;"
+                            <span style="font-size:14px;color:var(--gray-500);margin-left:8px;"
                                   th:if="${c.durationMinutes > 0}" th:text="${c.durationMinutes} + '분'">분</span>
                         </span>
                         <span class="prog-badge" th:text="${c.progressRate} + '%'">0%</span>

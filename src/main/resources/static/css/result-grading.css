@@ -3,7 +3,7 @@
     background: #fff;
     border-radius: 14px;
     box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-    border: 1.5px solid #e0e4ea;
+    border: 1.5px solid var(--gray-200);
     margin-bottom: 24px;
     padding: 28px 32px 18px 32px;
     box-sizing: border-box;
@@ -23,12 +23,12 @@
 }
 .exam-info-label {
     font-size: 13px;
-    color: #888;
+    color: var(--gray-500);
     margin-bottom: 4px;
 }
 .exam-info-value {
     font-size: 16px;
-    color: #222;
+    color: var(--gray-900);
     font-weight: 500;
 }
 .exam-status {
@@ -39,20 +39,20 @@
     font-weight: 600;
 }
 .exam-status-ing {
-    background: #e3f2fd;
-    color: #1976D2;
+    background: var(--color-info-bg);
+    color: var(--color-primary-active);
 }
 .exam-status-done {
-    background: #e8f5e9;
-    color: #388E3C;
+    background: var(--color-success-bg);
+    color: var(--color-success);
 }
 .exam-status-wait {
-    background: #fff3e0;
-    color: #F57C00;
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 .exam-status-close {
-    background: #ffebee;
-    color: #D32F2F;
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
 }    
 .exam-filter-area {
     display: flex;
@@ -62,14 +62,14 @@
 }
 .filter-input {
     padding: 7px 12px;
-    border: 1px solid #e0e4ea;
+    border: 1px solid var(--gray-200);
     border-radius: 7px;
     font-size: 14px;
     background: #fff;
 }
 .filter-select {
     padding: 7px 12px;
-    border: 1px solid #e0e4ea;
+    border: 1px solid var(--gray-200);
     border-radius: 7px;
     font-size: 14px;
     background: #fff;
@@ -78,7 +78,7 @@
     margin-bottom: 18px;
     background: #fff;
     border-radius: 12px;
-    border: 1.5px solid #e0e4ea;
+    border: 1.5px solid var(--gray-200);
     box-shadow: 0 2px 8px 0 rgba(0,0,0,0.03);
     padding: 0 0 0 0;
     overflow-x: auto;
@@ -89,17 +89,17 @@
     font-size: 14px;
 }
 .student-table th, .student-table td {
-    border-bottom: 1px solid #e0e4ea;
+    border-bottom: 1px solid var(--gray-200);
     padding: 10px 6px;
     text-align: center;
 }
 .student-table th {
     background: #f5f7fa;
     font-weight: 700;
-    color: #1976D2;
+    color: var(--color-primary);
 }
 .student-table td {
-    color: #333;
+    color: var(--gray-800);
 }
 .student-table tr:last-child td {
     border-bottom: none;
@@ -114,7 +114,7 @@
     font-size: 13px;
     font-weight: 500;
     border: none;
-    background: #1976D2;
+    background: var(--color-primary);
     color: #fff;
     transition: background 0.2s;
 }

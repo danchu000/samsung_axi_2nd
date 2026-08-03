@@ -45,7 +45,7 @@
 }
 
 .btn-primary:hover {
-    background-color: #0056cc;
+    background-color: var(--color-primary-hover);
 }
 
 .btn-secondary {
@@ -55,15 +55,15 @@
 }
 
 .btn-secondary:disabled {
-    background-color: #f5f5f5;
-    color: #ccc;
-    border: 1px solid #ddd;
+    background-color: var(--gray-100);
+    color: var(--gray-400);
+    border: 1px solid var(--gray-300);
     cursor: not-allowed;
     opacity: 0.6;
 }
 
 .btn-secondary:disabled:hover {
-    background-color: #f5f5f5;
+    background-color: var(--gray-100);
 }
 
 .btn-secondary:hover {
@@ -71,22 +71,22 @@
 }
 
 .btn-gray {
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--gray-100);
     background-color: white;
-    color: #999;
+    color: var(--gray-500);
 }
 .btn-gray:hover {
-    background-color: #fafafa;
+    background-color: var(--gray-50);
 }
 .btn-gray:disabled {
-    border: 1px solid #f0f0f0;
-    background-color: #f5f5f5;
-    color: #ccc;
+    border: 1px solid var(--gray-100);
+    background-color: var(--gray-100);
+    color: var(--gray-400);
     cursor: not-allowed;
     opacity: 0.6;
 }
 .btn-gray:disabled:hover {
-    background-color: #f5f5f5;
+    background-color: var(--gray-100);
 }
 .btn-gray-line {
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -171,14 +171,14 @@
 }
 
 .btn-edit:hover {
-    background-color: #0056d9;
+    background-color: var(--color-primary-hover);
 }
 
 .btn-back {
     padding: 12px 40px;
     font-size: 16px;
-    background-color: #f5f5f5;
-    color: #666;
+    background-color: var(--gray-100);
+    color: var(--gray-600);
     border-radius: 4px;
     font-weight: 500;
     cursor: pointer;
@@ -186,7 +186,7 @@
 }
 
 .btn-back:hover {
-    background-color: #e0e0e0;
+    background-color: var(--gray-200);
 }
 
 .btn-save {
@@ -201,7 +201,7 @@
 }
 
 .btn-save:hover {
-    background-color: #0056d9;
+    background-color: var(--color-primary-hover);
 }
 
 
@@ -209,7 +209,7 @@
 /* 삭제 버튼 스타일 */
 .btn-danger {
     font-size: 16px;
-    background-color: #ff4d4f;
+    background-color: var(--color-danger);
     color: white;
     border: none;
     padding: 12px 40px;
@@ -227,7 +227,7 @@
 .btn-small {
     padding: 6px 12px;
     font-size: 13px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     background: white;
     border-radius: 6px;
     cursor: pointer;
@@ -236,7 +236,7 @@
 }
 
 .btn-small:hover {
-    background: #f8f9fa;
+    background: var(--gray-50);
 }
 
 .btn-start {
@@ -274,18 +274,18 @@
 }
 
 .status-pending {
-    background-color: #fff3e0;
-    color: #f57c00;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 
 .status-in-progress {
-    background-color: #e3f2fd;
-    color: #1976d2;
+    background-color: var(--color-info-bg);
+    color: var(--color-primary-active);
 }
 
 .status-completed {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
 }
 
 .status-early-employment {
@@ -294,12 +294,12 @@
 }
 
 .status-dropout {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
 }
 
 .status-disabled {
-    background-color: #f5f5f5;
+    background-color: var(--gray-100);
     color: #757575;
 }
 
@@ -312,26 +312,26 @@
 }
 
 .risk-low {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
 }
 
 .risk-medium {
-    background-color: #fff3e0;
-    color: #f57c00;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 
 .risk-high {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
 }
 
 /* .btn-small 이 .btn-danger 보다 뒤에 정의되어 배경(white)이 이기면
    흰 바탕 + 흰 글자가 되어 버튼이 안 보인다 — 조합 사용 시 색을 명시한다 */
 .btn-small.btn-danger {
-    background-color: #ff4d4f;
+    background-color: var(--color-danger);
     color: #fff;
-    border-color: #ff4d4f;
+    border-color: var(--color-danger);
 }
 .btn-small.btn-danger:hover {
     background-color: #d9363e;

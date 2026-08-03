@@ -15,15 +15,15 @@
         .approval-table { width: 100%; border-collapse: collapse; background-color: white; }
         .approval-table thead { background-color: var(--color-light-gray); }
         .approval-table th { padding: 12px 15px; text-align: center; font-weight: 600;
-            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid #ddd; }
+            font-size: 14px; color: var(--color-font-gray); border-bottom: 2px solid var(--gray-300); }
         .approval-table td { padding: 12px 15px; font-size: 14px; color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0; text-align: center; }
+            border-bottom: 1px solid var(--gray-100); text-align: center; }
         .approval-actions { display: inline-flex; gap: 8px; }
         .approval-actions form { display: inline; }
         .empty-row td { padding: 40px 15px; color: var(--color-font-gray-light); }
         .flash { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
-        .flash-success { background: #e8f5e9; color: #2e7d32; }
-        .flash-error { background: #fdecea; color: #c62828; }
+        .flash-success { background: var(--color-success-bg); color: var(--color-success); }
+        .flash-error { background: var(--color-danger-bg); color: var(--color-danger); }
         .course-link { color: inherit; text-decoration: underline; }
 
         /* ===== 적합성 판정 ===== */
@@ -40,25 +40,25 @@
             color: var(--color-font-gray); }
         .grade-card .gc-range { font-size: 12px; color: var(--color-font-gray-light); }
 
-        .card-very { border-left-color: #2e7d32; } .card-very .gc-label { color: #2e7d32; }
-        .card-ok   { border-left-color: #1565c0; } .card-ok   .gc-label { color: #1565c0; }
-        .card-warn { border-left-color: #ef6c00; } .card-warn .gc-label { color: #ef6c00; }
-        .card-bad  { border-left-color: #c62828; } .card-bad  .gc-label { color: #c62828; }
+        .card-very { border-left-color: var(--color-success); } .card-very .gc-label { color: var(--color-success); }
+        .card-ok   { border-left-color: var(--color-primary); } .card-ok   .gc-label { color: var(--color-primary); }
+        .card-warn { border-left-color: var(--color-warning); } .card-warn .gc-label { color: var(--color-warning); }
+        .card-bad  { border-left-color: var(--color-danger); } .card-bad  .gc-label { color: var(--color-danger); }
 
         .grade-badge { display: inline-block; padding: 4px 10px; border-radius: 999px;
             font-size: 12px; font-weight: 700; white-space: nowrap; }
-        .grade-very { background: #e8f5e9; color: #2e7d32; }
-        .grade-ok   { background: #e3f2fd; color: #1565c0; }
-        .grade-warn { background: #fff3e0; color: #ef6c00; }
-        .grade-bad  { background: #fdecea; color: #c62828; }
+        .grade-very { background: var(--color-success-bg); color: var(--color-success); }
+        .grade-ok   { background: var(--color-info-bg); color: var(--color-primary-active); }
+        .grade-warn { background: var(--color-warning-bg); color: var(--color-warning); }
+        .grade-bad  { background: var(--color-danger-bg); color: var(--color-danger); }
 
-        .score-bar { width: 90px; height: 6px; border-radius: 3px; background: #eee;
+        .score-bar { width: 90px; height: 6px; border-radius: 3px; background: var(--gray-200);
             margin: 6px auto 0; overflow: hidden; }
         .score-bar span { display: block; height: 100%; border-radius: 3px; }
-        .bar-very { background: #2e7d32; }
-        .bar-ok   { background: #1565c0; }
-        .bar-warn { background: #ef6c00; }
-        .bar-bad  { background: #c62828; }
+        .bar-very { background: var(--color-success); }
+        .bar-ok   { background: var(--color-primary); }
+        .bar-warn { background: var(--color-warning); }
+        .bar-bad  { background: var(--color-danger); }
 
         .applicant-name { font-weight: 600; }
         .applicant-sub { display: block; font-size: 12px; color: var(--color-font-gray-light); margin-top: 2px; }
@@ -90,7 +90,7 @@
         .detail-table td.dt-point { text-align: center; font-weight: 600; width: 90px;
             font-variant-numeric: tabular-nums; }
         .detail-table td.dt-max { text-align: center; width: 70px; color: var(--color-font-gray-light); }
-        .detail-table tfoot td { background: #fafafa; font-weight: 700; }
+        .detail-table tfoot td { background: var(--gray-50); font-weight: 700; }
         .detail-foot { margin-top: 18px; font-size: 12px; color: var(--color-font-gray-light); line-height: 1.6; }
 
         @media (max-width: 1100px) { .grade-cards { grid-template-columns: repeat(2, 1fr); } }

@@ -9,14 +9,14 @@
     <link rel="stylesheet" href="/static/css/trainee/learning-report.css">
     <title>학습 콘텐츠 - 차시별 학습</title>
     <style>
-        .accordion { border:1px solid #eee; border-radius:8px; margin-bottom:12px; overflow:hidden; }
-        .accordion-header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; cursor:pointer; background:#fafbfc; }
+        .accordion { border:1px solid var(--gray-200); border-radius:8px; margin-bottom:12px; overflow:hidden; }
+        .accordion-header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; cursor:pointer; background:var(--gray-50); }
         .accordion-content { display:none; padding:8px 20px 16px; }
         .accordion.open .accordion-content { display:block; }
-        .content-li { display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid #eee; }
-        .prog-badge { font-size:14px; color:#007bff; min-width:44px; text-align:right; }
+        .content-li { display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid var(--gray-200); }
+        .prog-badge { font-size:14px; color:var(--color-primary); min-width:44px; text-align:right; }
         .course-select-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
-        .course-progress-pill { margin-left:auto; font-weight:600; color:#007bff; }
+        .course-progress-pill { margin-left:auto; font-weight:600; color:var(--color-primary); }
     </style>
 </head>
 <body data-user-role="trainee">
@@ -42,8 +42,8 @@
                     <span class="course-progress-pill">전체 진도율 <span th:text="${courseProgress}">0</span>%</span>
                 </form>
 
-                <p th:if="${#lists.isEmpty(courses)}" style="color:#999;">학습 중인(승인된) 과정이 없습니다.</p>
-                <p th:if="${selectedCourseId != null and #lists.isEmpty(groups)}" style="color:#999;">
+                <p th:if="${#lists.isEmpty(courses)}" style="color:var(--gray-500);">학습 중인(승인된) 과정이 없습니다.</p>
+                <p th:if="${selectedCourseId != null and #lists.isEmpty(groups)}" style="color:var(--gray-500);">
                     등록된 학습 콘텐츠가 없습니다.</p>
 
                 <!-- 차시별 아코디언 -->
@@ -52,9 +52,9 @@
                         <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
                             <div>
                                 <span th:text="${g.sessionName}">차시명</span>
-                                <div style="font-size:13px; margin-top:4px; color:#444;">
+                                <div style="font-size:13px; margin-top:4px; color:var(--gray-800);">
                                     <span><strong>진도율</strong>
-                                        <span style="color:#007bff;" th:text="${g.avgProgress} + '%'">0%</span></span>
+                                        <span style="color:var(--color-primary);" th:text="${g.avgProgress} + '%'">0%</span></span>
                                     <span style="margin-left:16px;"><strong>콘텐츠</strong>
                                         <span th:text="${#lists.size(g.contents)}">0</span>개</span>
                                 </div>
@@ -68,7 +68,7 @@
                                          alt="유형" style="width:40px;height:40px;object-fit:contain;">
                                     <span style="flex:1;">
                                         <span th:text="${c.title}">콘텐츠명</span>
-                                        <span style="font-size:14px;color:#999;margin-left:8px;"
+                                        <span style="font-size:14px;color:var(--gray-500);margin-left:8px;"
                                               th:if="${c.durationMinutes > 0}" th:text="${c.durationMinutes} + '분'">분</span>
                                     </span>
                                     <span class="prog-badge" th:text="${c.progressRate} + '%'">0%</span>

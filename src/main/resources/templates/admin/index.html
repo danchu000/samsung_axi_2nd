@@ -44,16 +44,16 @@
         margin: 0;
         font-size: 20px;
         
-        color: #222;
+        color: var(--gray-900);
         }
         .dash-header p {
         margin: 6px 0 0 0;
         font-size: 13px;
-        color: #777;
+        color: var(--gray-500);
         }
         .dash-date {
         font-size: 13px;
-        color: #666;
+        color: var(--gray-600);
         white-space: nowrap;
         }
 
@@ -75,7 +75,7 @@
         }
         .kpi-title {
         font-size: 14px;
-        color: #333;
+        color: var(--gray-800);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -89,12 +89,12 @@
         .kpi-main .big {
         font-size: 18px;
         
-        color: #222;
+        color: var(--gray-900);
         line-height: 1.1;
         }
         .kpi-main .sub {
         font-size: 12px;
-        color: #777;
+        color: var(--gray-500);
         line-height: 1.4;
         }
         .kpi-actions {
@@ -121,7 +121,7 @@
         }
         .panel-header {
         padding: 14px 16px;
-        background: #fafafa;
+        background: var(--gray-50);
         border-bottom: 1px solid var(--color-line-gray);
         display: flex;
         align-items: center;
@@ -132,7 +132,7 @@
         margin: 0;
         font-size: 15px;
         
-        color: #333;
+        color: var(--gray-800);
         }
         .panel-body {
         padding: 14px 16px;
@@ -153,7 +153,7 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
-        border: 1px solid #eee;
+        border: 1px solid var(--gray-200);
         border-radius: 10px;
         padding: 12px;
         }
@@ -167,7 +167,7 @@
         .alert-title {
         font-size: 13px;
         
-        color: #222;
+        color: var(--gray-900);
         line-height: 1.25;
         white-space: nowrap;
         overflow: hidden;
@@ -175,7 +175,7 @@
         }
         .alert-meta {
         font-size: 12px;
-        color: #777;
+        color: var(--gray-500);
         }
 
         /* charts placeholder */
@@ -189,11 +189,11 @@
         gap: 10px;
         justify-content: center;
         align-items: center;
-        color: #888;
+        color: var(--gray-400);
         text-align: center;
         }
         .chart-box strong {
-        color: #555;
+        color: var(--gray-600);
         font-size: 13px;
         }
         .chart-filters {
@@ -209,7 +209,7 @@
         background: #fff;
         cursor: pointer;
         font-size: 12px;
-        color: #666;
+        color: var(--gray-600);
         
         }
         .chip.active {
@@ -220,7 +220,7 @@
 
         /* mini table (div-grid) */
         .mini-table {
-        border: 1px solid #eee;
+        border: 1px solid var(--gray-200);
         border-radius: 10px;
         overflow: hidden;
         }
@@ -232,21 +232,21 @@
         padding: 12px;
         }
         .mini-head {
-        background: #f5f5f5;
+        background: var(--gray-100);
         font-size: 12px;
         
-        color: #666;
+        color: var(--gray-600);
         }
         .mini-row {
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--gray-200);
         font-size: 13px;
-        color: #333;
+        color: var(--gray-800);
         }
         .mini-row:hover {
-        background: #fafafa;
+        background: var(--gray-50);
         }
-        .text-strong {  color: #222; }
-        .muted { color: #777; font-size: 12px; }
+        .text-strong {  color: var(--gray-900); }
+        .muted { color: var(--gray-500); font-size: 12px; }
         .badge {
         display: inline-flex;
         align-items: center;
@@ -256,12 +256,12 @@
         font-size: 12px;
         
         white-space: nowrap;
-        background: #f5f5f5;
-        color: #666;
+        background: var(--gray-100);
+        color: var(--gray-600);
         }
-        .badge.warn { background: #FFF3E0; color: #F57C00; }
-        .badge.ok { background: #E8F5E9; color: #388E3C; }
-        .badge.info { background: #E3F2FD; color: #1976D2; }
+        .badge.warn { background: var(--color-warning-bg); color: var(--color-warning); }
+        .badge.ok { background: var(--color-success-bg); color: var(--color-success); }
+        .badge.info { background: var(--color-info-bg); color: var(--color-primary-active); }
         .btn-sm {
         padding: 6px 10px !important;
         font-size: 12px !important;
@@ -280,14 +280,14 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        border: 1px solid #eee;
+        border: 1px solid var(--gray-200);
         border-radius: 10px;
         padding: 12px;
         }
         .note-title {
         font-size: 13px;
         
-        color: #222;
+        color: var(--gray-900);
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -865,6 +865,6 @@
     });
 
     </script>
-    <canvas id="attendanceChart" width="340" height="210" style="background: #f5f5f5; border-radius: 8px; width: 100%; max-width: 340px; height: 210px;"></canvas>
+    <canvas id="attendanceChart" width="340" height="210" style="background: var(--gray-100); border-radius: 8px; width: 100%; max-width: 340px; height: 210px;"></canvas>
 </body>
 </html>

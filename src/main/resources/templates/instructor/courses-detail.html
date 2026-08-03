@@ -13,16 +13,16 @@
     <style>
         /* .main-content 가 overflow:hidden 이라 래퍼가 flex:1 + overflow-y:auto 를 가져야 본문이 스크롤된다 */
         .form-wrap { max-width:900px; padding:20px; flex:1; min-height:0; overflow-y:auto; }
-        .form-section { background:#fff; margin-bottom:20px; border:1px solid #eee; padding:20px 24px 26px; border-radius:8px; display:flex; flex-direction:column; gap:16px; }
-        .section-title { font-size:18px; font-weight:700; color:#333; }
+        .form-section { background:#fff; margin-bottom:20px; border:1px solid var(--gray-200); padding:20px 24px 26px; border-radius:8px; display:flex; flex-direction:column; gap:16px; }
+        .section-title { font-size:18px; font-weight:700; color:var(--gray-800); }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-        .form-label { display:block; font-size:13px; font-weight:600; color:#777; margin-bottom:4px; }
-        .meta-value { font-size:14px; color:#333; }
+        .form-label { display:block; font-size:13px; font-weight:600; color:var(--gray-500); margin-bottom:4px; }
+        .meta-value { font-size:14px; color:var(--gray-800); }
         .status-badge { display:inline-block; padding:4px 12px; border-radius:12px; background:#e7f1ff; color:#1c6dd0; font-size:13px; font-weight:600; }
-        .subject-block { border:1px solid #eee; border-radius:8px; padding:12px 16px; margin-bottom:10px; }
+        .subject-block { border:1px solid var(--gray-200); border-radius:8px; padding:12px 16px; margin-bottom:10px; }
         .subject-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; }
-        .session-row { font-size:13px; color:#555; padding:4px 0 4px 12px; }
-        .empty-hint { color:#999; font-size:13px; }
+        .session-row { font-size:13px; color:var(--gray-600); padding:4px 0 4px 12px; }
+        .empty-hint { color:var(--gray-500); font-size:13px; }
         .top-actions { display:flex; justify-content:flex-start; margin-bottom:12px; }
     </style>
 </head>

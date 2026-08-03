@@ -102,7 +102,7 @@
                             <td>
                                 <span th:text="${row.status}" style="font-weight:600;">발송완료</span><br>
                                 <span th:text="${row.readStatus}"
-                                      th:style="${row.readStatus == '읽지않음'} ? 'color:#e74c3c;font-weight:600;' : 'color:#888;'">읽음</span>
+                                      th:style="${row.readStatus == '읽지않음'} ? 'color:var(--color-danger);font-weight:600;' : 'color:var(--gray-500);'">읽음</span>
                             </td>
                             <td th:text="${row.id}">1</td>
                             <td th:text="${row.title}">제목</td>
@@ -166,7 +166,7 @@
         </section>
         <style>
         .table-history th, .table-history td {
-            border-bottom:1px solid #e0e0e0;
+            border-bottom:1px solid var(--gray-200);
             padding:10px 8px;
             text-align:left;
             background:#fff;
@@ -251,7 +251,7 @@
             const list = document.getElementById('aiAlarmList');
             list.innerHTML = '';
             aiAlarms.forEach(alarm => {
-                let color = alarm.metric.includes('출석') ? '#e74c3c' : '#e67e22';
+                let color = alarm.metric.includes('출석') ? '#C62828' : '#e67e22';
                 let title = alarm.type === 'student' ? '출석/수강률 위험 학생' : '위험 과정';
                 let content = '';
                 if (alarm.type === 'student') {

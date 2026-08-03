@@ -78,12 +78,12 @@
                   const groupGap = 60;
                   const maxHour = Math.max(...data.map(d => Math.max(d.avgTop, d.avgBottom)), 8);
                   // y축
-                  ctx.strokeStyle = "#bbb";
+                  ctx.strokeStyle = "#949494";
                   ctx.lineWidth = 1;
                   for (let i = 0; i <= 4; i++) {
                     let y = h - pad - ((h - 2 * pad) * i / 4);
                     ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
-                    ctx.fillStyle = "#888";
+                    ctx.fillStyle = "#949494";
                     ctx.font = "11px sans-serif";
                     ctx.textAlign = "right";
                     ctx.fillText((Math.round((maxHour * i / 4) * 10) / 10) + "h", pad - 6, y + 4);
@@ -103,28 +103,28 @@
                     ctx.fillRect(groupX + barWidth + gap, h - pad - bottomBarHeight, barWidth, bottomBarHeight);
                     ctx.globalAlpha = 1.0;
                     // 값 표시
-                    ctx.fillStyle = "#222";
+                    ctx.fillStyle = "#222222";
                     ctx.font = "12px sans-serif";
                     ctx.textAlign = "center";
                     ctx.fillText(d.avgTop + "h", groupX + barWidth / 2, h - pad - topBarHeight - 8);
                     ctx.fillText(d.avgBottom + "h", groupX + barWidth + gap + barWidth / 2, h - pad - bottomBarHeight - 8);
                     // x축 라벨
                     ctx.font = "13px sans-serif";
-                    ctx.fillStyle = "#333";
+                    ctx.fillStyle = "#333333";
                     ctx.fillText(d.course, groupX + barWidth + gap / 2, h - pad + 18);
                   });
                   // 범례
                   ctx.font = "12px sans-serif";
                   ctx.fillStyle = "#638ECB";
                   ctx.fillRect(w - pad - 120, pad + 2, 16, 16);
-                  ctx.fillStyle = "#333";
+                  ctx.fillStyle = "#333333";
                   ctx.fillText("상위 20% 평균", w - pad - 98, pad + 15);
                   ctx.fillStyle = "#E2E8F0";
                   ctx.fillRect(w - pad - 120, pad + 26, 16, 16);
-                  ctx.fillStyle = "#333";
+                  ctx.fillStyle = "#333333";
                   ctx.fillText("하위 30% 평균", w - pad - 98, pad + 39);
                   // 축 라벨
-                  ctx.fillStyle = "#333";
+                  ctx.fillStyle = "#333333";
                   ctx.font = "12px sans-serif";
                   ctx.textAlign = "center";
                   ctx.fillText("평균 학습시간 (h)", w / 2, h - 7);
@@ -136,7 +136,7 @@
                   ctx.restore();
                   // 타이틀
                   ctx.font = "bold 13px sans-serif";
-                  ctx.fillStyle = "#222";
+                  ctx.fillStyle = "#222222";
                   ctx.textAlign = "center";
                   ctx.fillText("과정별 상위 20%/하위 30% 학습시간 비교", w / 2, 20);
                 }
@@ -176,7 +176,7 @@
               const w = canvas.width, h = canvas.height;
               const xMin = 0.5, xMax = 8, yMin = 1, yMax = 40;
               // grid
-              ctx.strokeStyle = "#ddd";
+              ctx.strokeStyle = "#CCCCCC";
               ctx.lineWidth = 1;
               for (let i = 0; i <= 4; i++) {
                 let x = pad + ((w - 2 * pad) * i / 4);
@@ -200,7 +200,7 @@
                 points.push({ x, y, r: 8, ...d });
               });
               // 축 라벨
-              ctx.fillStyle = "#333";
+              ctx.fillStyle = "#333333";
               ctx.font = "12px sans-serif";
               ctx.textAlign = "center";
               ctx.fillText("코딩 시간 (시간)", w / 2, h - 7);
@@ -212,7 +212,7 @@
               ctx.restore();
               // 타이틀
               ctx.font = "bold 13px sans-serif";
-              ctx.fillStyle = "#222";
+              ctx.fillStyle = "#222222";
               ctx.textAlign = "center";
               ctx.fillText("과정별 과제 해결 추이 (코딩시간 대비 푼 문제 수)", w / 2, 20);
               // 툴팁
@@ -271,7 +271,7 @@
               const w = canvas.width, h = canvas.height;
               const xMin = 0.5, xMax = 8, yMin = 1, yMax = 40;
               // grid
-              ctx.strokeStyle = "#ddd";
+              ctx.strokeStyle = "#CCCCCC";
               ctx.lineWidth = 1;
               for (let i = 0; i <= 4; i++) {
                 let x = pad + ((w - 2 * pad) * i / 4);
@@ -295,7 +295,7 @@
                 points.push({ x, y, r: 8, ...d });
               });
               // 축 라벨
-              ctx.fillStyle = "#333";
+              ctx.fillStyle = "#333333";
               ctx.font = "12px sans-serif";
               ctx.textAlign = "center";
               ctx.fillText("코딩 시간 (시간)", w / 2, h - 7);
@@ -307,7 +307,7 @@
               ctx.restore();
               // 타이틀
               ctx.font = "bold 13px sans-serif";
-              ctx.fillStyle = "#222";
+              ctx.fillStyle = "#222222";
               ctx.textAlign = "center";
               ctx.fillText("과정별 코딩시간 대비 푼 문제 수", w / 2, 20);
               // 범례
@@ -320,7 +320,7 @@
                 ctx.arc(lx, ly + i * 20, 6, 0, 2 * Math.PI);
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.fill();
-                ctx.fillStyle = "#333";
+                ctx.fillStyle = "#333333";
                 ctx.fillText(name, lx + 18, ly + 4 + i * 20);
               });
               // 툴팁
@@ -401,7 +401,7 @@
             const w = canvas.width, h = canvas.height;
             const xMin = 0.5, xMax = 8, yMin = 1, yMax = 40;
             // grid
-            ctx.strokeStyle = "#ddd";
+            ctx.strokeStyle = "#CCCCCC";
             ctx.lineWidth = 1;
             for (let i = 0; i <= 4; i++) {
                 let x = pad + ((w - 2 * pad) * i / 4);
@@ -425,7 +425,7 @@
                 points.push({ x, y, r: 8, ...d });
             });
             // 축 라벨
-            ctx.fillStyle = "#333";
+            ctx.fillStyle = "#333333";
             ctx.font = "12px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("코딩 시간 (시간)", w / 2, h - 7);
@@ -437,7 +437,7 @@
             ctx.restore();
             // 타이틀
             ctx.font = "bold 13px sans-serif";
-            ctx.fillStyle = "#222";
+            ctx.fillStyle = "#222222";
             ctx.textAlign = "center";
             ctx.fillText("과정별 과제 해결 추이 (코딩시간 대비 푼 문제 수)", w / 2, 20);
             // 툴팁
@@ -519,7 +519,7 @@
             const pad = 38;
             const w = canvas.width, h = canvas.height;
             // 축
-            ctx.strokeStyle = "#bbb";
+            ctx.strokeStyle = "#949494";
             ctx.lineWidth = 1;
             for (let i = 0; i <= 5; i++) {
                 let y = h - pad - ((h - 2 * pad) * i / 5);
@@ -556,7 +556,7 @@
                 });
             });
             // 축 라벨
-            ctx.fillStyle = "#333";
+            ctx.fillStyle = "#333333";
             ctx.font = "12px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("진행률(%)", w / 2, h - 7);
@@ -568,7 +568,7 @@
             ctx.restore();
             // 타이틀
             ctx.font = "bold 13px sans-serif";
-            ctx.fillStyle = "#222";
+            ctx.fillStyle = "#222222";
             ctx.textAlign = "center";
             ctx.fillText("각 과정 진행률 대비 이탈률", w / 2, 20);
             // 범례
@@ -579,7 +579,7 @@
                 ctx.arc(lx, ly + i * 20, 6, 0, 2 * Math.PI);
                 ctx.fillStyle = course.color;
                 ctx.fill();
-                ctx.fillStyle = "#333";
+                ctx.fillStyle = "#333333";
                 ctx.fillText(course.name, lx + 18, ly + 4 + i * 20);
             });
             // 툴팁

@@ -49,7 +49,7 @@
             <div class="question-table-area">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr style="background:#f8f9fa;">
+                        <tr style="background:var(--gray-50);">
                             <th>유형</th>
                             <th>제목</th>
                             <th>과정</th>
@@ -63,7 +63,7 @@
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(contents)}">
-                            <td colspan="9" style="text-align:center; color:#999; padding:32px;">등록된 콘텐츠가 없습니다.</td>
+                            <td colspan="9" style="text-align:center; color:var(--gray-500); padding:32px;">등록된 콘텐츠가 없습니다.</td>
                         </tr>
                         <tr th:each="c : ${contents}" th:id="'c' + ${c.id}" th:attr="data-type=${c.type}">
                             <td>

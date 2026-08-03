@@ -16,34 +16,34 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            border-right: 1px solid #ddd;
+            border-right: 1px solid var(--gray-300);
         }
         #traineeSearch {
             width: 100%;
             padding: 10px 45px 10px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             outline: none;
         }
         #traineeSearch:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
         .status-filter { display:flex; justify-content:space-between; align-items:center; margin-top:15px; }
         .status-checkboxes { display:flex; gap:15px; flex-wrap:wrap; }
-        .sort-select { padding:8px 12px; border:1px solid #ddd; border-radius:4px; background:white; color:var(--color-font-gray); font-size:14px; cursor:pointer; outline:none; }
+        .sort-select { padding:8px 12px; border:1px solid var(--gray-300); border-radius:4px; background:white; color:var(--color-font-gray); font-size:14px; cursor:pointer; outline:none; }
         .manager-table { width:100%; border-collapse:collapse; background-color:white; }
         .manager-table thead { position:sticky; background-color:var(--color-light-gray); z-index:10; }
-        .manager-table th { padding:12px 15px; text-align:center; font-weight:600; font-size:14px; color:var(--color-font-gray); border-bottom:2px solid #ddd; }
-        .manager-table td { padding:12px 15px; font-size:14px; color:var(--color-font-gray); border-bottom:1px solid #f0f0f0; text-align:center; }
+        .manager-table th { padding:12px 15px; text-align:center; font-weight:600; font-size:14px; color:var(--color-font-gray); border-bottom:2px solid var(--gray-300); }
+        .manager-table td { padding:12px 15px; font-size:14px; color:var(--color-font-gray); border-bottom:1px solid var(--gray-100); text-align:center; }
         .manager-table tbody tr { cursor:pointer; transition:background-color 0.2s; }
         .manager-table tbody tr:hover { background-color: var(--color-light-primary); }
         .manager-detail-section { flex: 1; padding: 20px; overflow-y: auto; }
         .manager-detail-section h2 { font-size:18px; font-weight:normal; color:var(--color-font-gray); }
         .manager-detail-basicinfo { display:flex; gap:20px; margin-bottom:20px; }
         .manager-photo { flex-shrink:0; }
-        .manager-photo img { max-height:280px; height:100%; aspect-ratio:3/4; border-radius:8px; object-fit:cover; border:1px solid #ddd; }
+        .manager-photo img { max-height:280px; height:100%; aspect-ratio:3/4; border-radius:8px; object-fit:cover; border:1px solid var(--gray-300); }
         .manager-basic-info { flex-grow:1; display:flex; flex-direction:column; gap:10px; }
         .info-row { display:flex; align-items:center; }
         .info-row .label { width:120px; font-weight:600; color:var(--color-font-gray); font-size:14px; }

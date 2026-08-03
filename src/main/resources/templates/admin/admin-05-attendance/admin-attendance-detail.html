@@ -42,7 +42,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
 
         .trainee-basic-info {
@@ -195,7 +195,7 @@
         }
 
         .form-group label .required {
-            color: #c62828;
+            color: var(--color-danger);
             margin-left: 2px;
         }
 
@@ -204,7 +204,7 @@
         .form-group select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 6px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -216,7 +216,7 @@
         .form-group textarea:focus,
         .form-group select:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .form-group textarea {
@@ -268,7 +268,7 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
             height: 68px; /* 고정 높이 */
             vertical-align: middle;
         }
@@ -277,7 +277,7 @@
             /* padding: 12px 15px; */
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -696,7 +696,7 @@
                     <td>
                         ${row.changed === 'O' ? `<div class="flex-center">O </div>` : row.changed}
                     </td>
-                    <td style="text-align:left;padding-left:12px; color:#666">${row.note}</td>
+                    <td style="text-align:left;padding-left:12px; color:var(--gray-600)">${row.note}</td>
                     <td><button class="btn-xs btn-secondary" onclick="showSessionDetail('${row.sessionId}', ${idx})">수정하기</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -763,29 +763,29 @@
 
     modalContent.innerHTML = `
                 <div style="font-size:15px;">
-                    <div style="border-bottom:1px solid #e0e0e0;padding:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="border-bottom:1px solid var(--gray-200);padding:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;font-size:17px;">출결 수정 / 예외 처리</span>
                         <button class="modal-close" onclick="closeSessionDetail()" style="font-size:22px;background:none;border:none;cursor:pointer;">&times;</button>
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
                         <div style="font-weight:600;">[학생 정보]</div>
                         <div style="margin-top:4px;">학생명: <span style="font-weight:500;">${studentName}</span></div>
                         <div>과정/과목: <span style="font-weight:500;">${courseSubject}</span></div>
                         <div>차시: <span style="font-weight:500;">${sessionLabel}</span></div>
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
-                        <div style="font-weight:600;">[현재 판정 상태] <span style="font-size:13px;font-weight:400;color:#888;">(읽기 전용)</span></div>
-                        <div style="margin-top:4px;">출결상태: <span style="color:#c62828;font-weight:600;">${currentStatus}</span></div>
-                        <div>기준 충족 여부: <span style="color:#c62828;font-weight:600;">${meetsStatus}</span></div>
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
+                        <div style="font-weight:600;">[현재 판정 상태] <span style="font-size:13px;font-weight:400;color:var(--gray-500);">(읽기 전용)</span></div>
+                        <div style="margin-top:4px;">출결상태: <span style="color:var(--color-danger);font-weight:600;">${currentStatus}</span></div>
+                        <div>기준 충족 여부: <span style="color:var(--color-danger);font-weight:600;">${meetsStatus}</span></div>
                         <div style="margin-top:10px;">자동 판정 근거 요약</div>
-                        <ul style="margin:4px 0 0 18px;padding:0 0 0 0;font-size:14px;color:#555;">
+                        <ul style="margin:4px 0 0 18px;padding:0 0 0 0;font-size:14px;color:var(--gray-600);">
                             ${autoSummary.map(s=>`<li>${s}</li>`).join('')}
                         </ul>
                         <div style="margin-top:8px;">
-                            <a href="#" style="font-size:13px;color:#1976d2;text-decoration:underline;cursor:pointer;">[자동 판정 상세 보기 ▾]</a>
+                            <a href="#" style="font-size:13px;color:var(--color-primary);text-decoration:underline;cursor:pointer;">[자동 판정 상세 보기 ▾]</a>
                         </div>
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
                         <div style="font-weight:600;">[출결 상태 변경]</div>
                         <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:12px 18px;">
                             <label><input type="radio" name="attStatus"/> 출석</label>
@@ -796,16 +796,16 @@
                             <label><input type="radio" name="attStatus"/> 기타(정책 인정)</label>
                         </div>
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
-                        <div style="color:#c62828;font-size:14px;display:flex;align-items:center;gap:6px;">
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
+                        <div style="color:var(--color-danger);font-size:14px;display:flex;align-items:center;gap:6px;">
                             <span style="font-size:18px;">⚠️</span> 예외 처리 안내
                         </div>
-                        <div style="margin-top:4px;font-size:13px;color:#c62828;">
+                        <div style="margin-top:4px;font-size:13px;color:var(--color-danger);">
                             본 변경은 자동 출결 기준을 초과하는 '예외 인정' 처리이며, 변경 이력은 관리자 검토 대상이 될 수 있습니다.
                         </div>
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
-                        <div style="font-weight:600;">[사유 입력] <span style="font-size:13px;font-weight:400;color:#888;">(필수)</span></div>
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
+                        <div style="font-weight:600;">[사유 입력] <span style="font-size:13px;font-weight:400;color:var(--gray-500);">(필수)</span></div>
                         <div style="margin-top:6px;display:flex;align-items:center;gap:10px;">
                             <span>사유 유형:</span>
                             <select style="padding:4px 10px;font-size:14px;">
@@ -816,13 +816,13 @@
                             </select>
                         </div>
                         <div style="margin-top:10px;">상세 사유</div>
-                        <textarea style="width:100%;min-height:60px;resize:vertical;padding:8px 10px;font-size:14px;border:1px solid #ddd;border-radius:6px;">의사 소견서 제출로 병가 인정 처리</textarea>
-                        <div style="margin-top:10px;">증빙 첨부 (선택) <span style="font-size:12px;color:#888;">* PDF / 이미지</span></div>
+                        <textarea style="width:100%;min-height:60px;resize:vertical;padding:8px 10px;font-size:14px;border:1px solid var(--gray-300);border-radius:6px;">의사 소견서 제출로 병가 인정 처리</textarea>
+                        <div style="margin-top:10px;">증빙 첨부 (선택) <span style="font-size:12px;color:var(--gray-500);">* PDF / 이미지</span></div>
                         <input type="file" accept=".pdf,image/*" style="margin-top:4px;">
                     </div>
-                    <div style="border-bottom:1px solid #e0e0e0;padding:12px 0;">
-                        <div style="font-weight:600;">[변경 이력 요약] <span style="font-size:13px;font-weight:400;color:#888;">(읽기 전용)</span></div>
-                        <ul style="margin:4px 0 0 18px;padding:0 0 0 0;font-size:14px;color:#555;">
+                    <div style="border-bottom:1px solid var(--gray-200);padding:12px 0;">
+                        <div style="font-weight:600;">[변경 이력 요약] <span style="font-size:13px;font-weight:400;color:var(--gray-500);">(읽기 전용)</span></div>
+                        <ul style="margin:4px 0 0 18px;padding:0 0 0 0;font-size:14px;color:var(--gray-600);">
                             ${changeHistorySummary.map(h=>`<li>- ${h.date} | ${h.user}<br>&nbsp;&nbsp;${h.from} → ${h.to} | 사유: ${h.reason}</li>`).join('')}
                         </ul>
                     </div>
@@ -838,7 +838,7 @@
             } catch (err) {
                 // fallback: use local attendanceData row if available
                 const row = attendanceData[idx] || {};
-                modalContent.innerHTML = `\n                    <div><strong>차시:</strong> ${row.session || sessionId}</div>\n                    <div><strong>일자:</strong> ${row.date || ''}</div>\n                    <div style="margin-top:8px;color:#666;">세부정보를 불러오지 못했습니다.</div>`;
+                modalContent.innerHTML = `\n                    <div><strong>차시:</strong> ${row.session || sessionId}</div>\n                    <div><strong>일자:</strong> ${row.date || ''}</div>\n                    <div style="margin-top:8px;color:var(--gray-600);">세부정보를 불러오지 못했습니다.</div>`;
                 console.warn('showSessionDetail fetch error', err);
             }
         }
@@ -888,7 +888,7 @@
     <div id="sessionDetailModal" class="invite-modal" onclick="if(event.target===this)closeSessionDetail()">
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-body">
-                <div id="sessionDetailContent" style="font-size:14px;color:#333;"></div>
+                <div id="sessionDetailContent" style="font-size:14px;color:var(--gray-800);"></div>
             </div>
         </div>
     </div>
@@ -901,7 +901,7 @@
                 <button class="modal-close" onclick="closeChangeHistoryDetail()">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="historyDetailContent" style="white-space:pre-line;font-size:14px;color:#333;"></div>
+                <div id="historyDetailContent" style="white-space:pre-line;font-size:14px;color:var(--gray-800);"></div>
             </div>
             <div>
                 <button>수정하기</button>

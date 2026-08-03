@@ -28,15 +28,15 @@
             padding: 12px 16px; background: #fff;
             border: 1px solid var(--color-line-gray); border-radius: 10px;
         }
-        .dash-header h2 { margin: 0; font-size: 20px; color: #222; }
-        .dash-header p { margin: 6px 0 0 0; font-size: 13px; color: #777; }
+        .dash-header h2 { margin: 0; font-size: 20px; color: var(--gray-900); }
+        .dash-header p { margin: 6px 0 0 0; font-size: 13px; color: var(--gray-500); }
 
         /* 표본 안내 — 이 화면 전체가 모델 연동 전 표본임을 가장 먼저 알린다.
            표본을 실제 수치로 착각하면 엉뚱한 훈련생에게 개입하게 된다. */
         .sample-banner {
             display: flex; align-items: center; gap: 10px;
             background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px;
-            padding: 12px 16px; font-size: 13.5px; color: #b45309; line-height: 1.5;
+            padding: 12px 16px; font-size: 13.5px; color: var(--color-warning); line-height: 1.5;
         }
         .sample-banner b { flex: none; }
 
@@ -46,14 +46,14 @@
             background: #fff; border: 1px solid var(--color-line-gray); border-radius: 12px;
             padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 120px;
         }
-        .kpi-title { font-size: 14px; color: #333; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .kpi-title { font-size: 14px; color: var(--gray-800); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .kpi-main { display: flex; flex-direction: column; gap: 6px; }
-        .kpi-main .big { font-size: 18px; color: #222; line-height: 1.1; }
-        .kpi-main .sub { font-size: 12px; color: #777; line-height: 1.4; }
+        .kpi-main .big { font-size: 18px; color: var(--gray-900); line-height: 1.1; }
+        .kpi-main .sub { font-size: 12px; color: var(--gray-500); line-height: 1.4; }
         .kpi-actions { margin-top: auto; display: flex; justify-content: flex-end; }
         /* 위험 인원 수치만 경고색 — 제목의 라벨·아이콘이 의미를 들고 있고 색은 보조다 */
         .kpi-card.risk-high .kpi-main .big { color: #b91c1c !important; }
-        .kpi-card.risk-mid  .kpi-main .big { color: #b45309 !important; }
+        .kpi-card.risk-mid  .kpi-main .big { color: var(--color-warning) !important; }
 
         /* 패널 */
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -62,39 +62,39 @@
             overflow: hidden; display: flex; flex-direction: column; min-height: 160px;
         }
         .panel-header {
-            padding: 14px 16px; background: #fafafa; border-bottom: 1px solid var(--color-line-gray);
+            padding: 14px 16px; background: var(--gray-50); border-bottom: 1px solid var(--color-line-gray);
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
         }
-        .panel-header h3 { margin: 0; font-size: 15px; color: #333; }
+        .panel-header h3 { margin: 0; font-size: 15px; color: var(--gray-800); }
         .panel-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-        .muted { color: #777; font-size: 12px; }
-        .text-strong { color: #222; }
+        .muted { color: var(--gray-500); font-size: 12px; }
+        .text-strong { color: var(--gray-900); }
 
         /* 판정 기준 안내 */
         .criteria-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
         .criteria-list li {
             display: flex; align-items: baseline; gap: 10px;
-            padding: 10px 12px; border: 1px solid #eee; border-radius: 10px; font-size: 13px; color: #333;
+            padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 10px; font-size: 13px; color: var(--gray-800);
         }
         .criteria-list .badge { flex: none; }
 
         /* 위험 학습자 표 */
-        .mini-table { border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+        .mini-table { border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; }
         .mini-head, .mini-row {
             display: grid; gap: 12px; align-items: center; padding: 12px;
             grid-template-columns: 1.1fr 1.4fr 1.7fr 0.8fr 2.1fr 0.9fr 0.7fr;
         }
-        .mini-head { background: #f5f5f5; font-size: 12px; color: #666; }
-        .mini-row { border-top: 1px solid #eee; font-size: 13px; color: #333; }
-        .mini-row:hover { background: #fafafa; }
+        .mini-head { background: var(--gray-100); font-size: 12px; color: var(--gray-600); }
+        .mini-row { border-top: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-800); }
+        .mini-row:hover { background: var(--gray-50); }
 
         .badge {
             display: inline-flex; align-items: center; justify-content: center;
             padding: 5px 10px; border-radius: 999px; font-size: 12px; white-space: nowrap;
-            background: #f5f5f5; color: #666;
+            background: var(--gray-100); color: var(--gray-600);
         }
         .badge.risk-high { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-        .badge.risk-mid  { background: #fff7ed; color: #b45309; border: 1px solid #fed7aa; }
+        .badge.risk-mid  { background: #fff7ed; color: var(--color-warning); border: 1px solid #fed7aa; }
 
         /* 위험도 막대 — 숫자만으로는 줄 세워 비교가 안 된다 */
         .risk-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }

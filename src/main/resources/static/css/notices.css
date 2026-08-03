@@ -4,21 +4,21 @@
             border-collapse: collapse;
         }
         .notice-table th, .notice-table td {
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--gray-200);
             padding: 12px 16px;
             text-align: center;
         }
         .notice-table th {
-            background: #f7f7f9;
+            background: var(--gray-50);
             font-weight: 700;
-            color: #333;
+            color: var(--gray-800);
         }
         .notice-table td {
             font-size: 15px;
-            color: #333;
+            color: var(--gray-800);
         }
         .notice-table td a {
-            color: #007bff;
+            color: var(--color-primary);
             text-decoration: none;
         }
         .notice-table td a:hover {
@@ -32,7 +32,7 @@
             white-space: pre-line;
             padding: 18px;
             background: #fff;
-            border: 1px solid #f0f0f0;
+            border: 1px solid var(--gray-100);
             border-radius: 8px;
         }
         

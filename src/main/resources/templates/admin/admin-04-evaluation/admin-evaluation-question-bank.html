@@ -110,7 +110,7 @@
             <div class="question-table-area">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr style="background:#f8f9fa;">
+                        <tr style="background:var(--gray-50);">
                             <th><input type="checkbox" name="select_all" id="select_all"></th>
                             <th>유형</th>
                             <th>제목</th>
@@ -206,6 +206,6 @@
     <script src="/static/js/server-pagination.js" defer></script>
 
     <div th:if="${message}" class="toast-message" th:text="${message}"
-         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
+         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gray-800);color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
 </body>
 </html>

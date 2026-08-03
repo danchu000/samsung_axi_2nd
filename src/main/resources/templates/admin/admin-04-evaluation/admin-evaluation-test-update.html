@@ -16,8 +16,8 @@
             margin-bottom: 18px;
             padding: 12px 16px;
             border-radius: 6px;
-            background: #FDECEA;
-            color: #C62828;
+            background: var(--color-danger-bg);
+            color: var(--color-danger);
             font-size: 14px;
             line-height: 1.6;
         }
@@ -25,11 +25,11 @@
             margin-bottom: 18px;
             padding: 12px 16px;
             border-radius: 6px;
-            background: #E3F2FD;
-            color: #1976D2;
+            background: var(--color-info-bg);
+            color: var(--color-primary-active);
             font-size: 14px;
         }
-        .field-error { color: #C62828; font-size: 13px; }
+        .field-error { color: var(--color-danger); font-size: 13px; }
         .check-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -40,10 +40,10 @@
             display: inline-block; padding: 2px 8px; border-radius: 10px;
             font-size: 12px; margin-left: 8px;
         }
-        .q-badge-manual { background: #E8F5E9; color: #2E7D32; }
-        .q-badge-rule { background: #FFF3E0; color: #EF6C00; }
+        .q-badge-manual { background: var(--color-success-bg); color: var(--color-success); }
+        .q-badge-rule { background: var(--color-warning-bg); color: var(--color-warning); }
         .q-badge-set { background: #EDE7F6; color: #5E35B1; }
-        .setting-hint { font-size: 13px; color: #888; margin-top: 6px; line-height: 1.6; }
+        .setting-hint { font-size: 13px; color: var(--gray-500); margin-top: 6px; line-height: 1.6; }
         .set-select { width: 84px; margin-left: 10px; }
     </style>
 </head>
@@ -63,7 +63,7 @@
                 <div class="form-notice" th:if="${message}" th:text="${message}"></div>
                 <div class="form-error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
-                <div style="font-size:14px;color:#666;margin-bottom:18px;">
+                <div style="font-size:14px;color:var(--gray-600);margin-bottom:18px;">
                     응시 대상 수강생 <b th:text="${targetTraineeCount}">0</b>명
                     (과정 수강 승인·수료 인원 기준)
                 </div>
@@ -76,12 +76,12 @@
                     </div>
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="testName">시험명</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testName">시험명</label>
                             <input type="text" class="form-input" id="testName" name="examName" required th:value="*{examName}">
                             <span class="field-error" th:if="${#fields.hasErrors('examName')}" th:errors="*{examName}"></span>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="testType">유형</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="testType">유형</label>
                             <select class="form-select" id="testType" name="examType">
                                 <option value="단위시험" th:selected="*{examType == '단위시험'}">단위시험</option>
                                 <option value="중간고사" th:selected="*{examType == '중간고사'}">중간고사</option>
@@ -93,7 +93,7 @@
                     <!-- 과정/과목/차시/강사 (A 소유 데이터 — 읽기만 한다) -->
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="courseId">과정</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="courseId">과정</label>
                             <select class="form-select" id="courseId" name="courseId" required>
                                 <option value="">과정 선택*</option>
                                 <option th:each="c : ${courseOptions}" th:value="${c.value}" th:text="${c.label}"
@@ -102,7 +102,7 @@
                             <span class="field-error" th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}"></span>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="subjectId">과목</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="subjectId">과목</label>
                             <select class="form-select" id="subjectId" name="subjectId">
                                 <option value="">선택 안 함</option>
                                 <option th:each="s : ${subjectOptions}" th:value="${s.value}" th:text="${s.label}"
@@ -112,7 +112,7 @@
                     </div>
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="sessionId">차시</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="sessionId">차시</label>
                             <select class="form-select" id="sessionId" name="sessionId">
                                 <option value="">선택 안 함</option>
                                 <option th:each="s : ${sessionOptions}" th:value="${s.value}" th:text="${s.label}"
@@ -120,7 +120,7 @@
                             </select>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="instructorId">출제 강사</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="instructorId">출제 강사</label>
                             <select class="form-select" id="instructorId" name="instructorId">
                                 <option value="">선택 안 함</option>
                                 <option th:each="i : ${instructorOptions}" th:value="${i.value}" th:text="${i.label}"
@@ -132,13 +132,13 @@
                     <!-- 응시 기간 (내역서: 응시 가능 기간) -->
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="windowStart">응시 시작일시</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="windowStart">응시 시작일시</label>
                             <input type="datetime-local" class="form-input" id="windowStart" name="windowStart" required
                                    th:value="${form.windowStart != null} ? ${#temporals.format(form.windowStart, 'yyyy-MM-dd''T''HH:mm')} : ''">
                             <span class="field-error" th:if="${#fields.hasErrors('windowStart')}" th:errors="*{windowStart}"></span>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="windowEnd">응시 종료일시</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="windowEnd">응시 종료일시</label>
                             <input type="datetime-local" class="form-input" id="windowEnd" name="windowEnd" required
                                    th:value="${form.windowEnd != null} ? ${#temporals.format(form.windowEnd, 'yyyy-MM-dd''T''HH:mm')} : ''">
                             <span class="field-error" th:if="${#fields.hasErrors('windowEnd')}" th:errors="*{windowEnd}"></span>
@@ -147,12 +147,12 @@
 
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="timeLimit">제한시간 (분)</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="timeLimit">제한시간 (분)</label>
                             <input type="number" class="form-input" id="timeLimit" name="timeLimitMin" min="1" th:value="*{timeLimitMin}">
                             <span class="field-error" th:if="${#fields.hasErrors('timeLimitMin')}" th:errors="*{timeLimitMin}"></span>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="passScore">합격점수</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="passScore">합격점수</label>
                             <input type="number" class="form-input" id="passScore" name="passScore" min="0" th:value="*{passScore}">
                             <span class="field-error" th:if="${#fields.hasErrors('passScore')}" th:errors="*{passScore}"></span>
                         </div>
@@ -163,7 +163,7 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <!-- 시험 구성(수동 문제 추가) 영역 -->
                     <div id="manualQuestionArea" style="margin-bottom:24px;">
                         <div style="display:flex;align-items:center;gap:16px; margin-bottom:10px;">
@@ -267,13 +267,13 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <div style="display:flex;align-items:center;gap:18px;font-size:16px;margin-bottom:8px;">
                         <span>👉 현재 총 문항 수: <span id="currentCount">0</span> / <span id="maxCount">0</span></span>
                         <span id="countWarning" style="color:#e67e22;font-size:15px;"></span>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <!-- 배점: 자동채점 + 수동채점 = 총점 (서버에서 다시 검증한다) -->
                     <div style="margin-bottom:18px;">
                         <div class="section-title" style="font-size:18px;margin-bottom:10px;">배점</div>
@@ -291,12 +291,12 @@
                                 <input type="number" class="form-input" id="totalScore" name="totalScore" min="1" th:value="*{totalScore}">
                             </div>
                         </div>
-                        <div style="font-size:13px;color:#888;margin-top:6px;">
+                        <div style="font-size:13px;color:var(--gray-500);margin-top:6px;">
                             자동채점 배점 + 수동채점 배점 = 총점 이어야 하며, 합격점수는 총점을 넘을 수 없습니다.
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <!-- 시험 운영 설정 — 문제 세트 랜덤 배정 / 성적 공개 / 사전 모의 테스트 -->
                     <div style="margin-bottom:18px;">
                         <div class="section-title" style="font-size:18px;margin-bottom:10px;">시험 운영 설정</div>
@@ -338,7 +338,7 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <!-- 응시/보안 설정 (내역서 증빙 요건) -->
                     <div style="margin-bottom:18px;">
                         <div class="section-title" style="font-size:18px;margin-bottom:10px;">응시 · 보안 설정</div>
@@ -380,14 +380,14 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                     <div style="display:flex;gap:24px;margin-bottom:18px;">
                         <div style="flex:2;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="note">응시 안내 문구</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="note">응시 안내 문구</label>
                             <textarea class="form-input" id="note" name="note" rows="3" th:text="*{note}"></textarea>
                         </div>
                         <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                            <label style="font-size:15px;font-weight:600;color:#333;" for="status">상태</label>
+                            <label style="font-size:15px;font-weight:600;color:var(--gray-800);" for="status">상태</label>
                             <select class="form-select" id="status" name="status">
                                 <option value="임시저장" th:selected="*{status == '임시저장'}">임시저장</option>
                                 <option value="예정" th:selected="*{status == '예정'}">예정</option>
@@ -398,7 +398,7 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                    <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
 
                     <!-- 수동 문제/규칙이 hidden input 으로 들어가는 자리 -->
                     <div id="hiddenInputs"></div>
@@ -413,24 +413,24 @@
                 <!-- ===== 확정된 출제 문항 =====
                      규칙은 조건일 뿐이라 실제 출제 문항을 여기서 확정해 둬야
                      응시자에게 나간 문항을 3년간 재현할 수 있다 (ExamQuestion.fromRule=true). -->
-                <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                 <div class="section-title" style="font-size:18px;margin-bottom:10px;">
                     확정된 출제 문항
-                    <span style="font-size:13px;font-weight:400;color:#888;margin-left:8px;"
+                    <span style="font-size:13px;font-weight:400;color:var(--gray-500);margin-left:8px;"
                           th:text="'세트 ' + ${form.questionSetCount} + '개 편성 — 응시자에게는 이 중 한 세트만 배정됩니다.'"></span>
                 </div>
                 <div id="confirmedQuestionList" style="margin-bottom:12px;">
-                    <div th:if="${#lists.isEmpty(examQuestions)}" style="color:#888;font-size:14px;">
+                    <div th:if="${#lists.isEmpty(examQuestions)}" style="color:var(--gray-500);font-size:14px;">
                         확정된 문항이 없습니다.
                     </div>
                     <div th:each="q : ${examQuestions}"
-                         style="background:#f8f9fa;border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                         style="background:var(--gray-50);border-radius:6px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
                         <span style="font-size:15px;">
                             <span class="q-badge q-badge-set" th:text="'세트 ' + ${q.setNo}">세트 1</span>
                             <span th:text="${q.seq}">1</span>.
                             [<span th:text="${q.code}">Q-0001</span>]
                             <span th:text="${q.title}">문제</span>
-                            <span style="color:#888;font-size:13px;"
+                            <span style="color:var(--gray-500);font-size:13px;"
                                   th:text="'(' + ${q.difficulty} + ' / ' + ${q.score} + '점)'"></span>
                             <span class="q-badge" th:classappend="${q.fromRule} ? 'q-badge-rule' : 'q-badge-manual'"
                                   th:text="${q.fromRule} ? '규칙 확정' : '수동 출제'">구분</span>
@@ -440,7 +440,7 @@
                 <!-- 별도 폼: 시험 폼 안에 중첩할 수 없다 -->
                 <form method="post" th:action="@{/admin/evaluation/exams/{id}/materialize(id=${form.id})}">
                     <button type="submit" class="btn btn-preview" id="previewBtn">규칙으로 문항 확정</button>
-                    <span style="font-size:13px;color:#888;margin-left:10px;">
+                    <span style="font-size:13px;color:var(--gray-500);margin-left:10px;">
                         기존 규칙 확정 문항을 지우고 현재 규칙으로 세트 수만큼 다시 뽑습니다.
                     </span>
                 </form>
@@ -449,7 +449,7 @@
                      응시 기록이 있으면 위 폼(문항 구성 포함)은 잠긴다. 하지만 성적 공개 방식은
                      문항 구성과 무관하고, 잘못 잡힌 공개 설정을 시험 종료 후에도 못 고치면
                      응시자가 영영 결과를 못 본다. 그래서 정책만 바꾸는 좁은 경로를 따로 둔다. -->
-                <div style="border-top:1.5px solid #e0e0e0;margin:32px 0 24px 0;"></div>
+                <div style="border-top:1.5px solid var(--gray-200);margin:32px 0 24px 0;"></div>
                 <div class="section-title" style="font-size:18px;margin-bottom:10px;">성적 공개 설정만 변경</div>
                 <form method="post" th:action="@{/admin/evaluation/exams/{id}/result-release(id=${form.id})}"
                       style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
@@ -468,7 +468,7 @@
                                th:value="${form.resultReleaseAt != null} ? ${#temporals.format(form.resultReleaseAt, 'yyyy-MM-dd''T''HH:mm')} : ''">
                     </div>
                     <button type="submit" class="btn btn-save">공개 설정 저장</button>
-                    <span style="font-size:13px;color:#888;">응시 기록이 있어도 이 항목만은 바꿀 수 있습니다 (문항 구성은 건드리지 않습니다).</span>
+                    <span style="font-size:13px;color:var(--gray-500);">응시 기록이 있어도 이 항목만은 바꿀 수 있습니다 (문항 구성은 건드리지 않습니다).</span>
                 </form>
             </div>
         </section>

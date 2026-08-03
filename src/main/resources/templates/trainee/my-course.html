@@ -11,19 +11,19 @@
         .mc-section { margin-bottom: 36px; }
         .mc-section h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
         .mc-flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
-        .mc-flash.ok { background: #d4edda; color: #155724; }
-        .mc-flash.err { background: #f8d7da; color: #721c24; }
+        .mc-flash.ok { background: var(--color-success-bg); color: var(--color-success); }
+        .mc-flash.err { background: var(--color-danger-bg); color: var(--color-danger); }
         .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-        .course-card { background:#fff; border:1px solid #e0e0e0; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .course-card { background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
         .course-card h3 { font-size:17px; font-weight:700; margin-bottom:6px; }
-        .course-meta { font-size:13px; color:#777; margin-bottom:12px; }
+        .course-meta { font-size:13px; color:var(--gray-500); margin-bottom:12px; }
         .badge-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
-        .badge-APPLIED { background:#fff3cd; color:#856404; }
-        .badge-APPROVED { background:#d4edda; color:#155724; }
-        .badge-REJECTED { background:#f8d7da; color:#721c24; }
+        .badge-APPLIED { background:var(--color-warning-bg); color:var(--color-warning); }
+        .badge-APPROVED { background:var(--color-success-bg); color:var(--color-success); }
+        .badge-REJECTED { background:var(--color-danger-bg); color:var(--color-danger); }
         .badge-CANCELLED { background:#e2e3e5; color:#383d41; }
         .badge-COMPLETED { background:#cce5ff; color:#004085; }
-        .empty-hint { color:#999; font-size:14px; padding:16px 0; }
+        .empty-hint { color:var(--gray-500); font-size:14px; padding:16px 0; }
         .card-actions { margin-top:12px; display:flex; gap:8px; align-items:center; }
         .inline-form { display:inline; }
     </style>
@@ -50,7 +50,7 @@
                             <span th:text="|${en.startDate} ~ ${en.endDate}|">기간</span>
                         </div>
                         <div class="card-actions">
-                            <span style="font-size:13px; color:#555;" th:text="|진도율 ${#numbers.formatDecimal(en.progressRate,1,1)}%|">진도율</span>
+                            <span style="font-size:13px; color:var(--gray-600);" th:text="|진도율 ${#numbers.formatDecimal(en.progressRate,1,1)}%|">진도율</span>
                             <form class="inline-form"
                                   th:if="${en.status.name() == 'APPLIED' or en.status.name() == 'APPROVED'}"
                                   th:action="@{/trainee/enrollments/{eid}/cancel(eid=${en.enrollmentId})}" method="post"
@@ -59,7 +59,7 @@
                             </form>
                         </div>
                         <p th:if="${en.status.name() == 'CANCELLED' or en.status.name() == 'REJECTED'}"
-                           style="margin-top:8px; font-size:12px; color:#999;">
+                           style="margin-top:8px; font-size:12px; color:var(--gray-500);">
                             재신청은 과정이 모집중일 때만 가능합니다. 모집이 마감된 과정은 관리자에게 문의해 주세요.
                         </p>
                     </div>

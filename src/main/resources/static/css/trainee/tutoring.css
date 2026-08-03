@@ -17,13 +17,13 @@
     margin: 0;
     font-size: 22px;
     line-height: 1.2;
-    color: #111;
+    color: var(--gray-900);
   }
 
   .tutor-desc {
     margin: 6px 0 0 0;
     font-size: 14px;
-    color: #666;
+    color: var(--gray-600);
   }
 
   /* 레이아웃 */
@@ -42,7 +42,7 @@
 
   .panel {
     background: #fff;
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--gray-200);
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 1px 0 rgba(0,0,0,0.02);
@@ -51,7 +51,7 @@
   .panel-title {
     margin: 0 0 12px 0;
     font-size: 15px;
-    color: #222;
+    color: var(--gray-900);
   }
 
   .field {
@@ -62,33 +62,33 @@
   }
   .field label {
     font-size: 13px;
-    color: #444;
+    color: var(--gray-800);
   }
   .field select {
     height: 38px;
     padding: 8px 10px;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--gray-300);
     border-radius: 10px;
     background: #fff;
     outline: none;
   }
   .field select:disabled {
     background: #f6f6f6;
-    color: #999;
+    color: var(--gray-400);
   }
 
   .scope-card {
-    border: 1px dashed #d6d6d6;
+    border: 1px dashed var(--gray-300);
     border-radius: 12px;
     padding: 12px;
-    background: #fafafa;
+    background: var(--gray-50);
     margin-top: 6px;
   }
   .scope-empty {
     display: flex;
     gap: 8px;
     align-items: center;
-    color: #777;
+    color: var(--gray-500);
     font-size: 13px;
   }
   .dot {
@@ -107,19 +107,19 @@
     display: inline-flex;
     padding: 2px 8px;
     border-radius: 999px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     font-size: 12px;
-    color: #555;
+    color: var(--gray-600);
     background: #fff;
   }
   .scope-value {
     font-size: 13px;
-    color: #222;
+    color: var(--gray-900);
     
   }
   .scope-hint {
     font-size: 12px;
-    color: #666;
+    color: var(--gray-600);
   }
 
   .notice-box {
@@ -156,7 +156,7 @@
     text-align: left;
     padding: 10px 10px;
     border-radius: 10px;
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--gray-200);
     background: #fff;
     cursor: pointer;
     display: flex;
@@ -170,18 +170,18 @@
   }
   .history-title {
     font-size: 13px;
-    color: #222;
+    color: var(--gray-900);
     
   }
   .history-meta {
     font-size: 12px;
-    color: #777;
+    color: var(--gray-500);
   }
 
   /* 우측 채팅 */
   .tutor-right {
     background: #fff;
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--gray-200);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -191,8 +191,8 @@
 
   .chat-topbar {
     padding: 12px 14px;
-    border-bottom: 1px solid #eee;
-    background: #fafafa;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
   }
 
   .chat-scope {
@@ -208,9 +208,9 @@
     padding: 0 10px;
     border-radius: 999px;
     font-size: 12px;
-    background: #f0f0f0;
-    color: #666;
-    border: 1px solid #e0e0e0;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-200);
     white-space: nowrap;
   }
 
@@ -222,7 +222,7 @@
 
   .chat-scope-text {
     font-size: 13px;
-    color: #555;
+    color: var(--gray-600);
   }
 
   .chat-window {
@@ -242,9 +242,9 @@
   }
   .day-divider span {
     font-size: 12px;
-    color: #777;
-    background: #f5f5f5;
-    border: 1px solid #eee;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
     padding: 4px 10px;
     border-radius: 999px;
   }
@@ -274,8 +274,8 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
   .msg-row.tutor .msg-bubble {
-    background: #eeeeee;
-    color: #333;
+    background: var(--gray-200);
+    color: var(--gray-800);
     border-radius: 14px 14px 14px 4px;
   }
   .msg-row.me .msg-bubble {
@@ -287,7 +287,7 @@
   .msg-meta {
     margin-top: 6px;
     font-size: 11px;
-    color: #777;
+    color: var(--gray-500);
   }
 
   /* 로딩 말풍선 */
@@ -313,9 +313,9 @@
 
   /* 입력바 */
   .chat-inputbar {
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--gray-200);
     padding: 12px;
-    background: #fafafa;
+    background: var(--gray-50);
   }
   .input-wrap {
     display: flex;
@@ -329,7 +329,7 @@
     max-height: 140px;
     padding: 10px 12px;
     border-radius: 12px;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--gray-300);
     outline: none;
     font-size: 13px;
     line-height: 1.4;
@@ -337,13 +337,13 @@
   }
   .chat-input:disabled {
     background: #f3f3f3;
-    color: #999;
+    color: var(--gray-400);
   }
 
   .chat-help {
     margin-top: 8px;
     font-size: 12px;
-    color: #777;
+    color: var(--gray-500);
   }
 
   /* 버튼 - 프로젝트 btn-style.css가 있다면 그걸 우선, 없으면 아래 기본 적용 */
@@ -351,7 +351,7 @@
     height: 40px;
     padding: 0 14px;
     border-radius: 10px;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--gray-300);
     background: #fff;
     cursor: pointer;
     font-size: 13px;
@@ -361,14 +361,14 @@
     opacity: 0.6;
   }
   .btn-primary {
-    border-color: #2a63ff;
-    background: #2a63ff;
+    border-color: var(--color-primary);
+    background: var(--color-primary);
     color: #fff;
   }
   .btn-outline {
     background: #fff;
     border-color: #d0d0d0;
-    color: #222;
+    color: var(--gray-900);
   }
 
   /* 반응형 */

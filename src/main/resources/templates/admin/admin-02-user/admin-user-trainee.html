@@ -12,12 +12,12 @@
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 훈련생 관리</title>
     <style>
-        .status-select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .status-select { padding: 6px 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 13px; }
         .flash { padding: 12px 16px; border-radius: 6px; margin: 0 20px 12px; font-size: 14px; }
-        .flash-success { background: #e8f5e9; color: #2e7d32; }
+        .flash-success { background: var(--color-success-bg); color: var(--color-success); }
         .row-actions { display: inline-flex; gap: 6px; align-items: center; }
         .row-actions form { display: inline; margin: 0; }
-        #userSearch { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
+        #userSearch { width: 100%; padding: 10px 15px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 14px; outline: none; }
     </style>
 </head>
 <body>
@@ -86,7 +86,7 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(users)}">
-                            <td colspan="8" style="padding:40px; text-align:center; color:#999;">등록된 훈련생이 없습니다.</td>
+                            <td colspan="8" style="padding:40px; text-align:center; color:var(--gray-500);">등록된 훈련생이 없습니다.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -99,7 +99,7 @@
                 <h2>훈련생 상세정보</h2>
             </div>
 
-            <div th:if="${selected == null}" style="padding:40px; color:#999;">
+            <div th:if="${selected == null}" style="padding:40px; color:var(--gray-500);">
                 왼쪽 목록에서 훈련생을 선택하면 상세 정보가 표시됩니다.
             </div>
 

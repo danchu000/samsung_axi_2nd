@@ -6,17 +6,17 @@
                 }
                 .grading-history-table th {
                     padding: 8px 4px;
-                    border-bottom: 1px solid #e0e4ea;
+                    border-bottom: 1px solid var(--gray-200);
                     background: #f5f7fa;
                     font-size: 14px;
-                    color: #1976D2;
+                    color: var(--color-primary);
                     font-weight: 500;
                 }
                 .grading-history-table td {
                     padding: 7px 4px;
-                    border-bottom: 1px solid #e0e4ea;
+                    border-bottom: 1px solid var(--gray-200);
                     font-size: 14px;
-                    color: #333;
+                    color: var(--gray-800);
                 }
                 .grading-history-table tr:last-child td {
                     border-bottom: none;
@@ -30,7 +30,7 @@
             flex: 1;
             background: #fff;
             border-radius: 12px;
-            border: 1.5px solid #e0e4ea;
+            border: 1.5px solid var(--gray-200);
             box-shadow: 0 2px 8px 0 rgba(0,0,0,0.03);
             padding: 24px 18px 18px 18px;
             min-width: 420px;
@@ -41,17 +41,17 @@
             font-size: 14px;
         }
         .grading-student-table th, .grading-student-table td {
-            border-bottom: 1px solid #e0e4ea;
+            border-bottom: 1px solid var(--gray-200);
             padding: 10px 6px;
             text-align: center;
         }
         .grading-student-table th {
             background: #f5f7fa;
             font-weight: 700;
-            color: #1976D2;
+            color: var(--color-primary);
         }
         .grading-student-table td {
-            color: #333;
+            color: var(--gray-800);
         }
         .grading-student-table tr:last-child td {
             border-bottom: none;
@@ -62,20 +62,20 @@
         }
         .grading-history-box {
             margin-top: 28px;
-            background: #f8f9fa;
+            background: var(--gray-50);
             border-radius: 12px;
-            border: 1.5px solid #e0e4ea;
+            border: 1.5px solid var(--gray-200);
             padding: 20px 18px 18px 18px;
         }
         .grading-history-title {
             font-size: 15px;
             font-weight: 600;
-            color: #1976D2;
+            color: var(--color-primary);
             margin-bottom: 8px;
         }
         .grading-history-row {
             font-size: 14px;
-            color: #333;
+            color: var(--gray-800);
             margin-bottom: 4px;
         }
         .grading-history-row:last-child {
@@ -83,29 +83,29 @@
         }
         .grading-feedback-box {
             margin-top: 28px;
-            background: #f8f9fa;
+            background: var(--gray-50);
             border-radius: 12px;
-            border: 1.5px solid #e0e4ea;
+            border: 1.5px solid var(--gray-200);
             padding: 20px 18px 18px 18px;
         }
         .grading-feedback-title {
             font-size: 15px;
             font-weight: 600;
-            color: #1976D2;
+            color: var(--color-primary);
             margin-bottom: 8px;
         }
         .grading-feedback-label {
             font-size: 13px;
-            color: #888;
+            color: var(--gray-500);
             margin-bottom: 4px;
         }
         .grading-feedback-textarea {
             background: #fff;
             border-radius: 8px;
-            border: 1px solid #e0e4ea;
+            border: 1px solid var(--gray-200);
             padding: 12px 14px;
             font-size: 14px;
-            color: #333;
+            color: var(--gray-800);
             min-height: 48px;
             margin-bottom: 12px;
             white-space: pre-line;
@@ -122,7 +122,7 @@
                     }
                     .student-info-table th {
                         text-align: left;
-                        color: #1976D2;
+                        color: var(--color-primary);
                         font-weight: 600;
                         padding: 6px 8px 6px 0;
                         background: #fff;
@@ -138,7 +138,7 @@
             flex: 1;
             background: #fff;
             border-radius: 12px;
-            border: 1.5px solid #e0e4ea;
+            border: 1.5px solid var(--gray-200);
             box-shadow: 0 2px 8px 0 rgba(0,0,0,0.03);
             padding: 24px 24px 18px 24px;
             min-width: 340px;
@@ -146,7 +146,7 @@
         .grading-submission-title {
             font-size: 16px;
             font-weight: 700;
-            color: #1976D2;
+            color: var(--color-primary);
             margin-bottom: 12px;
         }
         .grading-submission-section {
@@ -154,12 +154,12 @@
         }
         .grading-submission-label {
             font-size: 13px;
-            color: #888;
+            color: var(--gray-500);
             margin-bottom: 2px;
         }
         .grading-submission-file, .grading-submission-link {
             font-size: 14px;
-            color: #333;
+            color: var(--gray-800);
             margin-bottom: 4px;
         }
         .grading-submission-actions {
@@ -168,19 +168,19 @@
             margin-left: 8px;
         }
         .grading-submission-textarea {
-            background: #f8f9fa;
+            background: var(--gray-50);
             border-radius: 8px;
-            border: 1px solid #e0e4ea;
+            border: 1px solid var(--gray-200);
             padding: 12px 14px;
             font-size: 14px;
-            color: #333;
+            color: var(--gray-800);
             min-height: 60px;
             margin-bottom: 6px;
             white-space: pre-line;
         }
         .grading-submission-meta {
             font-size: 13px;
-            color: #666;
+            color: var(--gray-600);
             margin-bottom: 2px;
         }
         .grading-submission-meta:last-child {
@@ -192,27 +192,27 @@
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-            border: 1.5px solid #e0e4ea;
+            border: 1.5px solid var(--gray-200);
         }
         .grading-summary-title {
             font-size: 20px;
             font-weight: 700;
-            color: #1976D2;
+            color: var(--color-primary);
             margin-bottom: 12px;
             letter-spacing: -1px;
         }
         .grading-summary-divider {
-            border-top: 1px solid #e0e4ea;
+            border-top: 1px solid var(--gray-200);
             margin-bottom: 16px;
         }
         .grading-summary-main {
             font-size: 15px;
-            color: #333;
+            color: var(--gray-800);
             margin-bottom: 4px;
         }
         .grading-summary-sub {
             font-size: 14px;
-            color: #666;
+            color: var(--gray-600);
             margin-bottom: 4px;
         }
         .grading-summary-sub:last-child {

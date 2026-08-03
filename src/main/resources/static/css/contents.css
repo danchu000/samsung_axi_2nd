@@ -36,11 +36,11 @@
     grid-template-columns: 60px 1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     gap: 16px;
     padding: 16px 20px;
-    background: #f5f5f5;
+    background: var(--gray-100);
     border-bottom: 2px solid var(--color-line-gray);
     font-weight: 600;
     font-size: 14px;
-    color: #666;
+    color: var(--gray-600);
     border-radius: 8px 8px 0 0;
 }
 
@@ -110,12 +110,12 @@
     margin-bottom: 0;
 }
 .tab-btn {
-    background: #f5f5f5;
+    background: var(--gray-100);
     border: none;
     border-radius: 24px;
     padding: 12px 32px;
     font-size: 17px;
-    color: #666;
+    color: var(--gray-600);
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
@@ -139,13 +139,13 @@
     justify-content: center;
     width: 120px;
     height: 140px;
-    background: #f8f9fa;
+    background: var(--gray-50);
     border-radius: 16px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--gray-200);
     cursor: pointer;
     font-size: 16px;
     font-weight: 500;
-    color: #333;
+    color: var(--gray-800);
     position: relative;
 }
 .type-card:hover {

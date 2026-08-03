@@ -59,7 +59,7 @@
                         <!-- 시험 설정 3종 표시: 모의/정식 구분 + 이 응시자에게 배정된 문제 세트 -->
                         <p class="exam-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px 0;">
                             <span th:if="${attempt.practiceMode}"
-                                  style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#FFF3E0;color:#EF6C00;">
+                                  style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:var(--color-warning-bg);color:var(--color-warning);">
                                 사전 모의 테스트 · 성적 미반영</span>
                             <span th:if="${attempt.totalSets > 1}"
                                   style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#EDE7F6;color:#5E35B1;"
@@ -92,7 +92,7 @@
 
                         <!-- 사전 모의 테스트는 성적에 반영되지 않는다는 점을 결과에서도 못 박는다 -->
                         <div th:if="${result.practiceMode}" class="result-notice"
-                             style="padding:10px 14px;border-radius:6px;background:#FFF3E0;color:#EF6C00;font-size:14px;">
+                             style="padding:10px 14px;border-radius:6px;background:var(--color-warning-bg);color:var(--color-warning);font-size:14px;">
                             사전 모의 테스트입니다. 이 응시 결과는 성적에 반영되지 않습니다.
                         </div>
 
@@ -208,7 +208,7 @@
           th:action="@{/trainee/exam/attempt/{id}/submit(id=${attempt.attemptId})}" style="display:none;"></form>
 
     <div th:if="${message}" class="toast-message" th:text="${message}"
-         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
+         style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gray-800);color:#fff;padding:12px 20px;border-radius:6px;z-index:9999;"></div>
 
     <script th:inline="javascript">
       /*<![CDATA[*/
@@ -459,7 +459,7 @@
       const banner = document.createElement('div');
       banner.id = 'proctorWarningBanner';
       banner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:99999;'
-        + 'background:#D32F2F;color:#fff;padding:14px 20px;font-size:15px;font-weight:600;'
+        + 'background:var(--color-danger);color:#fff;padding:14px 20px;font-size:15px;font-weight:600;'
         + 'box-shadow:0 2px 8px rgba(0,0,0,.3);';
       document.body.appendChild(banner);
 

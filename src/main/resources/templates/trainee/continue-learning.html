@@ -23,13 +23,13 @@
     .progress-circle-text {
         font-size: 12px;
         font-weight: 700;
-        fill: #007bff;
+        fill: var(--color-primary);
         dominant-baseline: middle;
         text-anchor: middle;
     }
     /* 아코디언 스타일 */
     .accordion {
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--gray-200);
         border-radius: 8px;
         margin-bottom: 8px;
         background: #fff;
@@ -43,11 +43,11 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--gray-200);
         transition: background 0.2s;
     }
     .accordion-header:hover {
-        background: #e9ecef;
+        background: var(--gray-200);
     }
 
     .accordion-header .accordion-header-content>span {
@@ -64,9 +64,9 @@
     .accordion-content {
         padding: 16px 20px;
         display: none;
-        background: #fafbfc;
+        background: var(--gray-50);
         font-size: 15px;
-        color: #444;
+        color: var(--gray-800);
     }
     .accordion.open .accordion-content {
         display: block;
@@ -80,7 +80,7 @@
     }
     .course-card {
         background: white;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--gray-200);
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 16px;
@@ -99,26 +99,26 @@
         font-size: 14px;
         font-weight: 700;
         color: #fff;
-        background: #007bff;
+        background: var(--color-primary);
         padding: 4px 8px;
         border-radius: 12px;
     }
 
     .course-status {
         font-size: 14px;
-        color: #666;
+        color: var(--gray-600);
     }
 
     .course-title {
         font-size: 20px;
         font-weight: 700;
-        color: #333;
+        color: var(--gray-800);
         margin-bottom: 8px;
     }
 
     .course-instructor {
         font-size: 16px;
-        color: #777;
+        color: var(--gray-500);
         margin-bottom: 16px;
     }
 
@@ -126,7 +126,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 16px;
-        background: #f8f9fa;
+        background: var(--gray-50);
         padding: 12px;
         border-radius: 8px;
     }
@@ -138,14 +138,14 @@
 
     .stat-label {
         font-size: 12px;
-        color: #666;
+        color: var(--gray-600);
         margin-bottom: 4px;
     }
 
     .stat-value {
         font-size: 16px;
         font-weight: 700;
-        color: #333;
+        color: var(--gray-800);
     }
 
     .course-progress {
@@ -161,26 +161,26 @@
 
     .progress-label {
         font-size: 14px;
-        color: #666;
+        color: var(--gray-600);
     }
 
     .progress-percentage {
         font-size: 16px;
         font-weight: 700;
-        color: #007bff;
+        color: var(--color-primary);
     }
 
     .progress-bar {
         width: 100%;
         height: 8px;
-        background: #e9ecef;
+        background: var(--gray-200);
         border-radius: 4px;
         overflow: hidden;
     }
 
     .progress-fill {
         height: 100%;
-        background: #007bff;
+        background: var(--color-primary);
         border-radius: 4px;
     }
 
@@ -192,11 +192,11 @@
 
     .course-period {
         font-size: 16px;
-        color: #666;
+        color: var(--gray-600);
     }
 
     .course-button {
-        background: #007bff;
+        background: var(--color-primary);
         color: white;
         border: none;
         padding: 8px 16px;
@@ -207,7 +207,7 @@
     }
 
     .course-button:hover {
-        background: #0056b3;
+        background: var(--color-primary-hover);
     }
 
     
@@ -356,7 +356,7 @@
 .simple-footer{
 
   padding:14px 18px;
-  border-top:1px solid #eee;
+  border-top:1px solid var(--gray-200);
   background:#fff;
   position: relative;
   bottom: 0;
@@ -370,12 +370,12 @@
   align-items:center;
   gap:12px;
   font-size:12px;
-  color:#777;
+  color:var(--gray-500);
   font-weight:700;
 }
 
 .footer-link{
-  color:#777;
+  color:var(--gray-500);
   text-decoration:none;
 }
 .footer-link:hover{
@@ -384,7 +384,7 @@
 
 .footer-dot{
   margin:0 6px;
-  color:#ccc;
+  color:var(--gray-300);
 }
 
 @media (max-width:640px){

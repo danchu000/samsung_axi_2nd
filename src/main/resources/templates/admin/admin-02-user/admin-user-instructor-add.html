@@ -16,7 +16,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            border-right: 1px solid #ddd;
+            border-right: 1px solid var(--gray-300);
         }
 
         /* 검색 영역 */
@@ -32,7 +32,7 @@
         #traineeSearch {
             width: 100%;
             padding: 10px 45px 10px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             outline: none;
@@ -40,7 +40,7 @@
 
         #traineeSearch:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
 
@@ -77,7 +77,7 @@
 
         .sort-select {
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             background-color: white;
             color: var(--color-font-gray);
@@ -92,7 +92,7 @@
 
         .sort-select:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         /* 강사 목록 테이블 */
@@ -120,14 +120,14 @@
             font-weight: 600;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--gray-300);
         }
 
         .trainee-table td {
             padding: 12px 15px;
             font-size: 14px;
             color: var(--color-font-gray);
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-100);
             text-align: center;
         }
 
@@ -154,7 +154,7 @@
         }
 
         .add-row-cell {
-            background-color: #fafafa;
+            background-color: var(--gray-50);
             cursor: pointer;
         }
 
@@ -186,7 +186,7 @@
         .history-table tfoot td {
             font-weight: 600;
             background-color: var(--color-light-gray);
-            border-top: 2px solid #ddd;
+            border-top: 2px solid var(--gray-300);
         }
 
         .attendance-rate {
@@ -227,7 +227,7 @@
             aspect-ratio: 3/4;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
         }
 
         .photo-upload-btn {
@@ -263,7 +263,7 @@
         .info-row input.value {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -272,11 +272,11 @@
 
         .info-row input.value:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .info-row input.value[readonly] {
-            background-color: #f5f5f5;
+            background-color: var(--gray-100);
             cursor: not-allowed;
         }
                 .gender-selection {
@@ -301,7 +301,7 @@
         .contact-relation {
             width: 100px;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -310,13 +310,13 @@
 
         .contact-relation:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .contact-phone {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -325,7 +325,7 @@
 
         .contact-phone:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .education-selection {
@@ -371,7 +371,7 @@
 
         .other-input {
             padding: 6px 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -381,12 +381,12 @@
 
         .other-input:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .other-input:disabled {
-            background-color: #f5f5f5;
-            color: #999;
+            background-color: var(--gray-100);
+            color: var(--gray-400);
             cursor: not-allowed;
         }
 
@@ -413,7 +413,7 @@
         .detail-input {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -422,7 +422,7 @@
 
         .detail-input:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
         /* 상세정보 영역 */
         .trainee-detail-info {
@@ -472,7 +472,7 @@
         .detail-row input.detail-value {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -481,13 +481,13 @@
 
         .detail-row input.detail-value:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .table-input {
             width: 100%;
             padding: 6px 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -497,7 +497,7 @@
 
         .table-input:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .date-range-input {
@@ -509,7 +509,7 @@
         .date-range-input input[type="date"] {
             flex: 1;
             padding: 6px 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--gray-300);
             border-radius: 4px;
             font-size: 14px;
             color: var(--color-font-gray);
@@ -518,7 +518,7 @@
 
         .date-range-input input[type="date"]:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
         }
 
         .message-box {

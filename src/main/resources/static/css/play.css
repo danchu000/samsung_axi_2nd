@@ -22,7 +22,7 @@
 }
 
 .content-header > span {
-    color: #666;
+    color: var(--gray-600);
 }
 
 /* 경로 표시 (Breadcrumb) */
@@ -51,18 +51,18 @@
 .breadcrumb-label {
     font-size: 14px;
     font-weight: 600;
-    color: #999;
+    color: var(--gray-500);
     text-transform: uppercase;
 }
 
 .breadcrumb-value {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--gray-800);
 }
 
 .breadcrumb-separator {
-    color: #ddd;
+    color: var(--gray-300);
     font-size: 18px;
     margin: 0 4px;
 }
@@ -72,9 +72,9 @@
 }
 
 .breadcrumb-subject {
-    color: #555;
+    color: var(--gray-600);
 }
 
 .breadcrumb-content {
-    color: #666;
+    color: var(--gray-600);
 }

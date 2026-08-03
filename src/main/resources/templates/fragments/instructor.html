@@ -48,41 +48,41 @@
                 <img src="/static/icons/03-description.svg" alt="contents icon" style="width: 26px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'contents'} ? 'active_menu'">콘텐츠</span>
             </li>
-            <li onclick="event.stopPropagation()">
+            <li data-page="/instructor/courses" onclick="handleMenuClick(this, '/instructor/courses')">
                 <img src="/static/icons/03-course.svg" alt="course icon" style="width: 25px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'courses' or active == 'scheduler'} ? 'active_menu'">담당 과정</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/instructor/courses"><li th:classappend="${active == 'courses'} ? 'active_menu'">과정 관리</li></a>
-                    <a href="/instructor/scheduler"><li th:classappend="${active == 'scheduler'} ? 'active_menu'">일정 관리</li></a>
+                    <li class="submenu" th:classappend="${active == 'courses'} ? 'active_menu'"><a href="/instructor/courses">과정 관리</a></li>
+                    <li class="submenu" th:classappend="${active == 'scheduler'} ? 'active_menu'"><a href="/instructor/scheduler">일정 관리</a></li>
                 </ul>
             </li>
-            <li onclick="handleMenuClick(this, '/instructor/assignments')">
+            <li data-page="/instructor/assignments" onclick="handleMenuClick(this, '/instructor/assignments')">
                 <img src="/static/icons/04-evaluation.svg" alt="evaluation icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'eval-')} ? 'active_menu'">평가</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/instructor/assignments"><li th:classappend="${active == 'eval-assignment'} ? 'active_menu'">과제 채점</li></a>
-                    <a href="/instructor/grading"><li th:classappend="${active == 'eval-exam'} ? 'active_menu'">시험 채점</li></a>
-                    <a href="/instructor/proctor/exams"><li th:classappend="${active == 'eval-monitoring'} ? 'active_menu'">평가 모니터링</li></a>
+                    <li class="submenu" th:classappend="${active == 'eval-assignment'} ? 'active_menu'"><a href="/instructor/assignments">과제 채점</a></li>
+                    <li class="submenu" th:classappend="${active == 'eval-exam'} ? 'active_menu'"><a href="/instructor/grading">시험 채점</a></li>
+                    <li class="submenu" th:classappend="${active == 'eval-monitoring'} ? 'active_menu'"><a href="/instructor/proctor/exams">평가 모니터링</a></li>
                 </ul>
             </li>
-            <li onclick="event.stopPropagation()">
+            <li data-page="/instructor/attendance" onclick="handleMenuClick(this, '/instructor/attendance')">
                 <img src="/static/icons/05-attendance.svg" alt="attendance icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${#strings.startsWith(active, 'att-')} ? 'active_menu'">출결/이수 관리</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/instructor/attendance"><li th:classappend="${active == 'att-status'} ? 'active_menu'">출결현황</li></a>
-                    <a href="/instructor/graduate"><li th:classappend="${active == 'att-graduate'} ? 'active_menu'">이수 관리</li></a>
+                    <li class="submenu" th:classappend="${active == 'att-status'} ? 'active_menu'"><a href="/instructor/attendance">출결현황</a></li>
+                    <li class="submenu" th:classappend="${active == 'att-graduate'} ? 'active_menu'"><a href="/instructor/graduate">이수 관리</a></li>
                 </ul>
             </li>
-            <li onclick="handleMenuClick(this, '/instructor/notice')">
+            <li data-page="/instructor/notice" onclick="handleMenuClick(this, '/instructor/notice')">
                 <img src="/static/icons/06-support.svg" alt="communication icon" style="width: 28px; margin-right: 8px; vertical-align: middle; padding-bottom: 4px;">
                 <span class="menu-text" th:classappend="${active == 'notices' or active == 'tutoring'} ? 'active_menu'">소통</span>
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
-                    <a href="/instructor/notice"><li th:classappend="${active == 'notices'} ? 'active_menu'">공지사항</li></a>
-                    <a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><li th:classappend="${active == 'tutoring'} ? 'active_menu'">튜터링/Q&amp;A</li></a>
+                    <li class="submenu" th:classappend="${active == 'notices'} ? 'active_menu'"><a href="/instructor/notice">공지사항</a></li>
+                    <li class="submenu" th:classappend="${active == 'tutoring'} ? 'active_menu'"><a href="#" onclick="alert('준비 중인 기능입니다.');return false;">튜터링/Q&amp;A</a></li>
                 </ul>
             </li>
             <!-- AI 학습진단 — 훈련생의 AI 질문·평가 결과로 취약 영역을 진단하고 과제를 추천한다 -->

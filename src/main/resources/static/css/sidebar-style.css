@@ -67,6 +67,15 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* 강사 사이드바 fragment 는 <li class="submenu"><a>텍스트</a></li> 구조이고
+   강사 화면 4개가 이 스타일시트를 쓴다. 앵커가 행 전체를 덮도록 맞춘다.
+   (앵커를 쓰지 않는 관리자 사이드바에는 매칭되지 않는다) */
+.sidebar .menu ul li.submenu > a {
+    display: block;
+    margin-left: -40px;
+    padding-left: 40px;
+}
+
 .sidebar .logout {
     width: 100%;
     padding: 15px;

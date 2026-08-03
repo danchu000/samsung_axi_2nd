@@ -42,8 +42,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LocalExamVolumeDataInitializer {
 
-    /** 이 시드가 만든 시험임을 알아보는 표식. 두 번 돌지 않게 하는 데도 쓴다. */
-    private static final String MARKER = "[샘플]";
+    /**
+     * 두 번 돌지 않게 하는 표식. 이 시드가 만드는 첫 시험 이름과 같아야 한다.
+     *
+     * <p>예전에는 {@code "[샘플]"} 을 모든 시험 이름 앞에 붙이고 접두 LIKE 로 걸렀는데,
+     * 화면(강사·관리자 시험 목록)에 그대로 노출돼 자동생성 티가 났다. 기존 시드
+     * ({@link LocalExamDataInitializer} 의 "JavaScript 기초 중간 평가") 처럼
+     * <b>실제 시험 이름 하나를 표식으로 삼는 방식</b>으로 바꿨다 — 가드 기능은 그대로다.</p>
+     */
+    private static final String GUARD_EXAM_NAME = "풀스택 웹개발 1회차 단원평가";
 
     private final ExamRepository examRepository;
 
@@ -53,8 +60,8 @@ public class LocalExamVolumeDataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void seed() {
-        if (!em.createQuery("select count(e) from Exam e where e.examName like :m", Long.class)
-                .setParameter("m", MARKER + "%")
+        if (!em.createQuery("select count(e) from Exam e where e.examName = :n", Long.class)
+                .setParameter("n", GUARD_EXAM_NAME)
                 .getSingleResult().equals(0L)) {
             return;
         }
@@ -74,18 +81,18 @@ public class LocalExamVolumeDataInitializer {
 
         // 담당 과정(001) 8건 — 상태를 섞어 상태 필터도 같이 검증할 수 있게 한다
         for (int i = 1; i <= 8; i++) {
-            exams.add(exam(c1, instructorId, MARKER + " 풀스택 단원평가 " + i,
+            exams.add(exam(c1, instructorId, "풀스택 웹개발 " + i + "회차 단원평가",
                     i % 3 == 0 ? Exam.ExamStatus.CLOSED : Exam.ExamStatus.SCHEDULED,
                     base.plusDays(i)));
         }
         // 담당 과정(002) 3건
         for (int i = 1; i <= 3; i++) {
-            exams.add(exam(c2, instructorId, MARKER + " 데이터분석 단원평가 " + i,
+            exams.add(exam(c2, instructorId, "데이터 분석 " + i + "회차 단원평가",
                     Exam.ExamStatus.SCHEDULED, base.plusDays(10 + i)));
         }
         // 미담당 과정(003) 3건 — 강사 목록에 나오면 권한 사고다
         for (int i = 1; i <= 3; i++) {
-            exams.add(exam(c3, null, MARKER + " 클라우드 단원평가 " + i,
+            exams.add(exam(c3, null, "클라우드 인프라 " + i + "회차 단원평가",
                     i == 1 ? Exam.ExamStatus.CLOSED : Exam.ExamStatus.SCHEDULED,
                     base.plusDays(20 + i)));
         }
@@ -114,7 +121,7 @@ public class LocalExamVolumeDataInitializer {
                 .requireIdentityVerification(false)
                 .proctorEnabled(false).requireWebcam(false)
                 .blockTabSwitch(false).blockCopyPaste(false)
-                .note("페이징·권한 검증용 샘플 시험")
+                .note("단원별 성취도 확인을 위한 평가입니다. 응시 전 유의사항을 확인해 주세요.")
                 .status(status)
                 .build();
     }

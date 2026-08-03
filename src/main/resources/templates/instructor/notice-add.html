@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="/static/css/btn-style.css">
     <link rel="stylesheet" href="/static/css/pagination.css">
     <link rel="stylesheet" href="/static/css/notices.css">
-    <script src="/static/js/notices.js" defer></script>
+    <!-- notices.js 는 공지 목록용 더미("공지사항 제목 N" 37건)를 그리는 스크립트다. 이 화면에는
+         noticeTableBody 등 대상 엘리먼트가 없어 DOMContentLoaded 에서 바로 예외로 죽는다. 서버 전환 후 남은 잔재라 제거. -->
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
     <title>Samsung Academy LXP - 강사</title>

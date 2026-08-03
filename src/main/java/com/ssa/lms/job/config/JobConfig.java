@@ -35,8 +35,10 @@ public class JobConfig {
                     props.getCountPerGroup(), props.getFreshnessDays());
         } else {
             log.warn("[공고수집] 비활성 — {}. 직무 로드맵은 '아직 수집 전'으로 표시됩니다.",
-                    props.isEnabled() ? "lms.job.enabled=true 이지만 인증키가 하나도 없음(워크넷/사람인)"
-                                      : "lms.job.enabled=false");
+                    props.isEnabled()
+                            ? "lms.job.enabled=true 이지만 쓸 수 있는 수집처가 없음"
+                              + "(워크넷/사람인 키 또는 lms.job.claude-search + claude-groups)"
+                            : "lms.job.enabled=false");
         }
     }
 }

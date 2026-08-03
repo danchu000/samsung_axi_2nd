@@ -223,8 +223,8 @@ public class RoadmapService {
         demands.stream().filter(RoadmapView.Demand::mine).limit(3).forEach(d ->
                 out.add(new RoadmapView.Step(
                         d.label(),
-                        "학습 자료 있음 · 공고 " + d.percent() + "%가 요구",
-                        "수강 중인 과정 자료에서 다루고 있어요. 공고 " + d.count() + "건이 요구하는 항목이에요.",
+                        "학습 자료 있음 · 공고 " + d.percent() + "%에 등장",
+                        "수강 중인 과정 자료에서 다루고 있어요. 공고 " + d.count() + "건에 등장한 항목이에요.",
                         "done")));
 
         // 채워야 할 것 — 요구 빈도가 높은 순
@@ -234,10 +234,10 @@ public class RoadmapService {
             RoadmapView.Demand d = todo.get(i);
             out.add(new RoadmapView.Step(
                     d.label(),
-                    "공고 " + d.percent() + "%(" + d.count() + "건)가 요구",
+                    "공고 " + d.percent() + "%(" + d.count() + "건)에 등장",
                     i == 0
-                        ? "아직 학습 자료가 없는 항목 중 요구 빈도가 가장 높아요. 여기부터 채우면 효과가 커요."
-                        : "공고 " + d.count() + "건이 요구하는 항목이에요. 앞 단계를 마친 뒤 이어서 하면 좋아요.",
+                        ? "아직 학습 자료가 없는 항목 중 가장 자주 등장해요. 여기부터 채우면 효과가 커요."
+                        : "공고 " + d.count() + "건에 등장한 항목이에요. 앞 단계를 마친 뒤 이어서 하면 좋아요.",
                     i == 0 ? "current" : "locked"));
         }
         return out;

@@ -76,6 +76,58 @@ public class JobPosting extends BaseEntity {
     @Column(length = 1000)
     private String keywords;
 
+    /**
+     * <b>자격요건</b>에 적힌 기술만 (쉼표 구분). 없으면 null.
+     *
+     * <p>자격요건에는 학력·전공 이야기가 많고 기술은 적다. 그래도 여기 적힌 기술은
+     * <b>"없으면 지원조차 안 되는 것"</b>이라 우대사항과 무게가 다르다. 그래서 따로 담는다.</p>
+     *
+     * <p>학력·전공은 여기 넣지 않는다 — {@link #education}, {@link #majorRestricted} 가 받는다.</p>
+     */
+    @Column(name = "required_skills", length = 1000)
+    private String requiredSkills;
+
+    /**
+     * <b>우대사항</b>에 적힌 기술만 (쉼표 구분). 없으면 null.
+     *
+     * <p>실무 기술 스택은 대개 여기에 몰려 있다. 로드맵이 "남들과 갈리는 지점"을
+     * 보여주려면 이쪽이 핵심이다.</p>
+     */
+    @Column(name = "preferred_skills", length = 1000)
+    private String preferredSkills;
+
+    /** 학력 요건 (학력무관 / 고졸 이상 / 초대졸 이상 / 대졸 이상). 표기가 없으면 null. */
+    @Column(name = "education", length = 30)
+    private String education;
+
+    /**
+     * 전공 제한이 있는지. 모르면 null — <b>false 로 채우지 않는다.</b>
+     *
+     * <p>비전공·전직 훈련생에게는 "전공 무관 68%" 같은 숫자가 실제로 필요한 정보다.
+     * 모르는 것을 false 로 채우면 그 비율이 통째로 부풀려진다.</p>
+     */
+    @Column(name = "major_restricted")
+    private Boolean majorRestricted;
+
+    /**
+     * 어느 수집처에서 왔는지 (워크넷 / 사람인 / AI 웹검색).
+     *
+     * <p>출처마다 신뢰도가 다르다. 공개 API 로 받은 것과 AI 가 웹에서 읽어온 것을
+     * 섞어 두고 구분할 수 없으면, 나중에 링크 하나가 깨졌을 때 어디를 의심할지 알 수 없다.</p>
+     */
+    @Column(name = "collected_by", length = 20)
+    private String collectedBy;
+
+    /**
+     * 공고 <b>원문</b>을 실제로 열어 읽었는지.
+     *
+     * <p>검색 요약문에는 자격요건·우대사항 본문이 없다. 원문을 못 연 공고는 기술을
+     * 추측으로 채우면 안 되므로 비워 두는데, 그러면 나중에 <b>"왜 이 공고만 키워드가
+     * 없지"</b>를 알 수 없다. 그래서 못 읽었다는 사실 자체를 남긴다.</p>
+     */
+    @Column(name = "body_fetched")
+    private Boolean bodyFetched;
+
     @Column(name = "posting_date")
     private LocalDate postingDate;
 
@@ -89,6 +141,8 @@ public class JobPosting extends BaseEntity {
     @Builder
     private JobPosting(String externalId, String jobGroup, String companyName, String title,
                        String url, String experienceLevel, String location, String keywords,
+                       String requiredSkills, String preferredSkills, String education,
+                       Boolean majorRestricted, String collectedBy, Boolean bodyFetched,
                        LocalDate postingDate, LocalDate expirationDate, LocalDate collectedAt) {
         this.externalId = externalId;
         this.jobGroup = jobGroup;
@@ -98,6 +152,12 @@ public class JobPosting extends BaseEntity {
         this.experienceLevel = experienceLevel;
         this.location = location;
         this.keywords = keywords;
+        this.requiredSkills = requiredSkills;
+        this.preferredSkills = preferredSkills;
+        this.education = education;
+        this.majorRestricted = majorRestricted;
+        this.collectedBy = collectedBy;
+        this.bodyFetched = bodyFetched;
         this.postingDate = postingDate;
         this.expirationDate = expirationDate;
         this.collectedAt = collectedAt;

@@ -3,6 +3,7 @@ package com.ssa.lms.web;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.dashboard.service.AdminDashboardService;
 import com.ssa.lms.dashboard.service.DashboardMetricsService;
+import com.ssa.lms.ai.service.AiStatusService;
 import com.ssa.lms.ai.service.AiUsageStatsService;
 import com.ssa.lms.job.service.RoadmapService;
 import com.ssa.lms.dashboard.service.InstructorDashboardService;
@@ -32,6 +33,7 @@ public class ModuleHomeController {
     private final DashboardMetricsService dashboardMetricsService;
     private final RoadmapService roadmapService;
     private final AiUsageStatsService aiUsageStatsService;
+    private final AiStatusService aiStatusService;
 
     @GetMapping("/admin")
     public String adminHome(@AuthenticationPrincipal LoginUser loginUser, Model model) {
@@ -43,6 +45,9 @@ public class ModuleHomeController {
         model.addAttribute("jobSummary", roadmapService.collectionSummary());
         // [기능 5] AI 이용 현황 — 이미 기록 중이던 AiUsageLog 를 세기만 하면 된다
         model.addAttribute("aiUsage", aiUsageStatsService.qnaStats());
+        // [관리자 전용] AI 연동 상태 — 크레딧이 떨어져도 훈련생 화면은 200 으로 뜨기 때문에,
+        // 여기서 알려주지 않으면 기능이 죽은 줄 아무도 모른다. 훈련생에게는 노출하지 않는다.
+        model.addAttribute("aiStatus", aiStatusService.current());
         return "admin/index";
     }
 

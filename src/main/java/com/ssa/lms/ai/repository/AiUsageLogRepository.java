@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AiUsageLogRepository extends JpaRepository<AiUsageLog, Long> {
 
@@ -30,6 +31,20 @@ public interface AiUsageLogRepository extends JpaRepository<AiUsageLog, Long> {
               and l.calledAt >= :from
            """)
     long countSuccessByUserSince(@Param("userId") Long userId, @Param("from") LocalDateTime from);
+
+    /* ===== [관리자] AI 연동 상태 배너 ===== */
+
+    /**
+     * 가장 최근 호출 1건 (성공·실패 무관).
+     *
+     * <p>관리자 화면이 "지금 AI 가 되는가"를 이 한 건으로 판정한다. 기간 집계가 아니라
+     * 마지막 호출이어야 <b>회복이 자동으로 반영된다</b> — 크레딧을 충전하면 다음 성공
+     * 호출이 경고를 지운다.</p>
+     *
+     * <p>같은 시각에 여러 건이 들어올 수 있어 id 까지 함께 내림차순으로 본다.
+     * calledAt 만으로 정렬하면 동시각 호출에서 성공·실패가 번갈아 잡힌다.</p>
+     */
+    Optional<AiUsageLog> findTopByOrderByCalledAtDescIdDesc();
 
     /* ===== [기능 5] 대시보드 위젯 집계 ===== */
 

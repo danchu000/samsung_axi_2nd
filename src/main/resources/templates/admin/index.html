@@ -487,12 +487,41 @@
                 </div>
             </div>
 
+            <!--
+              AI 연동 상태 배너는 ★ 관리자에게만 ★ 보인다.
+              훈련생 화면은 실패해도 "지금은 답변을 가져오지 못했어요"만 보여준다 —
+              크레딧 잔액은 내부 사정이고 훈련생이 할 수 있는 일이 없다.
+              문제는 그러면 아무도 관리자에게 안 알려준다는 것이다. 여기가 그 자리다.
+            -->
             <div class="panel">
                 <div class="panel-header">
                 <h3><i class="h-icon h-icon--analytics" aria-hidden="true"></i>AI 학습지원 이용 현황</h3>
-                <span class="muted" id="aiCollectedAt">직무 로드맵 수집: —</span>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <span class="muted" id="aiCollectedAt">직무 로드맵 수집: —</span>
+                    <span class="badge" th:classappend="${aiStatus.badgeClass()}"
+                          th:text="${aiStatus.badgeText()}" th:title="${aiStatus.title()}">정상</span>
+                </div>
                 </div>
                 <div class="panel-body">
+                <!--
+                  정상일 때는 배지 하나로 끝낸다. 아무 문제 없는데 배너가 늘 떠 있으면
+                  진짜 문제가 생겼을 때 눈에 안 들어온다.
+                -->
+                <div class="ai-status" th:if="${aiStatus.isAlert()}"
+                     th:classappend="${aiStatus.badgeClass()}">
+                    <div>
+                        <span class="ai-status-title" th:text="${aiStatus.title()}">상태</span>
+                        <span class="ai-status-detail" th:text="${aiStatus.detail()}">설명</span>
+                        <!-- 조치 링크는 콘솔에서 처리할 건일 때만 -->
+                        <a class="ai-status-link" th:if="${aiStatus.consoleUrl() != null}"
+                           th:href="${aiStatus.consoleUrl()}" target="_blank" rel="noopener noreferrer">
+                            Anthropic 콘솔 열기 →
+                        </a>
+                        <!-- 언제 기준인지 없으면 "지금도 그런가"를 알 수 없다 -->
+                        <span class="ai-status-at" th:if="${aiStatus.at() != null}"
+                              th:text="'마지막 호출 ' + ${#temporals.format(aiStatus.at(), 'yyyy-MM-dd HH:mm')}">시각</span>
+                    </div>
+                </div>
                 <div class="ai-grid ai-grid-3" id="adminAiCards"></div>
                 </div>
             </div>

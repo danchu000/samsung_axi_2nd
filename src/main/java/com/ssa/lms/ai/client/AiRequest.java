@@ -2,6 +2,7 @@ package com.ssa.lms.ai.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 모델에 보낼 요청.
@@ -24,8 +25,21 @@ public record AiRequest(
          * 사용량 기록에 <b>암호화해서</b> 남길 질문 본문. null 이면 남기지 않는다.
          * 훈련생 Q&A 만 채운다 — 강사·배치 호출은 진단 대상이 아니다.
          */
-        String logQuestion
+        String logQuestion,
+        /**
+         * 서버 도구(웹 검색·웹 페치) 정의. 비어 있으면 도구 없이 부른다.
+         *
+         * <p>도구를 붙인 호출은 <b>모델이 웹 페이지를 실제로 열어 읽으므로</b> 일반 호출보다
+         * 훨씬 오래 걸린다. {@code ClaudeAiClient} 가 이 값이 있으면 타임아웃이 긴
+         * 별도 커넥션으로 보낸다.</p>
+         */
+        List<Map<String, Object>> tools
 ) {
+
+    /** 도구를 쓰는 호출인지 — 타임아웃과 요청 본문이 갈린다. */
+    public boolean hasTools() {
+        return tools != null && !tools.isEmpty();
+    }
 
     /** role = "user" | "assistant" */
     public record Message(String role, String content) {
@@ -45,6 +59,7 @@ public record AiRequest(
         private Long userId;
         private Long courseId;
         private String logQuestion;
+        private List<Map<String, Object>> tools;
 
         private Builder(String purpose) { this.purpose = purpose; }
 
@@ -58,9 +73,13 @@ public record AiRequest(
         /** 진단용으로 질문을 기록에 남긴다(암호화 저장). 남기지 않으려면 부르지 않는다. */
         public Builder logQuestion(String q) { this.logQuestion = q; return this; }
 
+        /** 서버 도구(웹 검색 등)를 붙인다. 안 부르면 도구 없이 나간다. */
+        public Builder tools(List<Map<String, Object>> t) { this.tools = t; return this; }
+
         public AiRequest build() {
             return new AiRequest(purpose, system, List.copyOf(messages),
-                    maxOutputTokens, userId, courseId, logQuestion);
+                    maxOutputTokens, userId, courseId, logQuestion,
+                    tools == null ? List.of() : List.copyOf(tools));
         }
     }
 }

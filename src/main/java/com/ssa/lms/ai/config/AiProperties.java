@@ -46,6 +46,17 @@ public class AiProperties {
     private Duration timeout = Duration.ofSeconds(30);
 
     /**
+     * 웹 검색을 쓰는 호출의 읽기 타임아웃.
+     *
+     * <p>모델이 검색하고 <b>공고 원문 페이지를 실제로 열어 읽는</b> 시간까지 포함이라
+     * 일반 호출과 자릿수가 다르다. 짧게 잡으면 수집이 매번 도중에 끊긴다.</p>
+     *
+     * <p>그렇다고 무한정 둘 수는 없다 — 수집기는 스케줄러 스레드에서 돌기 때문에
+     * 여기서 매달리면 같은 스케줄러에 물린 다른 배치까지 멈춘다.</p>
+     */
+    private Duration searchTimeout = Duration.ofMinutes(5);
+
+    /**
      * 하루 호출 상한(전체 기준). 0 이면 무제한.
      * 상한에 걸리면 호출하지 않고 안내 문구를 돌려준다 — 조용히 실패하면 원인을 못 찾는다.
      */
@@ -79,6 +90,9 @@ public class AiProperties {
 
     public Duration getTimeout() { return timeout; }
     public void setTimeout(Duration timeout) { this.timeout = timeout; }
+
+    public Duration getSearchTimeout() { return searchTimeout; }
+    public void setSearchTimeout(Duration searchTimeout) { this.searchTimeout = searchTimeout; }
 
     public int getDailyRequestLimit() { return dailyRequestLimit; }
     public void setDailyRequestLimit(int dailyRequestLimit) { this.dailyRequestLimit = dailyRequestLimit; }

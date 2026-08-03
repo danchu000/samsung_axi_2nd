@@ -27,3 +27,7 @@ uploads/
 
 # Claude Code 에이전트 워크트리 (커밋 대상 아님)
 .claude/worktrees/
+
+# 에이전트 도구가 작업 중 만드는 디렉터리. src/ 와 static/ 안까지 퍼지는데,
+# static/ 아래 것은 그대로 두면 jar 에 패키징돼 운영 서버로 나간다.
+.omc/

@@ -238,36 +238,41 @@
     </main>
 
     <script>
-        // 학습 위험 알림 더미 데이터 (DB에서 받아온다고 가정)
-        const aiAlarms = [
-            { type: 'student', name: '홍길동', course: 'Python 입문반', metric: '출석률', value: 58 },
-            { type: 'student', name: '김민아', course: 'JavaScript 중급', metric: '수강률', value: 62 },
-            { type: 'student', name: '이영희', course: 'Java 심화', metric: '출석률', value: 49 },
-            { type: 'course', course: 'Python 입문반', metric: '전체 출석률', value: 61 },
-            { type: 'course', course: 'JavaScript 중급', metric: '전체 수강률', value: 68 }
-        ];
-
-        function renderAIAlarms() {
+        /*
+         * 학습 위험 알림 — 서버가 내려주는 실제 위험 건만 표시한다.
+         * window._serverRiskAlarms 를 채우는 컨트롤러가 생기기 전까지는 빈 상태로 두고,
+         * 위험도 분석은 이탈 예측 대시보드(/admin/analytics/dropout)로 안내한다.
+         * (예시 이름·과정으로 채우지 않는다 — 실데이터로 오해되면 잘못된 개입을 부른다.)
+         */
+        function renderRiskAlarms() {
             const list = document.getElementById('aiAlarmList');
-            list.innerHTML = '';
-            aiAlarms.forEach(alarm => {
-                let color = alarm.metric.includes('출석') ? '#C62828' : '#e67e22';
-                let title = alarm.type === 'student' ? '출석/수강률 위험 학생' : '위험 과정';
-                let content = '';
-                if (alarm.type === 'student') {
-                    content = `<span style="font-weight:500;">${alarm.name}</span> (${alarm.course}) - ${alarm.metric} <span style="color:${color};font-weight:700;">${alarm.value}%</span>`;
-                } else {
-                    content = `<span style="font-weight:500;">${alarm.course}</span> - ${alarm.metric} <span style="color:${color};font-weight:700;">${alarm.value}%</span>`;
-                }
-                list.innerHTML += `
-                    <div style="min-width:320px;max-width:420px;background:#fff;border-radius:12px;padding:24px 22px 18px 22px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:18px;">
-                        <div style="font-size:17px;font-weight:600;margin-bottom:10px;">${title}</div>
-                        <div>${content}</div>
+            if (!list) return;
+            const alarms = window._serverRiskAlarms || [];
+            if (alarms.length === 0) {
+                list.innerHTML = `
+                    <div style="flex:1;background:var(--white);border:1px dashed var(--gray-300);border-radius:12px;
+                                padding:22px 24px;color:var(--gray-600);font-size:14px;line-height:1.6;">
+                        현재 발생한 학습 위험 알림이 없습니다.<br>
+                        과정별 이탈 위험도는 <a href="/admin/analytics/dropout" style="color:var(--color-primary);font-weight:600;">이탈 예측 대시보드</a>에서 확인할 수 있습니다.
                     </div>
                 `;
-            });
+                return;
+            }
+            list.innerHTML = alarms.map(alarm => {
+                const color = alarm.metric.includes('출석') ? 'var(--color-danger)' : 'var(--color-warning)';
+                const title = alarm.type === 'student' ? '출석/수강률 위험 학습자' : '위험 과정';
+                const subject = alarm.type === 'student'
+                    ? `<span style="font-weight:500;">${alarm.name}</span> (${alarm.course})`
+                    : `<span style="font-weight:500;">${alarm.course}</span>`;
+                return `
+                    <div style="min-width:320px;max-width:420px;background:var(--white);border-radius:12px;padding:24px 22px 18px 22px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:18px;">
+                        <div style="font-size:17px;font-weight:600;margin-bottom:10px;">${title}</div>
+                        <div>${subject} - ${alarm.metric} <span style="color:${color};font-weight:700;">${alarm.value}%</span></div>
+                    </div>
+                `;
+            }).join('');
         }
-        document.addEventListener('DOMContentLoaded', renderAIAlarms);
+        document.addEventListener('DOMContentLoaded', renderRiskAlarms);
     </script>
 </body>
 </html>

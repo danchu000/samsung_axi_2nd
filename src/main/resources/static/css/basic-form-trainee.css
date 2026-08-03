@@ -208,10 +208,18 @@ header {
     width: 100%;
     height: var(--header-height);
     background-color: var(--color-deep-primary);
-    
+
     display: flex;
     flex-direction: column;
-    
+
+    /* .icon-container 가 absolute 인데 기준이 될 위치 지정 조상이 없어 페이지(ICB)를
+       기준으로 잡혀 있었다. 헤더를 기준으로 되돌린다. */
+    position: relative;
+
+    /* GNB 양옆에 비워 둘 폭. :root 가 아니라 헤더 스코프에 두는 것은 의도적이다 —
+       :root 토큰은 base CSS 3종이 동일해야 한다는 규칙이 있고, 이 값은 훈련생
+       헤더에만 쓰인다. 미디어쿼리에서 이 한 줄만 덮으면 전체가 따라 움직인다. */
+    --gnb-side-space: 168px;
 }
 
 header .header-logo {
@@ -237,6 +245,12 @@ header .header-logo {
     justify-content: center;
     height: 50%;
     background: transparent;
+
+    /* 오른쪽 아이콘 3개(40*3 + gap 10*2 = 140px) + 오른쪽 여백 16px + 여유 12px.
+       이만큼을 양쪽에서 비워 두지 않으면 메뉴 마지막 항목("출결/이수관리")이
+       아이콘 밑으로 들어간다 — 1600px 이하에서 실제로 겹쳤다(1440 에서 42px).
+       왼쪽도 같은 값을 줘야 메뉴가 화면 가운데를 유지한다. */
+    padding: 0 var(--gnb-side-space);
 }
 .gnb ul {
     display: flex;
@@ -256,6 +270,9 @@ header .header-logo {
     display: flex;
     align-items: center;
     cursor: pointer;
+    /* 한글은 글자 사이 어디서나 줄바꿈된다. 이게 없으면 폭이 좁아질 때
+       "출결/이수관리"가 "출결/이수관\n리" 로 접힌다(375px 에서 6개 전부 접혔다). */
+    white-space: nowrap;
 }
 .gnb > ul > li:hover {
     color: rgba(255, 255, 255, 0.5);
@@ -296,7 +313,8 @@ header .header-logo {
     display: flex;
     gap: 10px;
     position: absolute;
-    right: 1.5%;
+    /* 1.5% 는 폭에 따라 위치가 변해 GNB 가 비워 둘 폭을 계산할 수 없다. 고정값으로. */
+    right: 16px;
 }
 
 .icon-box {
@@ -348,4 +366,67 @@ header .header-logo {
 /* index에서만 탑 숨김 */
 .page-index .main-content-top {
     display: none;
+}
+
+/* ============================================================
+   반응형 — 브레이크포인트는 로그인·회원가입(커밋 29331c0)과 동일하게
+   1440 / 1024 / 768 / 480 을 쓴다.
+
+   헤더가 훈련생 전 화면 공통(fragments/trainee.html)이라 여기부터 맞춘다.
+   측정값(수정 전): 메뉴 마지막 항목과 아이콘이 1440 에서 42px, 1366 에서 77px,
+   1024 에서 155px 겹쳤다. 1600 이상에서만 멀쩡해서 눈에 안 띄었던 것.
+   ============================================================ */
+
+/* 아이콘 자리를 뺀 폭으로도 메뉴 6개(약 550px)가 한 줄에 들어가는 구간.
+   여유 공간만 줄여서 한 줄을 유지한다. */
+@media (max-width: 1440px) {
+    header { --gnb-side-space: 160px; }
+}
+
+/* 여기부터는 한 줄이 불가능하다(1024 - 320 = 704px 로는 빠듯하고 그 아래는 확실히 넘친다).
+   메뉴를 헤더 전폭으로 풀고 아이콘은 로고 줄 오른쪽으로 올린다. */
+@media (max-width: 1024px) {
+    header {
+        --gnb-side-space: 12px;
+        /* 메뉴가 여러 줄로 접히면 헤더가 그만큼 자라야 한다. 100px 은 이제 하한선. */
+        height: auto;
+        min-height: var(--header-height);
+        padding-bottom: 6px;
+    }
+    /* 부모 높이가 auto 가 되면 % 높이는 계산되지 않는다 — 명시적으로 푼다. */
+    header .header-logo {
+        height: auto;
+        flex: 0 0 auto;
+        padding: 12px 0 6px;
+    }
+    .gnb { height: auto; }
+    .gnb ul {
+        height: auto;
+        flex-wrap: wrap;
+        /* space-between 은 줄이 접히면 항목이 양 끝으로 흩어져 읽기 나빠진다 */
+        justify-content: center;
+        gap: 2px 6px;
+    }
+    .gnb > ul > li {
+        height: auto;
+        padding: 7px 8px;
+    }
+    /* 로고 줄 오른쪽 빈 공간으로 이동 — 메뉴와 겹칠 일이 없어진다 */
+    .icon-container {
+        top: 8px;
+        right: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gnb > ul > li { font-size: 1rem; padding: 6px 6px; }
+    .icon-box { width: 34px; height: 34px; }
+    .icon-box svg { width: 24px; height: 24px; }
+}
+
+@media (max-width: 480px) {
+    .gnb > ul > li { font-size: 0.94rem; padding: 5px 5px; }
+    .gnb ul { gap: 0 4px; }
+    header .header-logo img { width: 108px !important; }  /* 인라인 style="width:130px" 을 이김 */
+    .main-content-top h2 { font-size: 1.05rem; }
 }

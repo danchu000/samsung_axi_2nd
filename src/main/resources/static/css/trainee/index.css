@@ -153,6 +153,13 @@
     .hero-right{ width:100%; border-left:none; padding-left:0; border-top:1px solid var(--gray-100); padding-top:14px; }
     .hero-stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); }
     .course-grid{ grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+
+    /* .hero 와 같은 2단 → 1단 처리. 이게 없어서 홈이 375px 에서 326px 밀렸다. */
+    .section-double{ flex-direction:column; }
+    /* 자식에 인라인 style="flex:1.3" / "flex:1" 이 박혀 있다. 세로 배치에서는
+       이 값이 폭이 아니라 높이 배분으로 작동해 카드 높이가 틀어진다.
+       인라인 스타일은 !important 가 아니면 못 이긴다. */
+    .section-double > .card{ flex:none !important; width:100%; }
   }
 
   /* ===== notice mini list (공통) ===== */
@@ -197,6 +204,9 @@
   }
 
   @media (max-width: 640px){
+    /* 제목 묶음과 오른쪽 값(.race-rank 는 flex:none 이라 안 줄어든다)이 한 줄을 고집해
+       320px 에서 56px 넘쳤다. 줄바꿈을 허용해 값이 아랫줄로 내려가게 한다. */
+    .section-head{ flex-wrap:wrap; }
     .hero-stats{ grid-template-columns: 1fr; }
     .course-grid{ grid-template-columns: 1fr; }
     .quick-actions{ grid-template-columns: 1fr; }

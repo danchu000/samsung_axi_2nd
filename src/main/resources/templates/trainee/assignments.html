@@ -267,6 +267,16 @@
   @media (max-width: 980px){ .card-grid{ grid-template-columns: repeat(2, minmax(240px, 1fr)); } }
   @media (max-width: 640px){ .card-grid{ grid-template-columns: 1fr; } }
 
+  /* 설문 화면과 같은 필터 바 구조(스타일이 여기 인라인으로 복사돼 있다).
+     320px 에서 select 가 min-content 를 부모까지 밀어올려 42px 넘쳤다 —
+     flex-basis 0 으로 접는다. */
+  @media (max-width: 480px){
+    .filter-bar{ flex-wrap:wrap; }
+    .filter-left, .filter-right{ flex:1 1 100%; min-width:0; }
+    .control.inline{ width:100%; min-width:0; }
+    .control-input{ flex:1 1 0; min-width:0; }
+  }
+
   /* ===== generic modal (detail) ===== */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,0.45);

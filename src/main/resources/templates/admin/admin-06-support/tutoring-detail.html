@@ -125,12 +125,13 @@
     color: var(--gray-500);
     }
 </style>
-<body data-user-role="admin">
-    <!-- 상단 헤더 -->
-    <header th:replace="~{fragments/admin :: header('학습 지원 &gt; 채팅 모니터링')}"></header>
+<body data-user-role="admin" th:attr="data-user-role=${bodyRole}">
+    <!-- 상단 헤더 / 왼쪽 사이드바 —
+         관리자·강사 공용 화면이라 레이아웃 fragment 를 역할에 따라 갈아 끼운다(${layout}).
+         강사에게 관리자 사이드바를 그리면 메뉴가 전부 /admin/** 이라 누르는 순간 403 이다. -->
+    <header th:replace="~{${layout} :: header(${isAdmin} ? '학습 지원 &gt; 채팅 모니터링' : '튜터링/Q&amp;A &gt; 대화')}"></header>
 
-    <!-- 왼쪽 사이드바 -->
-    <th:block th:replace="~{fragments/admin :: sidebar('support-tutoring')}"></th:block>
+    <th:block th:replace="~{${layout} :: sidebar(${sidebarActive})}"></th:block>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
@@ -149,14 +150,16 @@
               <span class="chat-help">튜터 <b th:text="${detail.instructorName}">미배정</b></span>
               <span class="chat-help">최근 메시지 <b th:text="${detail.lastMessageAt}">-</b></span>
 
-              <form method="post" th:action="@{/admin/support/tutoring/{id}/assign(id=${detail.id})}" style="display:flex; gap:6px;">
+              <!-- 배정·종료는 운영 액션이라 관리자에게만 그린다.
+                   서버측 AdminSupportController.assertAdmin() 이 2차 방어선(403). -->
+              <form method="post" th:if="${isAdmin}" th:action="@{/admin/support/tutoring/{id}/assign(id=${detail.id})}" style="display:flex; gap:6px;">
                 <select name="instructorId" class="form-input" style="height:32px;">
                   <option th:each="staff : ${staffOptions}" th:value="${staff.id}"
                           th:text="|${staff.name} (${staff.roleLabel})|">강사</option>
                 </select>
                 <button type="submit" class="btn btn-gray btn-sm">튜터 배정</button>
               </form>
-              <form method="post" th:action="@{/admin/support/tutoring/{id}/close(id=${detail.id})}" th:unless="${detail.closed}">
+              <form method="post" th:action="@{/admin/support/tutoring/{id}/close(id=${detail.id})}" th:if="${isAdmin and !detail.closed}">
                 <button type="submit" class="btn btn-gray btn-sm">튜터링 종료</button>
               </form>
             </div>

@@ -12,8 +12,9 @@
     | eval-assignment | eval-exam | eval-monitoring
     | att-status | att-graduate | notices | tutoring | ai-diagnosis
 
-  구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28). 아직 컨트롤러가 없는 화면
-  (훈련생/과정·일정/출결·이수/튜터링/알림/내 정보)은 "준비 중" alert 처리 — 구현 시 이 파일만 수정.
+  구현된 슬라이스는 컨트롤러 URL 연결 완료(2026-07-28).
+  튜터링/Q&A 는 관리자·강사 공용 화면(/admin/support/tutoring)으로 연결됨(2026-08-04).
+  아직 컨트롤러가 없는 화면(알림함)은 "준비 중" alert 처리 — 구현 시 이 파일만 수정.
 -->
 <body>
 
@@ -82,7 +83,9 @@
                 <span class="chev" aria-hidden="true">▾</span>
                 <ul>
                     <li class="submenu" th:classappend="${active == 'notices'} ? 'active_menu'"><a href="/instructor/notice">공지사항</a></li>
-                    <li class="submenu" th:classappend="${active == 'tutoring'} ? 'active_menu'"><a href="#" onclick="alert('준비 중인 기능입니다.');return false;">튜터링/Q&amp;A</a></li>
+                    <!-- 관리자·강사 공용 화면(AdminSupportController). 강사가 열면 본인 배정 건만 보이고
+                         이 강사 레이아웃으로 렌더된다 — 새 URL 네임스페이스를 만들지 않는다. -->
+                    <li class="submenu" th:classappend="${active == 'tutoring'} ? 'active_menu'"><a th:href="@{/admin/support/tutoring}" href="/admin/support/tutoring">튜터링/Q&amp;A</a></li>
                 </ul>
             </li>
             <!-- AI 학습진단 — 훈련생의 AI 질문·평가 결과로 취약 영역을 진단하고 과제를 추천한다 -->

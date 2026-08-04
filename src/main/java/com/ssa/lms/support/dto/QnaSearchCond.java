@@ -66,4 +66,16 @@ public record QnaSearchCond(
     public Long assigneeIdOrNull() {
         return unassignedOnly() ? null : assigneeId;
     }
+
+    /**
+     * 조회자 본인 범위로 좁힌다 — 강사는 <b>본인이 담당자인 질문만</b> 본다.
+     *
+     * <p>{@code assigneeId} 가 null 이면(관리자) 조건을 그대로 둔다.
+     * 담당자 필터({@code manager})는 함께 비운다: "미배정"이 들어오면
+     * {@link #assigneeIdOrNull()} 이 assignee 조건을 버려 스코프가 통째로 풀리기 때문이다.</p>
+     */
+    public QnaSearchCond scopedTo(Long assigneeId) {
+        return assigneeId == null ? this
+                : new QnaSearchCond(keyword, status, category, courseId, assigneeId, null);
+    }
 }

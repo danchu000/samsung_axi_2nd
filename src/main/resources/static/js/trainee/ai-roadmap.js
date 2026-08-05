@@ -400,7 +400,15 @@
     }
 
     function renderPostings() {
+        /*
+         * 공고를 수집하지 않았으면 화면이 원문 공고 카드 자체를 그리지 않는다
+         * (ai-roadmap.html 의 th:if="${fromPostings}"). 그때 이 표는 존재하지 않는다.
+         * 없는 걸 확인하지 않고 건드리면 render() 가 여기서 멈춰, 뒤에 등록하는
+         * resize 핸들러가 통째로 날아간다.
+         */
         var body = document.getElementById('postingBody');
+        if (!body) return;
+
         if (!current.postings.length) {
             body.innerHTML = '<tr><td colspan="4" class="ai-empty">수집된 공고가 없어요.</td></tr>';
             return;

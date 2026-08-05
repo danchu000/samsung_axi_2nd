@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,36 @@ public class CourseAssignmentService {
     public List<CourseAssignmentRow> search(AssignmentSearchCond cond, String gradingUrlPrefix) {
         List<CourseAssignment> found = courseAssignmentRepository.search(
                 cond.courseId(), cond.graderId(), cond.entityStatusOrNull(), cond.keywordOrNull());
+        return applyDerivedStatus(toRows(found, 0, gradingUrlPrefix), cond.derivedStatusOrNull());
+    }
+
+    /**
+     * 강사 과제 채점 목록 — <b>담당 과정</b> 기준, 페이징 없음.
+     *
+     * <p><b>왜 별도 메서드인가:</b> 이 화면은 {@code graderId = 나} 로 걸러 왔는데,
+     * 과제 배정에서 채점자 지정은 선택 항목이라({@code CourseAssignment.grader} 가 nullable)
+     * 채점자를 비워 둔 과제는 강사 화면에 한 건도 나오지 않았다. 같은 데이터를 보는
+     * 관리자 화면({@link #searchScoped})은 이미 담당 과정 기준이라 기준이 서로 어긋나 있었다.
+     * 권한정의서의 △(담당 과정 한정)에 맞춰 담당 과정으로 통일한다.</p>
+     *
+     * <p>화면 필터가 클라이언트(assignments.js)에서 도는 페이지라 페이징은 하지 않는다.
+     * 권한 조건은 그대로 쿼리에 실려 있어 자바에서 거르는 것과 달리 새어 나오지 않는다.</p>
+     */
+    public List<CourseAssignmentRow> searchForInstructor(AssignmentSearchCond cond,
+                                                         String gradingUrlPrefix,
+                                                         Long instructorId) {
+        List<Long> courseIds = instructorId == null
+                ? List.of() : courseQueryService.findCourseIdsByInstructorId(instructorId);
+        if (courseIds.isEmpty()) {
+            // 담당 과정이 없는 강사. 빈 in 절을 DB 에 내리지 않는다.
+            return List.of();
+        }
+        List<CourseAssignment> found = courseAssignmentRepository.searchPage(
+                        cond.courseId(), cond.graderId(), cond.entityStatusOrNull(), cond.keywordOrNull(),
+                        true, courseIds,
+                        Pageable.unpaged(Sort.by(Sort.Direction.DESC, "startAt")
+                                .and(Sort.by(Sort.Direction.DESC, "id"))))
+                .getContent();
         return applyDerivedStatus(toRows(found, 0, gradingUrlPrefix), cond.derivedStatusOrNull());
     }
 

@@ -1,11 +1,13 @@
 package com.ssa.lms.web.instructor.assignment;
 
 import com.ssa.lms.assignment.dto.AssignmentSearchCond;
+import com.ssa.lms.assignment.dto.CourseAssignmentRow;
 import com.ssa.lms.assignment.dto.GradingForm;
 import com.ssa.lms.assignment.repository.AssignmentLookupRepository;
 import com.ssa.lms.assignment.service.AssignmentGradingService;
 import com.ssa.lms.assignment.service.CourseAssignmentService;
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.demo.SampleScreenData;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,11 +16,18 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 강사 과제 채점 화면.
  *
- * 관리자 화면과 데이터·서비스는 같고, 목록만 <b>본인이 채점자로 지정된 과제</b>로 좁힌다
+ * 관리자 화면과 데이터·서비스는 같고, 목록만 <b>본인이 담당하는 과정의 과제</b>로 좁힌다
  * (권한정의서의 △ = 담당 과정 한정). 관리자가 이 URL 로 들어오면 필터 없이 전체를 본다.
+ *
+ * <p><b>2026-08-05 수정:</b> 원래는 "본인이 <i>채점자로 지정된</i> 과제" 로 좁혔는데,
+ * 과제 배정에서 채점자 지정이 선택 항목이라 채점자를 비워 둔 과제는 담당 강사에게도
+ * 한 건도 보이지 않았다 (운영에서 목록이 통째로 비어 보인 원인). 관리자 화면과 같은
+ * 담당 과정 기준으로 통일했다 — {@code CourseAssignmentService.searchForInstructor}.</p>
  */
 @Controller
 @RequestMapping("/instructor/assignments")
@@ -33,6 +42,7 @@ public class InstructorAssignmentController {
     private final CourseAssignmentService courseAssignmentService;
     private final AssignmentGradingService gradingService;
     private final AssignmentLookupRepository lookupRepository;
+    private final SampleScreenData sampleScreenData;
 
     @GetMapping
     public String list(@RequestParam(required = false) Long courseId,
@@ -41,10 +51,22 @@ public class InstructorAssignmentController {
                        @AuthenticationPrincipal LoginUser loginUser,
                        Model model) {
         AssignmentSearchCond cond = new AssignmentSearchCond(courseId, status, null, keyword);
-        if (loginUser != null && loginUser.getRole() == com.ssa.lms.user.entity.Role.INSTRUCTOR) {
-            cond = cond.withGrader(loginUser.getId());
-        }
-        model.addAttribute("rows", courseAssignmentService.search(cond, GRADING_URL_PREFIX));
+        boolean instructor = loginUser != null
+                && loginUser.getRole() == com.ssa.lms.user.entity.Role.INSTRUCTOR;
+        List<CourseAssignmentRow> rows = instructor
+                ? courseAssignmentService.searchForInstructor(cond, GRADING_URL_PREFIX, loginUser.getId())
+                : courseAssignmentService.search(cond, GRADING_URL_PREFIX);
+
+        // 필터를 건 결과가 0건인 것과 배정 자체가 없는 것은 다르다.
+        // 조건 없이 비었을 때만 예시로 채운다 — 검색 결과가 예시로 바뀌면 오해한다.
+        boolean unfiltered = courseId == null
+                && cond.derivedStatusOrNull() == null && cond.keywordOrNull() == null;
+        var filled = unfiltered
+                ? sampleScreenData.fill(rows, sampleScreenData::courseAssignments)
+                : new SampleScreenData.Filled<>(rows, false);
+
+        model.addAttribute("rows", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         model.addAttribute("cond", cond);
         model.addAttribute("courseOptions", lookupRepository.findCourseOptions());
         model.addAttribute("instructorOptions", lookupRepository.findInstructorOptions());
@@ -53,6 +75,10 @@ public class InstructorAssignmentController {
 
     @GetMapping("/{id}/grading")
     public String grading(@PathVariable Long id, Model model) {
+        if (SampleScreenData.isSampleId(id)) {
+            // 예시 행에는 채점 대상이 없다. 그대로 내려보내면 훈련생 화면과 같은 500 이 뜬다.
+            return "redirect:/instructor/assignments";
+        }
         model.addAttribute("summary", gradingService.loadSummary(id));
         model.addAttribute("students", gradingService.loadStudents(id, GRADING_URL_PREFIX));
         model.addAttribute("notSubmitted", courseAssignmentService.findNotSubmittedUsers(id));

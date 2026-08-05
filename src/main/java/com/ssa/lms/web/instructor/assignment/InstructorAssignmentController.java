@@ -62,7 +62,7 @@ public class InstructorAssignmentController {
         boolean unfiltered = courseId == null
                 && cond.derivedStatusOrNull() == null && cond.keywordOrNull() == null;
         var filled = unfiltered
-                ? sampleScreenData.fill(rows, sampleScreenData::courseAssignments)
+                ? sampleScreenData.fill(rows, () -> sampleScreenData.courseAssignments(GRADING_URL_PREFIX))
                 : new SampleScreenData.Filled<>(rows, false);
 
         model.addAttribute("rows", filled.rows());
@@ -73,15 +73,30 @@ public class InstructorAssignmentController {
         return LIST_VIEW;
     }
 
+    /**
+     * 채점 화면.
+     *
+     * <p>예시 배정이면 예시 채점 데이터를 렌더한다 — 목록만 예시로 채우고 「채점하기」에서
+     * 막으면 정작 채점 화면을 캡처할 수 없다. 저장은 아래 {@link #saveGrading} 이 막는다.</p>
+     */
     @GetMapping("/{id}/grading")
     public String grading(@PathVariable Long id, Model model) {
         if (SampleScreenData.isSampleId(id)) {
-            // 예시 행에는 채점 대상이 없다. 그대로 내려보내면 훈련생 화면과 같은 500 이 뜬다.
-            return "redirect:/instructor/assignments";
+            var summary = sampleScreenData.gradingSummary(id);
+            if (summary == null) {
+                // 예시 기능이 꺼져 있거나 모르는 예시 id. 500 대신 목록으로 되돌린다.
+                return "redirect:/instructor/assignments";
+            }
+            model.addAttribute("summary", summary);
+            model.addAttribute("students", sampleScreenData.gradingStudents(id, GRADING_URL_PREFIX));
+            model.addAttribute("notSubmitted", sampleScreenData.gradingNotSubmitted(id));
+            model.addAttribute("sampleData", true);
+            return GRADING_VIEW;
         }
         model.addAttribute("summary", gradingService.loadSummary(id));
         model.addAttribute("students", gradingService.loadStudents(id, GRADING_URL_PREFIX));
         model.addAttribute("notSubmitted", courseAssignmentService.findNotSubmittedUsers(id));
+        model.addAttribute("sampleData", false);
         return GRADING_VIEW;
     }
 
@@ -89,6 +104,22 @@ public class InstructorAssignmentController {
     public String gradingModal(@PathVariable Long courseAssignmentId,
                                @PathVariable Long submissionId,
                                Model model) {
+        if (SampleScreenData.isSampleId(courseAssignmentId)) {
+            var sample = sampleScreenData.submissionDetail(courseAssignmentId, submissionId);
+            if (sample == null) {
+                return "redirect:/instructor/assignments";
+            }
+            GradingForm sampleForm = new GradingForm();
+            sampleForm.setScore(sample.currentScore());
+            sampleForm.setFeedback(sample.currentFeedback());
+            sampleForm.setMemo(sample.currentMemo());
+            model.addAttribute("detail", sample);
+            model.addAttribute("form", sampleForm);
+            model.addAttribute("courseAssignmentId", courseAssignmentId);
+            model.addAttribute("actionPrefix", GRADING_URL_PREFIX);
+            model.addAttribute("sampleData", true);
+            return MODAL_VIEW;
+        }
         var detail = gradingService.loadSubmissionDetail(submissionId);
         // 폼을 기존 값으로 채워둔다. th:field 가 value/텍스트를 직접 쓰기 때문에
         // 템플릿에서 th:value/th:text 로 덧씌우면 무시되거나 충돌한다.
@@ -110,6 +141,20 @@ public class InstructorAssignmentController {
                               BindingResult bindingResult,
                               @AuthenticationPrincipal LoginUser loginUser,
                               Model model) {
+        if (SampleScreenData.isSampleId(courseAssignmentId)) {
+            // 예시 제출물에는 저장할 대상이 없다. 팝업을 그대로 다시 그리고 이유만 알려준다.
+            var sample = sampleScreenData.submissionDetail(courseAssignmentId, submissionId);
+            if (sample == null) {
+                return "redirect:/instructor/assignments";
+            }
+            bindingResult.reject("grade.sample",
+                    "화면 예시용 데이터라 저장되지 않습니다. 실제 제출물이 있으면 저장됩니다.");
+            model.addAttribute("detail", sample);
+            model.addAttribute("courseAssignmentId", courseAssignmentId);
+            model.addAttribute("actionPrefix", GRADING_URL_PREFIX);
+            model.addAttribute("sampleData", true);
+            return MODAL_VIEW;
+        }
         if (!bindingResult.hasErrors()) {
             try {
                 gradingService.grade(submissionId, form, loginUser.getId());

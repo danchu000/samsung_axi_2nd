@@ -2,6 +2,7 @@ package com.ssa.lms.web;
 
 import com.ssa.lms.assignment.dto.AssignmentSearchCond;
 import com.ssa.lms.assignment.dto.CourseAssignmentRow;
+import com.ssa.lms.assignment.dto.GradingStudentRow;
 import com.ssa.lms.assignment.entity.Assignment;
 import com.ssa.lms.assignment.entity.CourseAssignment;
 import com.ssa.lms.assignment.repository.CourseAssignmentRepository;
@@ -33,7 +34,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -125,11 +128,83 @@ class InstructorAssignmentListTest {
     }
 
     @Test
-    @DisplayName("예시 행은 채점 화면으로 넘어가지 않고 목록으로 되돌아온다")
+    @DisplayName("예시 행의 채점 화면도 예시 데이터로 렌더된다")
     @WithUserDetails("instructor1")
-    void sampleRowGradingIsGuarded() throws Exception {
+    void sampleGradingScreenRenders() throws Exception {
         mvc.perform(get("/instructor/assignments/900401/grading"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("화면 예시용 샘플 데이터")))
+                // 상단 요약 (서버 렌더 — 한글 그대로 나온다)
+                .andExpect(content().string(containsString("REST API 게시판 구현")))
+                // 미제출자 박스
+                .andExpect(content().string(containsString("미제출자")))
+                // 학생 목록은 인라인 JSON — 한글은 \\uXXXX 로 escape 되므로 id 로 확인한다
+                .andExpect(content().string(containsString("\"submissionId\":900501")))
+                .andExpect(content().string(containsString("</html>")));
+    }
+
+    @Test
+    @DisplayName("예시 제출물의 채점 팝업이 열리고, 저장은 안내로 막힌다")
+    @WithUserDetails("instructor1")
+    void sampleGradingModalOpensButDoesNotSave() throws Exception {
+        mvc.perform(get("/instructor/assignments/900401/submissions/900501/grading"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("강민준")));
+
+        // 아직 채점하지 않은 제출물 — 기존 점수가 null 이라 폼 채우기에서 터지기 쉬운 경로다
+        mvc.perform(get("/instructor/assignments/900401/submissions/900506/grading"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("최유나")));
+
+        mvc.perform(post("/instructor/assignments/900401/submissions/900501/grading")
+                        .param("score", "90")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("저장되지 않습니다")))
+                .andExpect(content().string(not(containsString("채점을 저장했습니다"))));
+    }
+
+    @Test
+    @DisplayName("제출하지 않은 학생의 제출물 id 로는 채점 팝업이 열리지 않는다")
+    @WithUserDetails("instructor1")
+    void sampleModalRejectsUnsubmittedStudent() throws Exception {
+        // 900401 은 앞 8명만 제출 — 9번째(900509)는 미제출이다
+        mvc.perform(get("/instructor/assignments/900401/submissions/900509/grading"))
                 .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("목록의 제출/미제출 수와 채점 화면 학생 행이 어긋나지 않는다")
+    void listCountsMatchGradingRows() {
+        List<CourseAssignmentRow> rows = sampleScreenData.courseAssignments(GRADING_PREFIX);
+
+        assertThat(rows).allSatisfy(row -> {
+            Long id = Long.valueOf(row.id());
+            List<GradingStudentRow> students = sampleScreenData.gradingStudents(id, GRADING_PREFIX);
+
+            assertThat(students).hasSize((int) (row.submitted() + row.notSubmitted()));
+            assertThat(students).filteredOn(s -> "제출".equals(s.submitStatus()))
+                    .hasSize((int) row.submitted());
+            assertThat(sampleScreenData.gradingNotSubmitted(id))
+                    .hasSize((int) row.notSubmitted());
+            // 요약 박스의 수강 인원도 같은 명단에서 나와야 한다
+            assertThat(sampleScreenData.gradingSummary(id).enrolledCount())
+                    .isEqualTo(students.size());
+        });
+    }
+
+    @Test
+    @DisplayName("미제출 학생 행에는 채점 팝업 URL 이 없다")
+    void unsubmittedStudentsHaveNoGradingUrl() {
+        List<GradingStudentRow> students = sampleScreenData.gradingStudents(900_401L, GRADING_PREFIX);
+
+        assertThat(students).filteredOn(s -> "미제출".equals(s.submitStatus()))
+                .isNotEmpty()
+                .allSatisfy(s -> {
+                    assertThat(s.gradingUrl()).isEmpty();
+                    assertThat(s.btnType()).isEqualTo("disabled");
+                    assertThat(s.submissionId()).isNull();
+                });
     }
 
     /**
@@ -159,7 +234,7 @@ class InstructorAssignmentListTest {
     @Test
     @DisplayName("예시 과제 행은 목록 화면과 같은 형식이다")
     void sampleRowsMatchScreenFormat() {
-        List<CourseAssignmentRow> sample = sampleScreenData.courseAssignments();
+        List<CourseAssignmentRow> sample = sampleScreenData.courseAssignments(GRADING_PREFIX);
 
         assertThat(sample).isNotEmpty();
         // 화면 렌더러(assignments.js)가 기대하는 값들
@@ -168,8 +243,8 @@ class InstructorAssignmentListTest {
             assertThat(r.status()).isIn("waiting", "pending", "completed");
             assertThat(r.startDate()).matches("\\d{4}\\.\\d{2}\\.\\d{2}");
             assertThat(r.endTime()).endsWith("까지");
-            // 실제 채점 대상이 없으므로 채점 화면으로 보내면 안 된다
-            assertThat(r.address()).isEqualTo("#");
+            // 「채점하기」가 예시 채점 화면으로 이어져야 캡처할 수 있다
+            assertThat(r.address()).isEqualTo(GRADING_PREFIX + r.id() + "/grading");
             assertThat(SampleScreenData.isSampleId(Long.valueOf(r.id()))).isTrue();
         });
         assertThat(sample).extracting(CourseAssignmentRow::status)

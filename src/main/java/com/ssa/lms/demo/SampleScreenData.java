@@ -1,7 +1,12 @@
 package com.ssa.lms.demo;
 
 import com.ssa.lms.assignment.dto.CourseAssignmentRow;
+import com.ssa.lms.assignment.dto.GradeHistoryRow;
+import com.ssa.lms.assignment.dto.GradingStudentRow;
+import com.ssa.lms.assignment.dto.GradingSummaryView;
+import com.ssa.lms.assignment.dto.SubmissionDetailView;
 import com.ssa.lms.assignment.dto.TraineeAssignmentCard;
+import com.ssa.lms.assignment.dto.UserOption;
 import com.ssa.lms.attendance.web.TraineeAttendanceView;
 import com.ssa.lms.completion.web.CompletionView;
 import com.ssa.lms.exam.dto.ExamTakeRow;
@@ -347,35 +352,215 @@ public class SampleScreenData {
      * <p>담당 과정에 아직 과제가 배정되지 않은 강사는 목록이 비어 화면정의서에 넣을 그림이
      * 나오지 않는다. 채점 대기/완료/평가예정 세 상태가 모두 보이도록 섞어 둔다.</p>
      *
-     * <p>{@code address} 는 {@code "#"} 이다 — 예시 행에는 실제 채점 대상이 없어서
-     * 채점 화면으로 보내면 안 된다 (컨트롤러도 예시 id 를 목록으로 되돌린다).</p>
+     * <p>「채점하기」는 실제 채점 화면 URL 로 보낸다 — 그쪽도 예시 데이터를 렌더하므로
+     * 열어서 캡처할 수 있다. 저장 동작만 컨트롤러가 막는다.</p>
      */
-    public List<CourseAssignmentRow> courseAssignments() {
+    public List<CourseAssignmentRow> courseAssignments(String gradingUrlPrefix) {
         LocalDateTime now = LocalDateTime.now();
-        return List.of(
-                sampleAssignmentRow(900_401L, 1, "REST API 게시판 구현", "김도현",
-                        now.minusDays(9), now.plusDays(5), 18, 4, "pending"),
-                sampleAssignmentRow(900_402L, 2, "React 재사용 컴포넌트 3종 만들기", "김도현",
-                        now.minusDays(16), now.minusDays(4), 22, 0, "completed"),
-                sampleAssignmentRow(900_403L, 3, "데이터 전처리 리포트", "박서연",
-                        now.minusDays(12), now.minusDays(1), 20, 2, "pending"),
-                sampleAssignmentRow(900_404L, 4, "SQL 실행계획 분석 과제", "김도현",
-                        now.minusDays(24), now.minusDays(7), 22, 0, "completed"),
-                sampleAssignmentRow(900_405L, 5, "최종 팀 프로젝트 기획서", "박서연",
-                        now.plusDays(3), now.plusDays(17), 0, 22, "waiting")
-        );
+        List<CourseAssignmentRow> rows = new ArrayList<>(SAMPLE_ASSIGNMENTS.size());
+        int no = 0;
+        for (SampleAssignment a : SAMPLE_ASSIGNMENTS) {
+            LocalDateTime startAt = now.plusDays(a.startOffsetDays());
+            LocalDateTime endAt = now.plusDays(a.endOffsetDays());
+            rows.add(new CourseAssignmentRow(
+                    String.valueOf(a.id()), ++no,
+                    COURSE, "KDT-2026-001",
+                    a.title(), a.instructor(), "assignment",
+                    startAt.format(DOT_DATE), startAt.format(TIME) + "부터",
+                    endAt.format(DOT_DATE), endAt.format(TIME) + "까지",
+                    a.submitted(), SAMPLE_STUDENTS.length - a.submitted(), a.status(),
+                    gradingUrlPrefix + a.id() + "/grading"));
+        }
+        return rows;
     }
 
-    private CourseAssignmentRow sampleAssignmentRow(long id, int number, String title, String instructor,
-                                                    LocalDateTime startAt, LocalDateTime endAt,
-                                                    long submitted, long notSubmitted, String status) {
-        return new CourseAssignmentRow(
-                String.valueOf(id), number,
-                COURSE, "KDT-2026-001",
-                title, instructor, "assignment",
-                startAt.format(DOT_DATE), startAt.format(TIME) + "부터",
-                endAt.format(DOT_DATE), endAt.format(TIME) + "까지",
-                submitted, notSubmitted, status,
-                "#");
+    /* ===================== 강사 채점 화면 ===================== */
+
+    /**
+     * 예시 채점 화면의 수강생 명단. 이름과 식별자만 쓴다 — 화면이 "이름 (식별자)" 로 보여주고,
+     * 생년월일 같은 개인정보는 채점 화면에 실릴 이유가 없다 ({@code GradingStudentRow} 주석 참고).
+     */
+    private static final String[][] SAMPLE_STUDENTS = {
+            {"강민준", "trainee01"}, {"김서윤", "trainee02"}, {"박지호", "trainee03"},
+            {"이하은", "trainee04"}, {"정우진", "trainee05"}, {"최유나", "trainee06"},
+            {"한도윤", "trainee07"}, {"오세아", "trainee08"}, {"윤재원", "trainee09"},
+            {"임채린", "trainee10"},
+    };
+
+    /** 채점 완료된 학생에게 붙는 점수. 명단 순서대로 쓴다. */
+    private static final int[] SAMPLE_SCORES = {92, 88, 76, 95, 81, 90, 68, 84, 79, 87};
+
+    private static final long SAMPLE_USER_ID_BASE = 900_601L;
+    private static final long SAMPLE_SUBMISSION_ID_BASE = 900_501L;
+
+    /**
+     * 예시 과제 배정 1건.
+     *
+     * <p>목록 화면의 제출/미제출 수와 채점 화면의 학생 행이 <b>같은 정의에서 나온다</b>.
+     * 두 군데에 숫자를 따로 적으면 목록은 "18명 제출" 인데 채점 화면에는 8행만 있는 식으로
+     * 어긋나고, 화면정의서에 그대로 남는다.</p>
+     *
+     * @param startOffsetDays 오늘 기준 며칠 (음수 = 과거)
+     * @param submitted       명단 앞에서부터 몇 명이 제출했는지
+     * @param graded          제출자 중 앞에서부터 몇 명이 채점 완료인지
+     */
+    private record SampleAssignment(
+            long id, String title, String instructor, String description,
+            int startOffsetDays, int endOffsetDays,
+            int submitted, int graded, String status) {
+    }
+
+    private static final List<SampleAssignment> SAMPLE_ASSIGNMENTS = List.of(
+            new SampleAssignment(900_401L, "REST API 게시판 구현", "김도현",
+                    "Spring Boot 로 게시글 CRUD REST API 를 구현하고, 소스 압축본과 구현 설명을 함께 제출하세요.",
+                    -9, 5, 8, 5, "pending"),
+            new SampleAssignment(900_402L, "React 재사용 컴포넌트 3종 만들기", "김도현",
+                    "버튼·모달·테이블 컴포넌트를 props 기반으로 재사용 가능하게 만들고 배포 링크를 제출하세요.",
+                    -16, -4, 10, 10, "completed"),
+            new SampleAssignment(900_403L, "데이터 전처리 리포트", "박서연",
+                    "결측치 처리와 정규화 과정을 실제 데이터셋 기준으로 정리해 제출하세요.",
+                    -12, -1, 9, 3, "pending"),
+            new SampleAssignment(900_404L, "SQL 실행계획 분석 과제", "김도현",
+                    "느린 쿼리 3건의 실행계획을 캡처하고 인덱스 개선 전후를 비교해 제출하세요.",
+                    -24, -7, 10, 10, "completed"),
+            new SampleAssignment(900_405L, "최종 팀 프로젝트 기획서", "박서연",
+                    "팀별 최종 프로젝트의 주제·기술스택·일정을 담은 기획서를 제출하세요.",
+                    3, 17, 0, 0, "waiting"));
+
+    private static SampleAssignment sampleAssignment(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return SAMPLE_ASSIGNMENTS.stream().filter(a -> a.id() == id).findFirst().orElse(null);
+    }
+
+    /** 채점 화면 상단 요약. 예시 배정이 아니거나 기능이 꺼져 있으면 {@code null}. */
+    public GradingSummaryView gradingSummary(Long courseAssignmentId) {
+        SampleAssignment a = enabled ? sampleAssignment(courseAssignmentId) : null;
+        if (a == null) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return new GradingSummaryView(
+                a.id(),
+                COURSE + " (" + COHORT + ")",
+                a.title(),
+                now.plusDays(a.startOffsetDays()).format(DATETIME)
+                        + " ~ " + now.plusDays(a.endOffsetDays()).format(DATETIME),
+                "수동", "60점 이상", "파일 + 텍스트",
+                100, 60,
+                SAMPLE_STUDENTS.length, a.submitted(), a.graded());
+    }
+
+    /**
+     * 채점 화면 학생 목록. 미제출자도 행으로 나온다 (실제 화면과 같은 규칙).
+     *
+     * <p>제출자에게는 채점 팝업 URL 을 준다 — 팝업도 예시 상세를 렌더하므로 열어서 캡처할 수 있다.
+     * 저장만 컨트롤러가 막는다.</p>
+     */
+    public List<GradingStudentRow> gradingStudents(Long courseAssignmentId, String gradingUrlPrefix) {
+        SampleAssignment a = enabled ? sampleAssignment(courseAssignmentId) : null;
+        if (a == null) {
+            return List.of();
+        }
+        LocalDateTime deadline = LocalDateTime.now().plusDays(a.endOffsetDays());
+        List<GradingStudentRow> rows = new ArrayList<>(SAMPLE_STUDENTS.length);
+
+        for (int i = 0; i < SAMPLE_STUDENTS.length; i++) {
+            boolean submitted = i < a.submitted();
+            boolean graded = i < a.graded();
+            boolean late = submitted && i == 2;          // 지각 제출 1건 — 감점 근거 표시용
+            long submissionId = SAMPLE_SUBMISSION_ID_BASE + i;
+
+            rows.add(new GradingStudentRow(
+                    i + 1,
+                    SAMPLE_USER_ID_BASE + i,
+                    submitted ? submissionId : null,
+                    SAMPLE_STUDENTS[i][0],
+                    SAMPLE_STUDENTS[i][1],
+                    submitted ? "제출" : "미제출",
+                    !submitted ? "-" : graded ? (i == 0 ? "확정" : "채점완료") : "미채점",
+                    graded ? String.valueOf(SAMPLE_SCORES[i]) : "-",
+                    (submitted && i == 1 ? 1 : 0) + "회",
+                    !submitted ? "disabled" : graded ? "edit" : "grading",
+                    COURSE,
+                    a.title(),
+                    submitted
+                            ? deadline.minusDays(1).plusHours(i).format(DATETIME) : "-",
+                    late,
+                    submitted
+                            ? gradingUrlPrefix + a.id() + "/submissions/" + submissionId + "/grading" : "",
+                    graded && i == 0 ? sampleHistory(a.instructor()) : List.of()));
+        }
+        return rows;
+    }
+
+    /** 성적 정정 이력 1건 — 화면의 "변경 이력" 탭이 비어 보이지 않게 한다. */
+    private List<GradeHistoryRow> sampleHistory(String instructor) {
+        return List.of(new GradeHistoryRow(
+                LocalDateTime.now().minusDays(2).withHour(14).withMinute(30).format(DATETIME),
+                instructor, "85 → 92", "통과", "채점 기준 재검토 후 문서화 항목 재평가"));
+    }
+
+    /** 채점 화면의 미제출자 목록. */
+    public List<UserOption> gradingNotSubmitted(Long courseAssignmentId) {
+        SampleAssignment a = enabled ? sampleAssignment(courseAssignmentId) : null;
+        if (a == null) {
+            return List.of();
+        }
+        List<UserOption> users = new ArrayList<>();
+        for (int i = a.submitted(); i < SAMPLE_STUDENTS.length; i++) {
+            users.add(new UserOption(
+                    SAMPLE_USER_ID_BASE + i, SAMPLE_STUDENTS[i][1], SAMPLE_STUDENTS[i][0]));
+        }
+        return users;
+    }
+
+    /**
+     * 채점 팝업(grading-modal)이 보여주는 제출물 상세.
+     *
+     * <p>예시 판별은 <b>{@code courseAssignmentId}</b> 로 한다 — 제출물 id 만으로는 실제 제출물과
+     * 구분할 근거가 없고, 팝업 URL 에 두 값이 모두 들어 있다.</p>
+     *
+     * <p>첨부파일은 넣지 않는다. 다운로드 URL 을 만들어 두면 눌렀을 때 실제로 없는 파일을
+     * 찾으러 가서 오류가 난다 — 답안은 텍스트와 링크로만 보여준다.</p>
+     */
+    public SubmissionDetailView submissionDetail(Long courseAssignmentId, Long submissionId) {
+        SampleAssignment a = enabled ? sampleAssignment(courseAssignmentId) : null;
+        if (a == null || submissionId == null) {
+            return null;
+        }
+        int i = (int) (submissionId - SAMPLE_SUBMISSION_ID_BASE);
+        if (i < 0 || i >= a.submitted()) {
+            return null;
+        }
+        boolean graded = i < a.graded();
+        Integer currentScore = graded ? SAMPLE_SCORES[i] : null;
+        LocalDateTime deadline = LocalDateTime.now().plusDays(a.endOffsetDays());
+
+        return new SubmissionDetailView(
+                submissionId,
+                a.id(),
+                SAMPLE_STUDENTS[i][0],
+                a.title(),
+                COURSE,
+                a.description(),
+                List.of(
+                        new SubmissionDetailView.CriteriaRow(1, "요구사항 충족", 50),
+                        new SubmissionDetailView.CriteriaRow(2, "코드 품질 및 구조", 30),
+                        new SubmissionDetailView.CriteriaRow(3, "문서화", 20)),
+                "파일 + 텍스트",
+                "요구사항에 맞춰 CRUD 를 구현했고, 예외 처리는 @RestControllerAdvice 로 한 곳에 모았습니다. "
+                        + "테스트는 서비스 계층 위주로 작성했습니다.",
+                "https://github.com/sample/kdt-board-api",
+                List.of(),
+                (i == 1 ? 2 : 1),
+                i == 2,
+                deadline.minusDays(1).plusHours(i).format(DATETIME),
+                100, 60,
+                currentScore,
+                graded ? "요구사항은 충실히 구현했습니다. 예외 처리 응답 형식을 통일하면 더 좋겠습니다." : null,
+                graded ? "재제출 없이 1회차에 통과." : null,
+                currentScore != null);
     }
 }

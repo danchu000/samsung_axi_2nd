@@ -444,14 +444,11 @@ if (endDate) {
     }
 }
 
-const url = courseEnded
-    ? '/templates/instructor/modal-completion.html'
-    : '/templates/instructor/modal-attendance.html';
-window.open(
-    url,
-    '_blank',
-    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-);
+// 출결/이수 상세 팝업은 아직 화면이 없다. 예전 정적 경로(/templates/...)로 열면
+// 404 Whitelabel 이 뜨므로, 프로젝트 규칙대로 안내만 띄운다(CLAUDE.md — 미구현 화면은 alert).
+alert(courseEnded
+    ? '이수 상세 팝업은 준비 중인 기능입니다. 이수 현황은 출결/이수 관리 메뉴에서 확인해 주세요.'
+    : '출결 상세 팝업은 준비 중인 기능입니다. 출결 현황은 출결/이수 관리 메뉴에서 확인해 주세요.');
 }
 
 

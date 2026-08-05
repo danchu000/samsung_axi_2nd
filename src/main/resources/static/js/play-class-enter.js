@@ -67,10 +67,15 @@ function toggleCommPanel() {
           <span class="student-status-label">${s.status}</span>
         </div>
       `;
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', function() {
-        window.location.href = `/templates/admin/admin-02-user/admin-user-trainee.html?name=${encodeURIComponent(s.name)}`;
-      });
+      // 학생 카드 클릭 → 훈련생 관리 화면. 이 화면은 관리자만 열 수 있으므로
+      // 관리자일 때만 이동시킨다(예전 정적 경로 /templates/... 는 404 였다).
+      const isAdmin = (document.body.dataset.userRole || '').trim().toLowerCase() === 'admin';
+      card.style.cursor = isAdmin ? 'pointer' : 'default';
+      if (isAdmin) {
+        card.addEventListener('click', function() {
+          window.location.href = '/admin/users/trainees';
+        });
+      }
       list.appendChild(card);
     });
   }

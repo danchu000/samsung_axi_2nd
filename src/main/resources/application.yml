@@ -23,11 +23,28 @@ spring:
       max-file-size: 500MB   # VOD 업로드 대비
       max-request-size: 500MB
 
+# 오류 화면은 GlobalErrorController + templates/error/error.html 이 담당한다.
+# 스택트레이스/예외 메시지는 화면에 절대 내보내지 않는다 — devtools 가 개발 모드에서
+# include-stacktrace=always 로 바꿔놓기 때문에 여기서 명시적으로 눌러둔다.
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+    include-binding-errors: never
+
 # 개인정보 컬럼 AES-256 암호화 키 (내역서 증빙 요건 — PLAN.md §2-1)
 # 운영 환경에서는 반드시 환경변수 LMS_CRYPTO_SECRET 로 주입할 것. 키 변경 시 기존 데이터 복호화 불가.
 lms:
   crypto:
     secret: ${LMS_CRYPTO_SECRET:samsung-lxp-local-dev-only-secret}
+
+  # 화면정의서 캡처용 예시 데이터 (SampleScreenData).
+  # 훈련생의 과제/시험/출결/이수/설문 화면에서 <b>본인 데이터가 0건일 때만</b> 예시 행을 보여준다.
+  # DB 에는 아무것도 쓰지 않는다 — 요청마다 메모리에서 만들고 버린다.
+  # 캡처가 끝나면 서버 .env 에 LMS_DEMO_SAMPLE_DATA=false 만 넣으면 꺼진다(재배포 불필요).
+  demo:
+    sample-data: ${LMS_DEMO_SAMPLE_DATA:true}
 
   # AI(Claude) 연동. 키는 여기 적지 말고 환경변수 또는 .env 로만 주입한다.
   # 키가 없으면 자동으로 꺼진 상태로 뜨고 AI 화면은 안내 문구를 보여준다(AiConfig).

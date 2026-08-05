@@ -30,6 +30,7 @@
   <div class="page-head">
     <div class="title-wrap">
       <p class="page-desc">진행 중인 설문을 확인하고 응답할 수 있어요.</p>
+      <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
     </div>
   </div>
 

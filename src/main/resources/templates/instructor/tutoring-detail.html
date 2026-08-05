@@ -132,7 +132,7 @@
         <h1>소통 > 튜터링/Q&A > 튜터링 상세</h1>
         <!-- icon -->
         <div class="icon-container">
-            <div class="icon-box"><a href="/templates/instructor/alarm.html"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
+            <div class="icon-box"><a href="#" onclick="alert('준비 중인 기능입니다.');return false;"><img src="/static/icons/bell.svg" alt="alert icon" style="width: 28px;"></a></div>
             <div class="icon-box" onClick="location.href='/templates/instructor/my-info.html'"><img src="/static/icons/user.svg" alt="user icon" style="width: 30px;"></div>
             <div class="icon-box"><img src="/static/icons/setting.svg" alt="setting icon" style="width: 25px;"></div>
         </div>
@@ -167,8 +167,8 @@
                     <span class="menu-text">담당 과정</span>
                     <span class="chev" aria-hidden="true">▾</span>
                     <ul>
-                        <a href="/templates/instructor/courses.html"><li>과정 관리</li></a>
-                        <a href="/templates/instructor/scheduler.html"><li>일정 관리</li></a>
+                        <a href="/instructor/courses"><li>과정 관리</li></a>
+                        <a href="/instructor/scheduler"><li>일정 관리</li></a>
                     </ul>
                 </li>
                 <li onclick="handleMenuClick(this, 'assignment.html')">
@@ -176,9 +176,9 @@
                     <span class="menu-text">평가</span>
                     <span class="chev" aria-hidden="true">▾</span>
                     <ul>
-                        <a href="/templates/instructor/assignment.html"><li>과제 채점</li></a>
-                        <a href="/templates/instructor/result.html"><li>시험 채점</li></a>
-                        <a href="/templates/instructor/proctor/exams.html"><li>평가 모니터링</li></a>
+                        <a href="/instructor/assignments"><li>과제 채점</li></a>
+                        <a href="/instructor/grading"><li>시험 채점</li></a>
+                        <a href="/instructor/proctor/exams"><li>평가 모니터링</li></a>
                     </ul>
                 </li>
                 <li onclick="handleMenuClick(this, '/templates/instructor/attendance.html')">
@@ -186,8 +186,8 @@
                     <span class="menu-text">출결/이수 관리</span>
                     <span class="chev" aria-hidden="true">▾</span>
                     <ul>
-                        <a href="/templates/instructor/attendance.html"><li>출결현황</li></a>
-                        <a href="/templates/instructor/graduate.html"><li>이수 관리</li></a>    
+                        <a href="/instructor/attendance"><li>출결현황</li></a>
+                        <a href="/instructor/graduate"><li>이수 관리</li></a>    
                     </ul>
                 </li>
                 <li onclick="handleMenuClick(this, 'notices.html')">
@@ -195,8 +195,8 @@
                     <span class="menu-text">소통</span>
                     <span class="chev" aria-hidden="true">▾</span>
                     <ul>
-                        <a href="/templates/instructor/notices.html"><li>공지사항</li></a>
-                        <a href="/templates/instructor/tutoring.html"><li>튜터링/Q&A</li></a>
+                        <a href="/instructor/notice"><li>공지사항</li></a>
+                        <a href="/admin/support/tutoring"><li>튜터링/Q&A</li></a>
                     </ul>
                 </li>
             </ul>

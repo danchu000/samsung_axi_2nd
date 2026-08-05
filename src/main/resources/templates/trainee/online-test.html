@@ -48,6 +48,7 @@
   <div class="page-header">
     <div>
       <p class="page-desc">응시 가능한 시험을 선택해 시작하세요.</p>
+      <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
       <div class="page-warn">
         시험 시작 후 제한시간이 적용돼요. 중간 종료 시 재응시/이어하기 정책은 시험마다 달라요.
       </div>

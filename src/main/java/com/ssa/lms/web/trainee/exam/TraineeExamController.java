@@ -1,6 +1,7 @@
 package com.ssa.lms.web.trainee.exam;
 
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.demo.SampleScreenData;
 import com.ssa.lms.exam.dto.AttemptResultView;
 import com.ssa.lms.exam.dto.AttemptView;
 import com.ssa.lms.exam.service.ExamAttemptService;
@@ -40,13 +41,18 @@ public class TraineeExamController {
     private static final String TAKE_VIEW = "trainee/do-test";
 
     private final ExamAttemptService examAttemptService;
+    private final SampleScreenData sampleScreenData;
 
     /* ===================== 화면 ===================== */
 
     /** 응시 가능 시험 목록. 필터/정렬/페이징은 기존 화면 JS 가 그대로 처리한다. */
     @GetMapping
     public String list(@AuthenticationPrincipal LoginUser loginUser, Model model) {
-        model.addAttribute("rows", examAttemptService.availableExams(loginUser.getId()));
+        var filled = sampleScreenData.fill(
+                examAttemptService.availableExams(loginUser.getId()),
+                sampleScreenData::exams);
+        model.addAttribute("rows", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         return LIST_VIEW;
     }
 

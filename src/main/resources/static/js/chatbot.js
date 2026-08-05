@@ -56,7 +56,7 @@
                       // 말풍선 스타일로 추가
                       var div = document.createElement('div');
                       div.className = 'chatbot-msg chatbot-msg-bot chatbot-msg-cta';
-                      div.innerHTML = '<a href="/templates/trainee/online-test.html" style="color:#fff;text-decoration:none;">온라인 시험 바로가기 &gt;</a>';
+                      div.innerHTML = '<a href="/trainee/exam" style="color:#fff;text-decoration:none;">온라인 시험 바로가기 &gt;</a>';
                       chatbotMessages.appendChild(div);
                       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
                     }, 500);

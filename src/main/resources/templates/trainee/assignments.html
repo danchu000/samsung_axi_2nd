@@ -31,6 +31,8 @@
     </div>
   </div>
 
+  <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
+
   <!-- 필터 -->
   <div class="filter-bar">
     <div class="filter-left">

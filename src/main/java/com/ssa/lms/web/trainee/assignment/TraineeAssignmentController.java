@@ -4,6 +4,7 @@ import com.ssa.lms.assignment.dto.SubmissionForm;
 import com.ssa.lms.assignment.entity.SubmissionFile;
 import com.ssa.lms.assignment.service.SubmissionService;
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.demo.SampleScreenData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -33,11 +34,16 @@ public class TraineeAssignmentController {
     private static final String LIST_VIEW = "trainee/assignments";
 
     private final SubmissionService submissionService;
+    private final SampleScreenData sampleScreenData;
 
     /** 내 과제 목록. 카드 렌더링·필터는 기존 화면 인라인 JS 가 담당한다. */
     @GetMapping
     public String list(@AuthenticationPrincipal LoginUser loginUser, Model model) {
-        model.addAttribute("tasks", submissionService.findMyAssignments(loginUser.getId()));
+        var filled = sampleScreenData.fill(
+                submissionService.findMyAssignments(loginUser.getId()),
+                sampleScreenData::assignments);
+        model.addAttribute("tasks", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         return LIST_VIEW;
     }
 
@@ -50,6 +56,12 @@ public class TraineeAssignmentController {
                          @ModelAttribute SubmissionForm form,
                          @AuthenticationPrincipal LoginUser loginUser,
                          RedirectAttributes redirectAttributes) {
+        // 예시 카드는 DB 에 없는 과제다 — "찾을 수 없습니다" 대신 이유를 정확히 알려준다.
+        if (SampleScreenData.isSampleId(id)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "화면 예시용 과제라 제출할 수 없습니다. 실제 과제가 배정되면 제출 버튼이 동작합니다.");
+            return "redirect:/trainee/assignment";
+        }
         form.setCourseAssignmentId(id);
         try {
             submissionService.submit(loginUser.getId(), form);

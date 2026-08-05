@@ -5,6 +5,7 @@ import com.ssa.lms.auth.RoleBasedAuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -51,9 +52,15 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/instructor/proctor/**").hasAnyRole("ADMIN", "INSTRUCTOR")
                         .requestMatchers("/instructor/**").hasAnyRole("INSTRUCTOR", "ADMIN")
-                        // B 도메인: 훈련생 전용 (응시/제출은 본인만 — ADMIN 도 불가)
-                        .requestMatchers("/trainee/exam/**", "/trainee/assignment/**",
-                                "/trainee/survey/**", "/trainee/qna/**").hasRole("TRAINEE")
+                        // 훈련생 영역의 <b>쓰기</b>(응시 시작·답안 저장·과제 제출·설문 응답·진도 기록)는
+                        // 본인만 할 수 있다 — ADMIN 도 대신 제출할 수 없다. 모든 변경은 POST 로 들어온다.
+                        .requestMatchers(HttpMethod.POST, "/trainee/**").hasRole("TRAINEE")
+                        .requestMatchers(HttpMethod.PUT, "/trainee/**").hasRole("TRAINEE")
+                        .requestMatchers(HttpMethod.PATCH, "/trainee/**").hasRole("TRAINEE")
+                        .requestMatchers(HttpMethod.DELETE, "/trainee/**").hasRole("TRAINEE")
+                        // 조회(GET)는 ADMIN 도 연다 — 운영자가 훈련생 화면을 그대로 확인해야
+                        // 문의 대응과 화면 점검이 된다. 데이터는 각 컨트롤러가 인증 주체(user.getId())
+                        // 기준으로만 조회하므로 관리자에게 남의 제출물이 보이지는 않는다.
                         .requestMatchers("/trainee/**").hasAnyRole("TRAINEE", "ADMIN")
                         .anyRequest().authenticated()
                 )

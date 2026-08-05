@@ -200,8 +200,8 @@
     const btn = e.target.closest("[data-survey-open]");
     if (!btn) return;
     const surveyId = btn.getAttribute("data-survey-open");
-    // 별도 페이지로 새 창에서 이동
-    window.open(`/templates/trainee/survey-detail-page.html`, '_blank');
+    // 별도 페이지로 새 창에서 이동 (예전 정적 경로 /templates/... 는 404 였다)
+    window.open(`/trainee/survey/${encodeURIComponent(surveyId)}`, '_blank');
   });
 
   initCourseOptions();

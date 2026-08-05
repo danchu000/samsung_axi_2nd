@@ -8,7 +8,13 @@
     <link rel="stylesheet" href="/static/css/legal.css">
     <title>개인정보처리방침 - Samsung Academy LXP</title>
 </head>
-<!--
+<!--/*
+  이 블록은 Thymeleaf 파서 주석이라 렌더 결과에 나가지 않는다.
+  평범한 HTML 주석으로 두면 이 개발 메모가 운영 페이지 소스에 그대로 노출된다
+  (약관·방침은 로그인 없이 열리는 대외 공개 문서다).
+  주의 — 이 안에 파서 주석 종료 기호를 글자 그대로 쓰면 거기서 블록이 끊기고
+  뒷부분이 평문으로 화면에 찍힌다. 종료 기호를 본문에 적지 말 것.
+
   이 문서의 수집 항목·보관 기간·암호화 방식은 실제 구현에서 뽑아낸 것이다.
     · 수집 항목    : user.entity.User (loginId/password/name/email/phone/birthDate/gender/education)
     · 암호화       : common.CryptoConverter (AES-256/GCM) — email/phone/birthDate
@@ -18,17 +24,19 @@
     · AI 질문 본문 : ai.service.AiUsageCleaner (보존 90일 후 본문 삭제, 통계는 유지)
   구현이 바뀌면 이 문서도 같이 고쳐야 한다.
 
-  <span class="legal-fill"> 로 표시된 항목은 기관이 실제 값으로 채워야 하는 자리다.
--->
+  <span class="legal-fill"> 로 표시된 항목은 기관이 실제 값으로 채워야 하는 자리다(화면에 노란 표식).
+  2026-08-05 기준 남은 자리 — 제4조 추가 제공처 4곳, 제5조 위탁 2곳.
+  기관 회신이 오면: 없으면 해당 행/조를 삭제, 있으면 값을 채우고 span 을 걷어낼 것.
+*/-->
 <body class="legal-page">
 <div class="legal-doc">
     <a href="/login" class="legal-home">← 로그인 화면으로</a>
 
     <h1>개인정보처리방침</h1>
-    <p class="legal-meta">시행일자: <span class="legal-fill">YYYY-MM-DD</span> · 최종 개정일: <span class="legal-fill">YYYY-MM-DD</span></p>
+    <p class="legal-meta">시행일자: 2026-08-05 · 최종 개정일: 2026-08-05</p>
 
     <p class="legal-lead">
-        <span class="legal-fill">[기관명]</span>(이하 "기관")은 「개인정보 보호법」 및 「근로자직업능력 개발법」 등
+        (주)삼성에이엑스아이(이하 "기관")는 「개인정보 보호법」 및 「근로자직업능력 개발법」 등
         관계 법령에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하게 처리할 수 있도록
         다음과 같이 개인정보처리방침을 수립·공개합니다. 본 방침은 기관이 운영하는
         학습관리시스템(Samsung Academy LXP, 이하 "본 시스템")에 적용됩니다.
@@ -225,9 +233,9 @@
     <div class="legal-table-wrap">
         <table class="legal-table">
             <tbody>
-            <tr><th>성명</th><td><span class="legal-fill">[성명]</span></td></tr>
-            <tr><th>직책</th><td><span class="legal-fill">[직책]</span></td></tr>
-            <tr><th>연락처</th><td><span class="legal-fill">[전화번호]</span> / <span class="legal-fill">[이메일]</span></td></tr>
+            <tr><th>성명</th><td>최형재</td></tr>
+            <tr><th>직책</th><td>대표이사</td></tr>
+            <tr><th>연락처</th><td>031-754-9003 / edu@samsungaxi.com</td></tr>
             </tbody>
         </table>
     </div>

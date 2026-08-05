@@ -105,11 +105,54 @@ class TraineeScreenFallbackRenderTest {
     @DisplayName("예시 항목은 제출·열람을 시도해도 500 이 아니라 안내로 되돌아온다")
     @WithUserDetails("trainee1")
     void sampleRowsAreGuarded() throws Exception {
-        mvc.perform(get("/trainee/survey/900301"))
-                .andExpect(status().is3xxRedirection());
         mvc.perform(get("/trainee/completion-management/900201/certificate"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("화면 예시용 데이터입니다")));
+    }
+
+    /**
+     * 예전에는 예시 설문 상세를 목록으로 되돌려서 응답 화면을 캡처할 수 없었다.
+     * 지금은 예시 상세를 그대로 렌더하고 <b>제출만</b> 막는다.
+     */
+    @Test
+    @DisplayName("예시 설문은 응답 화면이 열리고, 제출만 안내로 막힌다")
+    @WithUserDetails("trainee1")
+    void sampleSurveyDetailRenders() throws Exception {
+        mvc.perform(get("/trainee/survey/900301"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("화면 예시용 샘플 데이터")));
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post("/trainee/survey/900301/submit").with(
+                                org.springframework.security.test.web.servlet.request
+                                        .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .flash().attribute("error", containsString("제출되지 않습니다")));
+    }
+
+    /**
+     * 설문 상세의 문항 유형 매핑 계약.
+     *
+     * <p>서버는 {@code SurveyQuestionType.name()} 이라 항상 대문자를 내려주는데 화면의 매핑
+     * 테이블 키가 소문자여서 전부 'TEXT' 폴백으로 떨어졌다 — 별점·객관식이 통째로 주관식
+     * 입력창으로 렌더됐다. 렌더는 브라우저 JS 가 하므로 MockMvc 로는 <b>양쪽 표기가 맞물리는지</b>
+     * 까지만 고정한다 (서버가 대문자를 보내고, 페이지가 대문자 키로 받는지).</p>
+     */
+    @Test
+    @DisplayName("설문 상세: 서버가 보내는 문항 유형과 화면 매핑 키의 대소문자가 맞다")
+    @WithUserDetails("trainee1")
+    void surveyQuestionTypesAreMappedInUpperCase() throws Exception {
+        mvc.perform(get("/trainee/survey/900301"))
+                .andExpect(status().isOk())
+                // 서버가 내려주는 값
+                .andExpect(content().string(containsString("\"type\":\"SCALE\"")))
+                .andExpect(content().string(containsString("\"type\":\"SINGLE\"")))
+                .andExpect(content().string(containsString("\"type\":\"MULTI\"")))
+                // 화면이 받는 키
+                .andExpect(content().string(containsString("SCALE: 'STAR'")))
+                .andExpect(content().string(containsString("SINGLE: 'CHOICE'")))
+                .andExpect(content().string(containsString("MULTI: 'CHOICE'")));
     }
 
     @Test

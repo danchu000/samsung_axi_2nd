@@ -11,6 +11,10 @@
     </div>
   </div>
 
+  <!-- 예시 배지. th:if 를 같은 태그에 달면 th:replace 가 먼저 실행돼 조건이 무시된다 → 삼항식. -->
+  <div style="margin:0 18px;"
+       th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
+
   <div class="progress-bar">
     <div class="progress-top">
       <div class="progress-text" id="sdProgressText">0 / 0</div>
@@ -130,16 +134,20 @@
     (function () {
         var v = /*[[${survey}]]*/ null;
         if (!v) return;
-        // 화면 JS 가 쓰는 타입명(CHOICE/TEXT/STAR)으로 매핑한다
-        var TYPE = { single: 'CHOICE', multi: 'CHOICE', text: 'TEXT', scale: 'STAR' };
+        // 화면 JS 가 쓰는 타입명(CHOICE/TEXT/STAR)으로 매핑한다.
+        // 서버는 SurveyQuestionType.name() 이라 항상 대문자다 — 키를 소문자로 두면
+        // 전부 'TEXT' 폴백으로 떨어져 별점·객관식이 통째로 주관식 입력창이 된다.
+        var TYPE = { SINGLE: 'CHOICE', MULTI: 'CHOICE', TEXT: 'TEXT', SCALE: 'STAR' };
         window._serverSurveyDetail = {
             id: v.id, title: v.title, course: v.course, deadline: v.deadline,
             submitted: v.submitted, answerable: v.answerable,
+            sample: /*[[${sampleData}]]*/ false,
             questions: (v.questions || []).map(function (q) {
+                var type = String(q.type || '').toUpperCase();
                 return {
                     id: q.id, title: q.title, required: q.required,
-                    type: TYPE[q.type] || 'TEXT',
-                    multi: q.type === 'multi',
+                    type: TYPE[type] || 'TEXT',
+                    multi: type === 'MULTI',
                     maxStars: q.maxStars || 5,
                     options: q.options || []
                 };
@@ -234,7 +242,7 @@
         <div class="radio-group">
           ${q.options.map(opt => `
             <label class="radio-item">
-              <input type="${q.multi ? 'checkbox' : 'radio'}" name="answers[${qi}].choiceIds" value="${opt.id}" />
+              <input type="${q.multi ? 'checkbox' : 'radio'}" name="answers[${qi}].choiceIds" value="${opt.id}" data-qid="${q.id}" />
               <span>${escapeHtml(opt.content)}</span>
             </label>
           `).join("")}
@@ -296,12 +304,20 @@
   }
 
   function onFormChange(e){
-    // 객관식
-    const radio = e.target.closest('input[type="radio"]');
-    if (radio){
-      answers[radio.name] = radio.value;
-      renderProgress();
+    // 객관식. 진행률·필수검증은 answers[문항id] 를 보므로 인풋 name(answers[i].choiceIds)이
+    // 아니라 문항 id 로 저장해야 한다 — name 으로 넣으면 필수 객관식이 영원히 미응답 취급돼
+    // 제출 버튼이 "필수 문항을 확인해주세요" 에서 막힌다.
+    const input = e.target.closest('input[type="radio"], input[type="checkbox"]');
+    if (!input || !input.dataset.qid) return;
+
+    const qid = input.dataset.qid;
+    if (input.type === "checkbox"){
+      const checked = sdFormWrap.querySelectorAll(`input[type="checkbox"][data-qid="${qid}"]:checked`);
+      answers[qid] = Array.from(checked).map(el => el.value).join(",");
+    } else {
+      answers[qid] = input.value;
     }
+    renderProgress();
   }
 
   function onFormInput(e){
@@ -379,6 +395,12 @@
 
   document.getElementById("sdForm").addEventListener("submit", (e) => {
     hideAlert();
+    if (current && current.sample){
+      // 예시 설문은 실제 문항 id 가 없다. 서버도 막지만 여기서 끊어야 화면이 안 튄다.
+      e.preventDefault();
+      showAlert("화면 예시용 설문이라 제출되지 않습니다. 실제 설문이 등록되면 응답할 수 있어요.");
+      return;
+    }
     if (!validateBeforeSubmit()) { e.preventDefault(); return; }
     // 검증 통과 -> 서버(POST /trainee/survey/{id}/submit)로 그대로 제출한다
   });

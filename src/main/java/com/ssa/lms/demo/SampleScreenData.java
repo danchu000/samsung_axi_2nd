@@ -1,9 +1,11 @@
 package com.ssa.lms.demo;
 
+import com.ssa.lms.assignment.dto.CourseAssignmentRow;
 import com.ssa.lms.assignment.dto.TraineeAssignmentCard;
 import com.ssa.lms.attendance.web.TraineeAttendanceView;
 import com.ssa.lms.completion.web.CompletionView;
 import com.ssa.lms.exam.dto.ExamTakeRow;
+import com.ssa.lms.survey.dto.SurveyDetailView;
 import com.ssa.lms.survey.dto.TraineeSurveyRow;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,12 +18,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * 훈련생 화면 <b>예시(샘플) 데이터</b> — 화면정의서 캡처용.
+ * 훈련생·강사 화면 <b>예시(샘플) 데이터</b> — 화면정의서 캡처용.
  *
  * <p><b>왜 필요한가:</b> 새로 만든 계정이나 아직 과제·시험이 배정되지 않은 과정에서는
  * 과제/시험/출결/이수/설문 화면이 전부 "데이터가 없습니다" 만 나온다. 화면정의서에는
  * 훈련생이 실제로 무엇을 할 수 있는지가 보여야 하므로, <b>본인 데이터가 0건일 때만</b>
- * 예시 행을 대신 보여준다.</p>
+ * 예시 행을 대신 보여준다. 강사 과제 채점 목록도 같은 이유로 포함한다.</p>
  *
  * <p><b>DB 에는 아무것도 쓰지 않는다.</b> 출결·이수는 3년 보존 대상 증빙 데이터라
  * 시연용 레코드를 섞으면 안 된다. 여기서 만드는 값은 요청마다 메모리에서 조립되고
@@ -44,6 +46,9 @@ public class SampleScreenData {
 
     private static final DateTimeFormatter DATETIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter DATE = DateTimeFormatter.ISO_LOCAL_DATE;
+    /** 과제 목록 화면의 날짜·시간 표기 (CourseAssignmentRow 와 같은 형식이어야 한다). */
+    private static final DateTimeFormatter DOT_DATE = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
 
     private static final String COURSE = "K-디지털 트레이닝 풀스택 개발자 양성과정";
     private static final String COHORT = "3기";
@@ -258,5 +263,119 @@ public class SampleScreenData {
                         today.plusDays(10).format(DATE), today.plusDays(20).format(DATE),
                         12, "SCHEDULED", today.minusDays(1).format(DATE))
         );
+    }
+
+    /**
+     * 예시 설문의 <b>응답 화면</b>. 목록에서 「응답하기」/「보기」를 눌렀을 때 쓴다.
+     *
+     * <p>예시 행만 있는 상태에서 상세를 열면 컨트롤러가 목록으로 되돌려서
+     * 응답 화면 자체를 캡처할 수 없었다. 여기서 같은 id 의 상세를 만들어 준다 —
+     * 목록과 마찬가지로 DB 는 건드리지 않고, 제출은 컨트롤러가 막는다.</p>
+     *
+     * <p>세 건이 각각 다른 상태를 보여준다: 900301 응답 가능 / 900302 제출완료(읽기전용)
+     * / 900303 기간 전. 예시 id 가 아니거나 기능이 꺼져 있으면 {@code null}.</p>
+     */
+    public SurveyDetailView surveyDetail(Long id) {
+        if (!enabled || id == null) {
+            return null;
+        }
+        LocalDateTime today = LocalDate.now().atTime(23, 59);
+        return switch (id.intValue()) {
+            case 900301 -> new SurveyDetailView(
+                    "900301", "중간 만족도 조사", COURSE_LABEL,
+                    today.plusDays(5).format(DATETIME),
+                    false, true, true,
+                    List.of(
+                            sampleScale("9003011", "과정 전반에 대한 만족도를 평가해 주세요.", 5),
+                            sampleScale("9003012", "강의 진도와 난이도는 적절했나요?", 5),
+                            sampleSingle("9003013", "가장 도움이 된 활동은 무엇인가요?",
+                                    List.of("이론 강의", "실습 과제", "튜터링/Q&A", "동료 학습")),
+                            sampleMulti("9003014", "개선이 필요하다고 느낀 영역을 모두 선택해 주세요.",
+                                    List.of("강의 자료", "실습 환경", "과제 난이도", "학습 지원 응답 속도")),
+                            sampleText("9003015", "과정 운영에 바라는 점을 자유롭게 적어 주세요.")));
+            case 900302 -> new SurveyDetailView(
+                    "900302", "강사 강의 평가 (8차시)", COURSE_LABEL,
+                    today.minusDays(7).format(DATETIME),
+                    true, false, true,
+                    List.of(
+                            sampleScale("9003021", "강사의 설명이 이해하기 쉬웠나요?", 5),
+                            sampleSingle("9003022", "수업 진행 속도는 어땠나요?",
+                                    List.of("너무 느림", "적절함", "너무 빠름")),
+                            sampleText("9003023", "강의에 대해 남기고 싶은 의견을 적어 주세요.")));
+            case 900303 -> new SurveyDetailView(
+                    "900303", "수료 후 취업 지원 수요조사", COURSE_LABEL,
+                    today.plusDays(20).format(DATETIME),
+                    false, false, false,
+                    List.of(
+                            sampleScale("9003031", "취업 준비에 이 과정이 얼마나 도움이 되었나요?", 5),
+                            sampleMulti("9003032", "필요한 취업 지원을 모두 선택해 주세요.",
+                                    List.of("이력서 첨삭", "모의 면접", "채용 연계", "포트폴리오 리뷰")),
+                            sampleText("9003033", "후속 과정에서 배우고 싶은 주제가 있다면 적어 주세요.")));
+            default -> null;
+        };
+    }
+
+    private static SurveyDetailView.Question sampleScale(String id, String title, int max) {
+        return new SurveyDetailView.Question(id, "SCALE", true, title, max, List.of());
+    }
+
+    private static SurveyDetailView.Question sampleSingle(String id, String title, List<String> options) {
+        return new SurveyDetailView.Question(id, "SINGLE", true, title, null, sampleChoices(id, options));
+    }
+
+    private static SurveyDetailView.Question sampleMulti(String id, String title, List<String> options) {
+        return new SurveyDetailView.Question(id, "MULTI", false, title, null, sampleChoices(id, options));
+    }
+
+    private static SurveyDetailView.Question sampleText(String id, String title) {
+        return new SurveyDetailView.Question(id, "TEXT", false, title, null, List.of());
+    }
+
+    private static List<SurveyDetailView.Choice> sampleChoices(String questionId, List<String> options) {
+        List<SurveyDetailView.Choice> choices = new ArrayList<>(options.size());
+        for (int i = 0; i < options.size(); i++) {
+            choices.add(new SurveyDetailView.Choice(questionId + "-" + (i + 1), options.get(i)));
+        }
+        return choices;
+    }
+
+    /* ===================== 강사 과제 채점 ===================== */
+
+    /**
+     * 강사 과제 채점 목록 예시.
+     *
+     * <p>담당 과정에 아직 과제가 배정되지 않은 강사는 목록이 비어 화면정의서에 넣을 그림이
+     * 나오지 않는다. 채점 대기/완료/평가예정 세 상태가 모두 보이도록 섞어 둔다.</p>
+     *
+     * <p>{@code address} 는 {@code "#"} 이다 — 예시 행에는 실제 채점 대상이 없어서
+     * 채점 화면으로 보내면 안 된다 (컨트롤러도 예시 id 를 목록으로 되돌린다).</p>
+     */
+    public List<CourseAssignmentRow> courseAssignments() {
+        LocalDateTime now = LocalDateTime.now();
+        return List.of(
+                sampleAssignmentRow(900_401L, 1, "REST API 게시판 구현", "김도현",
+                        now.minusDays(9), now.plusDays(5), 18, 4, "pending"),
+                sampleAssignmentRow(900_402L, 2, "React 재사용 컴포넌트 3종 만들기", "김도현",
+                        now.minusDays(16), now.minusDays(4), 22, 0, "completed"),
+                sampleAssignmentRow(900_403L, 3, "데이터 전처리 리포트", "박서연",
+                        now.minusDays(12), now.minusDays(1), 20, 2, "pending"),
+                sampleAssignmentRow(900_404L, 4, "SQL 실행계획 분석 과제", "김도현",
+                        now.minusDays(24), now.minusDays(7), 22, 0, "completed"),
+                sampleAssignmentRow(900_405L, 5, "최종 팀 프로젝트 기획서", "박서연",
+                        now.plusDays(3), now.plusDays(17), 0, 22, "waiting")
+        );
+    }
+
+    private CourseAssignmentRow sampleAssignmentRow(long id, int number, String title, String instructor,
+                                                    LocalDateTime startAt, LocalDateTime endAt,
+                                                    long submitted, long notSubmitted, String status) {
+        return new CourseAssignmentRow(
+                String.valueOf(id), number,
+                COURSE, "KDT-2026-001",
+                title, instructor, "assignment",
+                startAt.format(DOT_DATE), startAt.format(TIME) + "부터",
+                endAt.format(DOT_DATE), endAt.format(TIME) + "까지",
+                submitted, notSubmitted, status,
+                "#");
     }
 }

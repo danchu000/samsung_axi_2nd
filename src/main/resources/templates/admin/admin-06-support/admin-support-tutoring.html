@@ -14,7 +14,8 @@
     <script src="/static/js/common-funtion.js" defer></script>
     <script src="/static/js/pagination.js" defer></script>
     <script src="/static/js/pagination.js" defer></script>
-    <title>Samsung Academy LXP - 관리자</title>
+    <!-- 관리자·강사 공용 화면이라 탭 제목도 역할에 맞춘다 (${isAdmin} 은 AdminSupportController.fillLayout 이 넣는다) -->
+    <title th:text="${isAdmin} ? 'Samsung Academy LXP - 관리자' : 'Samsung Academy LXP - 강사'">Samsung Academy LXP - 관리자</title>
     <style>
     /* 튜터링 2분할 레이아웃 */
     .tutoring-split {

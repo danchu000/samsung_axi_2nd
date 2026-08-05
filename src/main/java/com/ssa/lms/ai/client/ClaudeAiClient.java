@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -42,7 +40,11 @@ public class ClaudeAiClient implements AiClient {
     private static final Logger log = LoggerFactory.getLogger(ClaudeAiClient.class);
 
     private final AiProperties props;
+
+    /** 한도 확인용 조회. 저장은 {@link #recorder} 가 별도 트랜잭션으로 한다. */
     private final AiUsageLogRepository usageRepo;
+
+    private final AiUsageRecorder recorder;
 
     /** 일반 호출. */
     private final RestClient rest;
@@ -60,9 +62,11 @@ public class ClaudeAiClient implements AiClient {
      */
     private final RestClient searchRest;
 
-    public ClaudeAiClient(AiProperties props, AiUsageLogRepository usageRepo, RestClient.Builder builder) {
+    public ClaudeAiClient(AiProperties props, AiUsageLogRepository usageRepo,
+                          AiUsageRecorder recorder, RestClient.Builder builder) {
         this.props = props;
         this.usageRepo = usageRepo;
+        this.recorder = recorder;
 
         RestClient.Builder base = builder.clone()
                 .baseUrl(props.getBaseUrl())
@@ -70,14 +74,27 @@ public class ClaudeAiClient implements AiClient {
                 .defaultHeader("anthropic-version", props.getApiVersion())
                 .defaultHeader("content-type", MediaType.APPLICATION_JSON_VALUE);
 
-        this.rest = base.clone().build();
+        /*
+         * 두 커넥션 모두 반드시 읽기 타임아웃을 건다.
+         *
+         * 예전에는 일반 호출이 `base.clone().build()` 라 타임아웃이 **없었다.**
+         * lms.ai.timeout 설정은 있었는데 읽는 곳이 아무 데도 없었다 — 설정만 보고
+         * "30초면 끊기겠지" 하고 넘어가기 딱 좋은 형태였다.
+         *
+         * 상한이 없으면 모델이 응답하지 않을 때 요청이 무한정 매달린다. 그 앞에는
+         * Cloudflare 터널이 있어 100초에서 먼저 끊고, 화면에는 원인과 무관한
+         * "네트워크 상태를 확인하세요" 가 뜬다. 서버 쪽에는 아무 기록도 남지 않는다.
+         */
+        this.rest = base.clone()
+                .requestFactory(readTimeout(props.getTimeout()))
+                .build();
         this.searchRest = base.clone()
-                .requestFactory(longReadTimeout(props.getSearchTimeout()))
+                .requestFactory(readTimeout(props.getSearchTimeout()))
                 .build();
     }
 
     /** 연결은 빨리 포기하고, 응답은 오래 기다린다 — 검색은 원래 느리지만 연결까지 느릴 이유는 없다. */
-    private static ClientHttpRequestFactory longReadTimeout(Duration readTimeout) {
+    private static ClientHttpRequestFactory readTimeout(Duration readTimeout) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(15));
         factory.setReadTimeout(readTimeout);
@@ -288,14 +305,19 @@ public class ClaudeAiClient implements AiClient {
     }
 
     /**
-     * 사용량 기록은 <b>별도 트랜잭션</b>으로 남긴다.
-     * 호출부 트랜잭션이 롤백돼도 "돈을 썼다"는 사실은 남아야 한다.
-     * 기록 실패가 본 기능을 막아서도 안 되므로 예외를 삼킨다.
+     * 사용량 기록. 실제 저장은 {@link AiUsageRecorder} 가 <b>별도 트랜잭션</b>으로 한다.
+     *
+     * <p><b>여기에 {@code @Transactional} 을 달면 안 된다.</b> 이 메서드는 같은 클래스의
+     * {@code ask()} 가 부르는데, 자기 호출은 프록시를 타지 않아 애너테이션이 조용히 무시된다.
+     * 그렇게 기록이 호출부의 읽기 전용 트랜잭션에 얹혀 운영에서 500 이 났다
+     * ({@link AiUsageRecorder} 주석 참고).</p>
+     *
+     * <p>기록 실패가 본 기능을 막아서는 안 되므로 예외는 <b>트랜잭션 경계 밖인</b>
+     * 여기서 삼킨다.</p>
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void record(AiUsageLog entry) {
         try {
-            usageRepo.save(entry);
+            recorder.record(entry);
         } catch (Exception e) {
             log.warn("[AI] 사용량 기록 실패 — 기능은 계속한다 cause={}", e.getClass().getSimpleName());
         }

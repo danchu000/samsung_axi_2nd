@@ -1,6 +1,7 @@
 package com.ssa.lms.ai.config;
 
 import com.ssa.lms.ai.client.AiClient;
+import com.ssa.lms.ai.client.AiUsageRecorder;
 import com.ssa.lms.ai.client.ClaudeAiClient;
 import com.ssa.lms.ai.client.DisabledAiClient;
 import com.ssa.lms.ai.repository.AiUsageLogRepository;
@@ -30,6 +31,7 @@ public class AiConfig {
     @Bean
     public AiClient aiClient(AiProperties props,
                              AiUsageLogRepository usageRepo,
+                             AiUsageRecorder recorder,
                              RestClient.Builder builder) {
         if (!props.isUsable()) {
             log.warn("[AI] 비활성 — {}. AI 기능은 안내 문구로 대체됩니다.",
@@ -39,6 +41,6 @@ public class AiConfig {
         }
         log.info("[AI] 활성 — model={} 일일한도={} (사용자당 {})",
                 props.getModel(), props.getDailyRequestLimit(), props.getDailyRequestLimitPerUser());
-        return new ClaudeAiClient(props, usageRepo, builder);
+        return new ClaudeAiClient(props, usageRepo, recorder, builder);
     }
 }

@@ -44,6 +44,8 @@ services:
       LMS_AI_DAILY_LIMIT_PER_USER: ${LMS_AI_DAILY_LIMIT_PER_USER:-20}
       LMS_AI_MAX_TOKENS: ${LMS_AI_MAX_TOKENS:-600}
       LMS_AI_ADVICE_CACHE_HOURS: ${LMS_AI_ADVICE_CACHE_HOURS:-12}
+      # 앞단 Cloudflare 터널이 100초에서 끊으므로 반드시 그보다 짧게
+      LMS_AI_TIMEOUT: ${LMS_AI_TIMEOUT:-30s}
       # [기능 1] 채용공고 수집 — 키가 없으면 수집만 멈추고 앱은 뜬다
       LMS_JOB_ENABLED: ${LMS_JOB_ENABLED:-false}
       WORKNET_API_KEY: ${WORKNET_API_KEY:-}

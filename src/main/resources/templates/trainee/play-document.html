@@ -24,6 +24,7 @@
         </section>
         <section class="main-content">
             <section class="main-content-inner main-wrap">
+                <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
                 <div class="content-header">
                     <div class="content-breadcrumb">
                         <div class="breadcrumb-item">
@@ -48,7 +49,8 @@
                      th:attr="data-content-id=${content.id},
                               data-file-url=${content.fileUrl},
                               data-page-count=${content.pageCount != null ? content.pageCount : 0},
-                              data-resume-page=${progress.maxPageReached != null ? progress.maxPageReached : 0}">
+                              data-resume-page=${progress.maxPageReached != null ? progress.maxPageReached : 0},
+                              data-sample=${sampleData}">
                     <div class="document-viewer">
                         <div class="document-controls">
                             <div class="nav-buttons">
@@ -84,13 +86,15 @@
         var resumePage = parseInt(container.getAttribute('data-resume-page') || '0', 10);
         var csrfToken = (document.querySelector('meta[name="_csrf"]') || {}).content;
         var csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
+        // 예시 콘텐츠는 진도를 저장하지 않는다 — 서버도 막지만, 굳이 요청을 보낼 이유가 없다.
+        var isSample = container.getAttribute('data-sample') === 'true';
 
         var pagesContainer = document.getElementById('pagesContainer');
         var currentPage = 1, totalPages = 0, maxReached = 0, pdfDoc = null;
         var isPdf = fileUrl && fileUrl.toLowerCase().indexOf('.pdf') !== -1;
 
         function postProgress() {
-            if (!contentId) return Promise.resolve();
+            if (isSample || !contentId) return Promise.resolve();
             var headers = { 'Content-Type': 'application/json' };
             if (csrfHeader) headers[csrfHeader] = csrfToken;
             return fetch('/trainee/contents/' + contentId + '/progress', {
@@ -151,6 +155,12 @@
             // 이미지 등 단일 페이지 문서 → 열람 시 완료
             totalPages = declaredPages > 0 ? declaredPages : 1;
             currentPage = 1; maxReached = totalPages;
+            if (isSample) {
+                // 예시는 저장된 진도를 그대로 보여준다 — 열자마자 100% 로 바뀌면
+                // 목록 화면의 진도율과 어긋난 화면이 캡처된다.
+                currentPage = resumePage > 0 ? resumePage : 1;
+                maxReached = resumePage;
+            }
             pagesContainer.innerHTML = '<div class="document-page"><img src="' + fileUrl +
                 '" alt="문서" style="max-width:100%; border-radius:8px;"></div>';
             updateInfo(); postProgress();

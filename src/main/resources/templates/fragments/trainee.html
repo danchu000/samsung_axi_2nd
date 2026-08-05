@@ -98,7 +98,9 @@
   ===== 예시 데이터 안내 배너 =====
   본인 데이터가 0건일 때 SampleScreenData 가 채워 넣은 예시 행을 보여주는 화면에 붙는다.
   실제 데이터로 오해하면 안 되므로 화면마다 반드시 이 배너를 함께 띄운다.
-  사용법: <div th:if="${sampleData}" th:replace="~{fragments/trainee :: sampleNotice}"></div>
+  사용법: <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
+  th:if 를 같은 태그에 쓰면 안 된다 — th:replace 가 먼저 돌아 태그를 통째로 바꾸므로 th:if 가
+  평가되기 전에 사라지고, 조건이 false 여도 배너가 항상 뜬다. 반드시 삼항식 + ~{} 로 쓸 것.
 -->
 <div th:fragment="sampleNotice" class="sample-notice"
      style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:12px 16px;

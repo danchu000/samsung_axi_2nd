@@ -25,6 +25,7 @@
         </section>
         <section class="main-content">
             <section class="main-content-inner main-wrap">
+                <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
                 <div class="content-header">
                     <div class="content-breadcrumb">
                         <div class="breadcrumb-item">
@@ -48,11 +49,14 @@
                 <div class="content-container"
                      th:attr="data-content-id=${content.id},
                               data-duration=${content.durationSeconds != null ? content.durationSeconds : 0},
-                              data-resume=${progress.lastPositionSeconds != null ? progress.lastPositionSeconds : 0}">
+                              data-resume=${progress.lastPositionSeconds != null ? progress.lastPositionSeconds : 0},
+                              data-sample=${sampleData}">
                     <div class="video-container">
                         <div class="video-player">
-                            <video id="videoPlayer" controls>
-                                <source th:src="${content.fileUrl}" type="video/mp4">
+                            <!-- poster 는 예시 콘텐츠에만 붙는다(재생할 파일이 없어 검은 상자로 뜨는 것을 막는다).
+                                 실제 콘텐츠는 posterUrl 이 없어 속성 자체가 렌더되지 않는다. -->
+                            <video id="videoPlayer" controls th:attr="poster=${posterUrl}">
+                                <source th:if="${content.fileUrl != null}" th:src="${content.fileUrl}" type="video/mp4">
                                 브라우저가 비디오를 지원하지 않습니다.
                             </video>
                         </div>
@@ -112,6 +116,8 @@
         var csrfToken = (document.querySelector('meta[name="_csrf"]') || {}).content;
         var csrfHeader = (document.querySelector('meta[name="_csrf_header"]') || {}).content;
         var statusEl = document.getElementById('progressStatus');
+        // 예시 콘텐츠는 진도를 저장하지 않는다 — 서버도 막지만, 굳이 요청을 보낼 이유가 없다.
+        var isSample = container.getAttribute('data-sample') === 'true';
 
         // 이어보기: 저장된 위치로 이동
         video.addEventListener('loadedmetadata', function () {
@@ -121,7 +127,7 @@
         });
 
         function sendProgress() {
-            if (!contentId || isNaN(video.currentTime)) return;
+            if (isSample || !contentId || isNaN(video.currentTime)) return;
             var duration = (video.duration && isFinite(video.duration)) ? Math.round(video.duration) : metaDuration;
             var headers = { 'Content-Type': 'application/json' };
             if (csrfHeader) headers[csrfHeader] = csrfToken;

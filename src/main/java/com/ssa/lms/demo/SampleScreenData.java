@@ -9,6 +9,14 @@ import com.ssa.lms.assignment.dto.TraineeAssignmentCard;
 import com.ssa.lms.assignment.dto.UserOption;
 import com.ssa.lms.attendance.web.TraineeAttendanceView;
 import com.ssa.lms.completion.web.CompletionView;
+import com.ssa.lms.content.entity.ContentStatus;
+import com.ssa.lms.content.entity.ContentType;
+import com.ssa.lms.content.service.ProgressService;
+import com.ssa.lms.content.web.ContentView;
+import com.ssa.lms.content.web.CourseOption;
+import com.ssa.lms.content.web.LearningContentView;
+import com.ssa.lms.content.web.LearningSessionGroup;
+import com.ssa.lms.content.web.ProgressResponse;
 import com.ssa.lms.exam.dto.ExamTakeRow;
 import com.ssa.lms.survey.dto.SurveyDetailView;
 import com.ssa.lms.survey.dto.TraineeSurveyRow;
@@ -562,5 +570,193 @@ public class SampleScreenData {
                 graded ? "요구사항은 충실히 구현했습니다. 예외 처리 응답 형식을 통일하면 더 좋겠습니다." : null,
                 graded ? "재제출 없이 1회차에 통과." : null,
                 currentScore != null);
+    }
+
+    /* ===================== 학습 콘텐츠 (목록 · 차시별 · 재생) ===================== */
+
+    /** 예시 콘텐츠가 걸려 있는 과정 id. 목록·차시별·재생 세 화면이 같은 값을 쓴다. */
+    public static final long SAMPLE_COURSE_ID = 900_720L;
+    private static final long SAMPLE_CONTENT_ID_BASE = 900_701L;
+    private static final long SAMPLE_SESSION_ID_BASE = 900_711L;
+
+    /**
+     * 예시 VOD 의 정지 화면(poster).
+     *
+     * <p>재생 가능한 영상 파일은 두지 않는다 — 없는 파일 URL 을 내려주면 플레이어가 검은 상자로
+     * 뜨고 브라우저가 404 를 받으러 간다. 대신 강의 화면 이미지를 poster 로 깔아 "일시정지된
+     * 강의 영상"으로 보이게 한다. 실제 콘텐츠가 등록되면 그 파일이 그대로 재생된다.</p>
+     */
+    public static final String SAMPLE_VIDEO_POSTER = "/static/img/sample-video-poster.svg";
+
+    /** 예시 문서의 지면 1장. 문서 뷰어가 이미지로 렌더하므로 SVG 로 만들어 뒀다(바이너리 미포함). */
+    private static final String SAMPLE_DOC_PAGE = "/static/img/sample-doc-page.svg";
+
+    private static final String[] SAMPLE_SESSION_NAMES = {
+            "1차시 · 오리엔테이션 및 개발환경 구축",
+            "5차시 · Spring Boot 시작하기",
+            "8차시 · Spring Data JPA",
+    };
+    private static final int[] SAMPLE_SESSION_SEQ = {1, 5, 8};
+
+    /**
+     * 예시 콘텐츠 1건.
+     *
+     * @param sessionIndex   {@link #SAMPLE_SESSION_NAMES} 의 인덱스
+     * @param durationSeconds VIDEO 만 사용 (DOCUMENT 는 null)
+     * @param pageCount       DOCUMENT 만 사용 (VIDEO 는 null)
+     * @param progressRate    내 진도율(%) — {@link ProgressService#COMPLETION_RATE} 이상이면 "완료"
+     */
+    private record SampleContent(
+            long id, ContentType type, String title, String description,
+            int sessionIndex, Integer durationSeconds, Integer pageCount, int progressRate) {
+    }
+
+    /**
+     * 완료 2건 / 학습 중 2건 / 미학습 2건 — 목록 화면에 "완료·진행중" 배지와 진도율이 모두 보이도록
+     * 섞어 둔다. 재생 화면 캡처의 주인공은 62% 로 멈춰 있는 900703(이어보기 상태)이다.
+     */
+    private static final List<SampleContent> SAMPLE_CONTENTS = List.of(
+            new SampleContent(SAMPLE_CONTENT_ID_BASE, ContentType.VIDEO,
+                    "개발환경 구축 — JDK · IDE 설치와 프로젝트 생성",
+                    "Temurin JDK 17 과 IntelliJ 를 설치하고 첫 Spring Boot 프로젝트를 생성합니다.",
+                    0, 1_080, null, 100),
+            new SampleContent(SAMPLE_CONTENT_ID_BASE + 1, ContentType.DOCUMENT,
+                    "학습 안내서 — 과정 운영 규정과 평가 기준",
+                    "출결 인정 기준, 과제·시험 배점, 이수 판정 기준을 정리한 안내서입니다.",
+                    0, null, 12, 100),
+            new SampleContent(SAMPLE_CONTENT_ID_BASE + 2, ContentType.VIDEO,
+                    "Spring Boot 프로젝트 구조와 자동설정",
+                    "빌드 파일과 패키지 구조를 살펴보고 자동설정(Auto-configuration) 동작을 확인합니다.",
+                    1, 1_440, null, 62),
+            new SampleContent(SAMPLE_CONTENT_ID_BASE + 3, ContentType.DOCUMENT,
+                    "실습 자료 — REST 컨트롤러 작성하기",
+                    "요청 매핑과 응답 형식을 단계별로 따라 하는 실습 자료입니다.",
+                    1, null, 8, 50),
+            new SampleContent(SAMPLE_CONTENT_ID_BASE + 4, ContentType.VIDEO,
+                    "JPA 연관관계 매핑 (1:N · N:1)",
+                    "연관관계 주인과 지연 로딩을 예제 코드로 설명합니다.",
+                    2, 1_860, null, 0),
+            new SampleContent(SAMPLE_CONTENT_ID_BASE + 5, ContentType.DOCUMENT,
+                    "학습 자료 — 영속성 컨텍스트 정리",
+                    "1차 캐시, 변경 감지, 플러시 시점을 그림과 함께 정리했습니다.",
+                    2, null, 15, 0));
+
+    private static SampleContent sampleContent(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return SAMPLE_CONTENTS.stream().filter(c -> c.id() == id).findFirst().orElse(null);
+    }
+
+    /** 「학습 콘텐츠」 목록 화면 행. */
+    public List<LearningContentView> learningContents() {
+        return SAMPLE_CONTENTS.stream().map(SampleScreenData::learningContentView).toList();
+    }
+
+    /** 「차시별 학습」 아코디언 — 목록과 같은 정의에서 나오므로 두 화면의 숫자가 어긋나지 않는다. */
+    public List<LearningSessionGroup> learningGroups() {
+        List<LearningSessionGroup> groups = new ArrayList<>(SAMPLE_SESSION_NAMES.length);
+        for (int s = 0; s < SAMPLE_SESSION_NAMES.length; s++) {
+            final int idx = s;
+            List<LearningContentView> items = SAMPLE_CONTENTS.stream()
+                    .filter(c -> c.sessionIndex() == idx)
+                    .map(SampleScreenData::learningContentView)
+                    .toList();
+            int avg = (int) Math.round(
+                    items.stream().mapToInt(LearningContentView::progressRate).average().orElse(0));
+            groups.add(new LearningSessionGroup(
+                    SAMPLE_SESSION_ID_BASE + s, SAMPLE_SESSION_NAMES[s], SAMPLE_SESSION_SEQ[s], avg, items));
+        }
+        return groups;
+    }
+
+    /** 차시별 학습 화면의 과정 선택 옵션. */
+    public List<CourseOption> courseOptions() {
+        return List.of(new CourseOption(SAMPLE_COURSE_ID, COURSE));
+    }
+
+    /** 과정 전체 진도율 — 실제 화면과 같은 규칙(콘텐츠 진도율의 평균)으로 계산한다. */
+    public int courseProgress() {
+        return (int) Math.round(
+                SAMPLE_CONTENTS.stream().mapToInt(SampleContent::progressRate).average().orElse(0));
+    }
+
+    /**
+     * 재생 화면({@code /trainee/contents/{id}/play})이 보여줄 콘텐츠 상세.
+     * 예시 id 가 아니거나 기능이 꺼져 있으면 {@code null} — 컨트롤러가 실제 조회로 넘어간다.
+     */
+    public ContentView contentDetail(Long id) {
+        SampleContent c = enabled ? sampleContent(id) : null;
+        if (c == null) {
+            return null;
+        }
+        return new ContentView(
+                c.id(), c.type(), c.type().getLabel(), c.title(), c.description(),
+                SAMPLE_COURSE_ID, COURSE,
+                SAMPLE_SESSION_ID_BASE + c.sessionIndex(), SAMPLE_SESSION_NAMES[c.sessionIndex()],
+                c.durationSeconds(), c.pageCount(), durationLabel(c),
+                c.sessionIndex() + 1, true,
+                ContentStatus.ACTIVE, ContentStatus.ACTIVE.getLabel(),
+                // VIDEO 는 파일을 두지 않는다(poster 로 대체). DOCUMENT 는 SVG 지면을 그대로 보여준다.
+                c.type() == ContentType.DOCUMENT ? SAMPLE_DOC_PAGE : null,
+                c.type() == ContentType.DOCUMENT ? "sample-doc-page.svg" : null,
+                LocalDateTime.now().minusDays(20L - c.sessionIndex()));
+    }
+
+    /**
+     * 예시 콘텐츠의 내 진도. 재생 화면의 초기값이자,
+     * 진도 저장 API 가 예시 id 로 호출됐을 때 DB 대신 돌려줄 응답이다.
+     */
+    public ProgressResponse contentProgress(Long id) {
+        SampleContent c = sampleContent(id);
+        if (c == null) {
+            return new ProgressResponse(id, 0, false, null, null);
+        }
+        return new ProgressResponse(id, c.progressRate(), isCompleted(c),
+                lastPositionSeconds(c), maxPageReached(c));
+    }
+
+    private static LearningContentView learningContentView(SampleContent c) {
+        return new LearningContentView(
+                c.id(), c.type(), c.type().getLabel(), c.title(),
+                SAMPLE_COURSE_ID, COURSE,
+                SAMPLE_SESSION_ID_BASE + c.sessionIndex(), SAMPLE_SESSION_NAMES[c.sessionIndex()],
+                SAMPLE_SESSION_SEQ[c.sessionIndex()],
+                c.durationSeconds(), c.durationSeconds() != null ? c.durationSeconds() / 60 : 0,
+                c.progressRate(), isCompleted(c),
+                lastPositionSeconds(c), maxPageReached(c),
+                c.type() == ContentType.DOCUMENT ? SAMPLE_DOC_PAGE : null);
+    }
+
+    private static boolean isCompleted(SampleContent c) {
+        return c.progressRate() >= ProgressService.COMPLETION_RATE;
+    }
+
+    /** 이어보기 지점 — 진도율에서 역산한다(실제 데이터의 관계와 같게 유지). */
+    private static Integer lastPositionSeconds(SampleContent c) {
+        if (c.type() != ContentType.VIDEO || c.durationSeconds() == null) {
+            return null;
+        }
+        return c.durationSeconds() * c.progressRate() / 100;
+    }
+
+    private static Integer maxPageReached(SampleContent c) {
+        if (c.type() != ContentType.DOCUMENT || c.pageCount() == null) {
+            return null;
+        }
+        return c.pageCount() * c.progressRate() / 100;
+    }
+
+    /** {@code ContentView.durationLabel} 과 같은 표기 — 재생 화면 헤더의 "동영상 / 24분 0초". */
+    private static String durationLabel(SampleContent c) {
+        if (c.type() == ContentType.VIDEO && c.durationSeconds() != null) {
+            int m = c.durationSeconds() / 60;
+            int s = c.durationSeconds() % 60;
+            return m > 0 ? m + "분 " + s + "초" : s + "초";
+        }
+        if (c.type() == ContentType.DOCUMENT && c.pageCount() != null) {
+            return c.pageCount() + "페이지";
+        }
+        return "-";
     }
 }

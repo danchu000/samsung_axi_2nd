@@ -36,7 +36,8 @@ class TraineeScreenFallbackRenderTest {
 
     private static final String[] TRAINEE_PAGES = {
             "/trainee/assignment", "/trainee/exam", "/trainee/attendance",
-            "/trainee/completion-management", "/trainee/survey"
+            "/trainee/completion-management", "/trainee/survey",
+            "/trainee/contents", "/trainee/learning"
     };
 
     @Test
@@ -86,6 +87,56 @@ class TraineeScreenFallbackRenderTest {
         mvc.perform(get("/trainee/assignment")).andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("화면 예시용 샘플 데이터"))))
                 .andExpect(content().string(not(containsString("\"id\":\"900001\""))));
+        // 수강 중인 과정에 콘텐츠가 있는 계정은 학습 콘텐츠 목록도 실제 데이터로 나온다
+        mvc.perform(get("/trainee/contents")).andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("화면 예시용 샘플 데이터"))));
+    }
+
+    /**
+     * 학습 콘텐츠 재생 화면(TR-10)은 목록에서만 도달할 수 있어서, 목록이 예시일 때
+     * 재생 화면도 함께 열려야 캡처가 된다. 예전에는 예시 id 로 들어가면 콘텐츠를 못 찾아
+     * 오류 화면으로 떨어졌다.
+     */
+    @Test
+    @DisplayName("예시 학습 콘텐츠는 목록·차시별·재생 화면이 모두 열린다")
+    @WithUserDetails("admin")   // 시드 관리자에게는 수강 과정이 없다
+    void sampleContentPlaysRender() throws Exception {
+        mvc.perform(get("/trainee/contents")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Spring Boot 프로젝트 구조와 자동설정")))
+                .andExpect(content().string(containsString("/trainee/contents/900703/play")))
+                .andExpect(content().string(containsString("</html>")));
+
+        mvc.perform(get("/trainee/learning")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("8차시 · Spring Data JPA")))
+                .andExpect(content().string(containsString("</html>")));
+
+        // VOD — 재생할 파일 대신 poster 를 깐다(없는 파일을 받으러 가지 않는다)
+        mvc.perform(get("/trainee/contents/900703/play")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("화면 예시용 샘플 데이터")))
+                .andExpect(content().string(containsString("poster=\"/static/img/sample-video-poster.svg\"")))
+                .andExpect(content().string(not(containsString("<source"))))
+                .andExpect(content().string(containsString("</html>")));
+
+        // 문서 — SVG 지면을 뷰어가 이미지로 렌더한다
+        mvc.perform(get("/trainee/contents/900704/play")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("화면 예시용 샘플 데이터")))
+                .andExpect(content().string(containsString("/static/img/sample-doc-page.svg")))
+                .andExpect(content().string(containsString("</html>")));
+    }
+
+    /** 예시 콘텐츠의 진도 저장은 DB 를 건드리지 않고 고정 값을 돌려준다(500 이 아니라). */
+    @Test
+    @DisplayName("예시 콘텐츠의 진도 저장 API 는 500 이 아니라 고정 진도를 돌려준다")
+    @WithUserDetails("trainee1")
+    void sampleProgressApiIsGuarded() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post("/trainee/contents/900703/progress")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"positionSeconds\":10,\"durationSeconds\":1440}")
+                        .with(org.springframework.security.test.web.servlet.request
+                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"progressRate\":62")));
     }
 
     @Test

@@ -49,6 +49,7 @@
 
         <section class="main-content">
             <section class="main-content-inner main-wrap">
+                <div th:replace="${sampleData} ? ~{fragments/trainee :: sampleNotice} : ~{}"></div>
                 <!-- 과정 선택 -->
                 <form method="get" th:action="@{/trainee/learning}" class="course-select-bar">
                     <label>과정 선택</label>

@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1180" width="900" height="1180" role="img"
+     aria-label="화면 예시용 학습 자료 지면">
+  <!--
+    훈련생 문서 학습(play-document) 화면의 예시 지면.
+    SampleScreenData 가 예시 콘텐츠의 fileUrl 로 내려준다 — 실제 문서가 등록되면 그 파일로 바뀐다.
+    바이너리(PDF/이미지)를 저장소에 넣지 않으려고 SVG 로 만들었다.
+  -->
+  <defs>
+    <style>
+      .kr { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+      .mono { font-family: Consolas, 'D2Coding', monospace; }
+    </style>
+  </defs>
+
+  <rect width="900" height="1180" fill="#ffffff"/>
+  <rect x="0" y="0" width="900" height="8" fill="#1c3d6e"/>
+
+  <!-- 머리말 -->
+  <text class="kr" x="64" y="92" font-size="15" fill="#7a8699">
+    K-디지털 트레이닝 풀스택 개발자 양성과정 · 8차시
+  </text>
+  <text class="kr" x="64" y="146" font-size="38" font-weight="700" fill="#16233a">
+    영속성 컨텍스트 정리
+  </text>
+  <line x1="64" y1="176" x2="836" y2="176" stroke="#dfe4ec" stroke-width="2"/>
+
+  <!-- 1. 개념 -->
+  <text class="kr" x="64" y="228" font-size="22" font-weight="700" fill="#1c3d6e">1. 영속성 컨텍스트란</text>
+  <text class="kr" x="64" y="266" font-size="17" fill="#3c4759">
+    엔티티를 담아 두는 논리적인 저장 공간입니다. EntityManager 로 엔티티를 저장하거나
+  </text>
+  <text class="kr" x="64" y="294" font-size="17" fill="#3c4759">
+    조회하면, 그 엔티티는 곧바로 DB 로 가지 않고 영속성 컨텍스트가 먼저 관리합니다.
+  </text>
+
+  <!-- 상태 다이어그램 -->
+  <g>
+    <rect x="64" y="326" width="180" height="70" rx="10" fill="#f3f6fb" stroke="#c9d4e6" stroke-width="2"/>
+    <text class="kr" x="154" y="360" font-size="16" font-weight="700" fill="#1c3d6e" text-anchor="middle">비영속</text>
+    <text class="kr" x="154" y="382" font-size="13" fill="#7a8699" text-anchor="middle">new Member()</text>
+
+    <path d="M252 361 L292 361" stroke="#9fb0c9" stroke-width="2"/>
+    <path d="M292 361 l-9 -5 v10 z" fill="#9fb0c9"/>
+    <text class="kr" x="272" y="349" font-size="12" fill="#7a8699" text-anchor="middle">persist()</text>
+
+    <rect x="300" y="326" width="180" height="70" rx="10" fill="#e8f0fc" stroke="#7ea2d8" stroke-width="2"/>
+    <text class="kr" x="390" y="360" font-size="16" font-weight="700" fill="#1c3d6e" text-anchor="middle">영속</text>
+    <text class="kr" x="390" y="382" font-size="13" fill="#5a7096" text-anchor="middle">컨텍스트가 관리</text>
+
+    <path d="M488 361 L528 361" stroke="#9fb0c9" stroke-width="2"/>
+    <path d="M528 361 l-9 -5 v10 z" fill="#9fb0c9"/>
+    <text class="kr" x="508" y="349" font-size="12" fill="#7a8699" text-anchor="middle">detach()</text>
+
+    <rect x="536" y="326" width="180" height="70" rx="10" fill="#f3f6fb" stroke="#c9d4e6" stroke-width="2"/>
+    <text class="kr" x="626" y="360" font-size="16" font-weight="700" fill="#1c3d6e" text-anchor="middle">준영속</text>
+    <text class="kr" x="626" y="382" font-size="13" fill="#7a8699" text-anchor="middle">관리 대상에서 분리</text>
+  </g>
+
+  <!-- 2. 특징 -->
+  <text class="kr" x="64" y="466" font-size="22" font-weight="700" fill="#1c3d6e">2. 알아 둘 네 가지</text>
+
+  <g font-size="17" fill="#3c4759">
+    <circle cx="72" cy="500" r="4" fill="#1c3d6e"/>
+    <text class="kr" x="90" y="506">1차 캐시 — 같은 트랜잭션 안에서 같은 id 를 조회하면 DB 에 다시 가지 않습니다.</text>
+    <circle cx="72" cy="540" r="4" fill="#1c3d6e"/>
+    <text class="kr" x="90" y="546">동일성 보장 — 같은 id 로 두 번 조회한 엔티티는 == 비교가 참입니다.</text>
+    <circle cx="72" cy="580" r="4" fill="#1c3d6e"/>
+    <text class="kr" x="90" y="586">변경 감지 — 값만 바꿔 두면 flush 시점에 UPDATE 문이 자동으로 나갑니다.</text>
+    <circle cx="72" cy="620" r="4" fill="#1c3d6e"/>
+    <text class="kr" x="90" y="626">쓰기 지연 — INSERT 는 모아 뒀다가 커밋 직전에 한 번에 보냅니다.</text>
+  </g>
+
+  <!-- 3. 코드 -->
+  <text class="kr" x="64" y="694" font-size="22" font-weight="700" fill="#1c3d6e">3. 변경 감지 예제</text>
+  <rect x="64" y="716" width="772" height="196" rx="10" fill="#1e2733"/>
+  <g class="mono" font-size="15" fill="#d7e0ec">
+    <text x="92" y="750"><tspan fill="#7f9bc4">@Transactional</tspan></text>
+    <text x="92" y="778"><tspan fill="#8fd3a0">public void</tspan> rename(<tspan fill="#c7a8f0">Long</tspan> id, <tspan fill="#c7a8f0">String</tspan> name) {</text>
+    <text x="92" y="806">    Member member = memberRepository.findById(id)</text>
+    <text x="92" y="834">            .orElseThrow(MemberNotFoundException::<tspan fill="#8fd3a0">new</tspan>);</text>
+    <text x="92" y="862">    member.rename(name);   <tspan fill="#6f7d90">// save() 호출 없이 UPDATE 가 나간다</tspan></text>
+    <text x="92" y="890">}</text>
+  </g>
+
+  <!-- 4. 주의 -->
+  <rect x="64" y="944" width="772" height="104" rx="10" fill="#fff7e8" stroke="#f0d59a" stroke-width="2"/>
+  <text class="kr" x="92" y="982" font-size="17" font-weight="700" fill="#8a6417">주의</text>
+  <text class="kr" x="92" y="1012" font-size="16" fill="#6b4f14">
+    조회 전용 메서드에는 readOnly = true 를 붙이세요. 변경 감지를 위한 스냅샷을 만들지 않아
+  </text>
+  <text class="kr" x="92" y="1036" font-size="16" fill="#6b4f14">
+    메모리를 아끼고, 의도치 않은 UPDATE 도 막을 수 있습니다.
+  </text>
+
+  <!-- 꼬리말 -->
+  <line x1="64" y1="1096" x2="836" y2="1096" stroke="#dfe4ec" stroke-width="2"/>
+  <!-- 쪽 번호는 넣지 않는다 — 뷰어가 표시하는 "n / m" 과 어긋나면 캡처에 그대로 남는다. -->
+  <text class="kr" x="64" y="1128" font-size="14" fill="#9aa5b5">Samsung Academy LXP · 학습 자료</text>
+</svg>

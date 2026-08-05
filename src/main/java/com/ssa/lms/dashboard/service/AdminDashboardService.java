@@ -369,8 +369,9 @@ public class AdminDashboardService {
 
     /** 미응답이 오래된 순으로 정렬해 쓰려고 Q&A + 튜터링을 합쳐 둔다 (AdminSupportController 와 같은 조합). */
     private List<ResponseListRow> supportRows() {
-        List<ResponseListRow> rows = new ArrayList<>(qnaService.responseRows());
-        rows.addAll(tutoringService.responseRows());
+        // 관리자 대시보드는 SecurityConfig 상 ADMIN 전용이라 스코프 없이(null) 전체를 본다.
+        List<ResponseListRow> rows = new ArrayList<>(qnaService.responseRows(null));
+        rows.addAll(tutoringService.responseRows(null));
         return rows;
     }
 

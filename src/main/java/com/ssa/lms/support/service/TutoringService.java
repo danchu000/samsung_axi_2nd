@@ -103,10 +103,18 @@ public class TutoringService {
         return courseRepository.findAll().stream().map(CourseOption::of).toList();
     }
 
-    /** 응답현황(admin-support-response.html) 의 튜터링 행. */
-    public List<ResponseListRow> responseRows() {
+    /**
+     * 응답현황(admin-support-response.html) 의 튜터링 행.
+     *
+     * @param instructorId 배정 강사 한정 (강사 = 본인 id, 관리자 = null 로 전체)
+     *                     — 인자를 없애지 말 것. 1:1 대화라 남의 방은 요청자(훈련생) 이름조차 보이면 안 된다.
+     */
+    public List<ResponseListRow> responseRows(Long instructorId) {
         LocalDateTime now = LocalDateTime.now();
-        return roomRepository.findAll().stream()
+        List<TutoringRoom> rooms = instructorId == null
+                ? roomRepository.findAll()
+                : roomRepository.findByInstructorId(instructorId);
+        return rooms.stream()
                 .map(r -> ResponseListRow.ofTutoring(r, firstInstructorReplyAt(r.getId()), now))
                 .toList();
     }

@@ -100,10 +100,15 @@ public class QnaService {
                 .toList();
     }
 
-    /** 응답현황(admin-support-response.html) 의 Q&A 행. */
-    public List<ResponseListRow> responseRows() {
+    /**
+     * 응답현황(admin-support-response.html) 의 Q&A 행.
+     *
+     * @param assigneeId 담당자 한정 (강사 = 본인 id, 관리자 = null 로 전체)
+     *                   — 인자를 없애지 말 것. 예전에는 무조건 전체를 내려줘 강사가 남의 담당 건까지 봤다.
+     */
+    public List<ResponseListRow> responseRows(Long assigneeId) {
         LocalDateTime now = LocalDateTime.now();
-        return qnaRepository.search(null, null, null, null, null, false, Pageable.unpaged())
+        return qnaRepository.search(null, null, null, null, assigneeId, false, Pageable.unpaged())
                 .getContent().stream()
                 .map(q -> ResponseListRow.ofQna(q, now))
                 .toList();

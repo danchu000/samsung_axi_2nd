@@ -10,15 +10,17 @@
     <script src="/static/js/tutoring.js" defer></script>
     <script src="/static/js/sidebar-function.js" defer></script>
     <script src="/static/js/common-funtion.js" defer></script>
-    <title>Samsung Academy LXP - 관리자</title>
+    <!-- 관리자·강사 공용 화면이라 탭 제목도 역할에 맞춘다 (${isAdmin} 은 AdminSupportController.fillLayout 이 넣는다) -->
+    <title th:text="${isAdmin} ? 'Samsung Academy LXP - 관리자' : 'Samsung Academy LXP - 강사'">Samsung Academy LXP - 관리자</title>
 
 </head>
-<body data-user-role="admin">
-    <!-- 상단 헤더 -->
-    <header th:replace="~{fragments/admin :: header('학습 지원 &gt; 응답현황')}"></header>
+<body data-user-role="admin" th:attr="data-user-role=${bodyRole}">
+    <!-- 상단 헤더 / 왼쪽 사이드바 —
+         관리자·강사 공용 화면이라 레이아웃 fragment 를 역할에 따라 갈아 끼운다(${layout}).
+         강사가 관리자 사이드바를 받으면 메뉴가 전부 /admin/** 이라 누르는 순간 403 이다. -->
+    <header th:replace="~{${layout} :: header('학습 지원 &gt; 응답현황')}"></header>
 
-    <!-- 왼쪽 사이드바 -->
-    <th:block th:replace="~{fragments/admin :: sidebar('support-response')}"></th:block>
+    <th:block th:replace="~{${layout} :: sidebar(${sidebarActive})}"></th:block>
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">

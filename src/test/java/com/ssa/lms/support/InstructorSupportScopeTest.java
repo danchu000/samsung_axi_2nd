@@ -331,6 +331,75 @@ class InstructorSupportScopeTest {
         assertThat(html).contains("</html>");
     }
 
+    /* ===== 5) 응답현황 — 목록·상세와 같은 스코프가 걸린다 =====
+     *
+     * 이 화면은 행을 th:each 가 아니라 window._serverResponseRows 인라인 JSON 으로 내려주고
+     * JS 가 표를 그린다. Thymeleaf 인라인 JSON 은 한글을 \\uXXXX 로 escape 하므로
+     * 훈련생·강사 이름으로 검증하면 거짓음성이 난다 — ASCII 인 detailUrl 로 본다. */
+
+    /**
+     * 인라인 JSON 에 실제로 찍히는 detailUrl 문자열.
+     *
+     * <p>Thymeleaf 자바스크립트 인라인은 {@code </script>} 주입을 막으려고 <b>'/' 까지</b>
+     * {@code \/} 로 escape 한다 — 원본 URL 그대로 찾으면 항상 0건이라 doesNotContain 이
+     * 무조건 통과하는 거짓음성이 된다. 실제 출력은 {@code "detailUrl":"\/admin\/support\/qna\/7"}.</p>
+     *
+     * <p>따옴표까지 포함해 JSON 값 전체와 맞춘다 — 15 번 방이 5 번 방 검증에 걸리는 substring 사고 방지.</p>
+     */
+    private String detailUrlJson(String prefix, Long id) {
+        return "\"" + prefix.replace("/", "\\/") + id + "\"";
+    }
+
+    @Test
+    @WithUserDetails(INSTRUCTOR_A)
+    @DisplayName("강사 응답현황에는 본인 담당 건만 내려온다 (다른 강사 담당은 행 자체가 없다)")
+    void 강사_응답현황_본인_담당만() throws Exception {
+        Long myRoom = room("응답현황-강사A-방", user(INSTRUCTOR_A));
+        Long otherRoom = room("응답현황-강사B-방", instructorB());
+        Long myQna = qna("응답현황-강사A-질문", user(INSTRUCTOR_A));
+        Long otherQna = qna("응답현황-강사B-질문", instructorB());
+
+        String html = mvc.perform(get("/admin/support/response"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains(detailUrlJson("/admin/support/tutoring/", myRoom));
+        assertThat(html).doesNotContain(detailUrlJson("/admin/support/tutoring/", otherRoom));
+        assertThat(html).contains(detailUrlJson("/admin/support/qna/", myQna));
+        assertThat(html).doesNotContain(detailUrlJson("/admin/support/qna/", otherQna));
+        assertThat(html).contains("</html>");
+    }
+
+    @Test
+    @WithUserDetails(INSTRUCTOR_A)
+    @DisplayName("강사가 여는 응답현황에도 강사 사이드바가 렌더된다")
+    void 강사_응답현황_강사사이드바() throws Exception {
+        String html = mvc.perform(get("/admin/support/response"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains(INSTRUCTOR_ONLY_MENU);
+        assertThat(html).doesNotContain(ADMIN_ONLY_MENU);
+        assertThat(html).contains("</html>");
+    }
+
+    @Test
+    @WithUserDetails("admin")
+    @DisplayName("관리자 응답현황은 전체를 본다 — 스코프가 관리자 모니터링까지 막지 않는다")
+    void 관리자_응답현황_전체() throws Exception {
+        Long roomA = room("응답현황-관리자-A방", user(INSTRUCTOR_A));
+        Long roomB = room("응답현황-관리자-B방", instructorB());
+
+        String html = mvc.perform(get("/admin/support/response"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains(detailUrlJson("/admin/support/tutoring/", roomA));
+        assertThat(html).contains(detailUrlJson("/admin/support/tutoring/", roomB));
+        assertThat(html).contains(ADMIN_ONLY_MENU);
+        assertThat(html).contains("</html>");
+    }
+
     /* ===== 진입로 — 강사 사이드바 링크가 실제 URL 로 간다 ===== */
 
     @Test

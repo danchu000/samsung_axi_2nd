@@ -208,12 +208,22 @@ public class AdminSupportController {
 
     /* ===== 응답현황 ===== */
 
+    /**
+     * 응답현황 — Q&amp;A + 튜터링을 한 표에 섞어 미응답이 오래된 순으로 보여준다.
+     *
+     * <p><b>범위:</b> 목록·상세와 같은 규칙이다({@link #scopeIdOf}). 강사는 본인 담당 건만 본다 —
+     * 이 화면의 행에는 훈련생 실명과 담당 강사명이 들어 있어, 전체를 내려주면 목록에서 막아 둔
+     * 남의 1:1 튜터링 정보가 여기로 새어 나간다.</p>
+     */
     @GetMapping("/response")
-    public String response(Model model) {
-        List<ResponseListRow> rows = new ArrayList<>(qnaService.responseRows());
-        rows.addAll(tutoringService.responseRows());
+    public String response(@AuthenticationPrincipal LoginUser user, Model model) {
+        Long scopeId = scopeIdOf(user);   // null = 제한 없음(관리자)
+        List<ResponseListRow> rows = new ArrayList<>(qnaService.responseRows(scopeId));
+        rows.addAll(tutoringService.responseRows(scopeId));
         rows.sort(Comparator.comparingLong(ResponseListRow::elapsedMinutes).reversed());
         model.addAttribute("rows", rows);
+        // 강사 사이드바에는 응답현황 항목이 없어 상위인 튜터링을 active 로 둔다
+        fillLayout(model, user, "support-response", "tutoring");
         return VIEW_RESPONSE;
     }
 
@@ -255,11 +265,16 @@ public class AdminSupportController {
      * 화면 마크업은 그대로 두고 fragment 이름만 바꿔 끼운다.</p>
      */
     private void fillLayout(Model model, LoginUser user) {
+        // 사이드바 active 키가 레이아웃마다 다르다 (admin: support-tutoring / instructor: tutoring)
+        fillLayout(model, user, "support-tutoring", "tutoring");
+    }
+
+    /** 사이드바 active 키가 다른 화면(응답현황 등)이 쓰는 형태. */
+    private void fillLayout(Model model, LoginUser user, String adminActive, String instructorActive) {
         boolean admin = isAdmin(user);
         model.addAttribute("isAdmin", admin);
         model.addAttribute("layout", admin ? "fragments/admin" : "fragments/instructor");
-        // 사이드바 active 키가 레이아웃마다 다르다 (admin: support-tutoring / instructor: tutoring)
-        model.addAttribute("sidebarActive", admin ? "support-tutoring" : "tutoring");
+        model.addAttribute("sidebarActive", admin ? adminActive : instructorActive);
         // common-funtion.js 가 body 의 이 값으로 [data-user-role] 요소를 숨긴다
         model.addAttribute("bodyRole", admin ? "admin" : "instructor");
     }

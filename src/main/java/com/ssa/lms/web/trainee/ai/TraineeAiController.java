@@ -60,6 +60,14 @@ public class TraineeAiController {
     public String qna(@AuthenticationPrincipal LoginUser me, Model model) {
         model.addAttribute("myCourses",
                 aiQnaService.askableCourses(me == null ? null : me.getId()));
+        /*
+         * 대화는 아직 브라우저(localStorage)에 보관한다. 보관 키를 사용자별로 나누려면
+         * 화면이 "지금 누구인지"를 알아야 한다 — 안 넘기면 같은 PC 에서 계정을 바꿔도
+         * 앞 사람의 대화가 그대로 복원된다. 실습실 공용 PC 에서 실제로 새는 경로다.
+         *
+         * id 만 넘긴다. 이름·아이디는 화면에 필요 없고, 화면 소스에 남길 이유도 없다.
+         */
+        model.addAttribute("meId", me == null ? null : me.getId());
         // 키가 없거나 꺼져 있으면 화면이 미리 안내한다 — 질문을 다 쓰고 나서 실패하면 허탈하다
         model.addAttribute("aiAvailable", aiQnaService.available());
         /*

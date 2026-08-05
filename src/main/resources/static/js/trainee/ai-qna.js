@@ -47,7 +47,23 @@
      * 도우미로서 쓸모가 없다. 서버가 붙기 전까지는 브라우저에 보관한다.
      * (서버 연동 시 이 함수들만 API 호출로 바꾸면 된다)
      */
-    var STORE_KEY = 'lxp.ai.qna.history.v1';
+    /*
+     * 보관 키에 **사용자 id 를 붙인다.** 예전에는 고정 키 하나였는데, 그러면 같은 PC 에서
+     * 계정을 바꿔 로그인해도 앞 사람의 대화가 그대로 복원된다 — 실습실 공용 PC 에서
+     * 남의 질문 내용이 보이는 실제 유출 경로였다.
+     *
+     * id 는 서버가 화면에 심어준다(window._meId). 없으면 'anon' 으로 두되, 그 칸에는
+     * 사실상 아무것도 쌓이지 않는다 — 로그인 없이는 이 화면에 못 들어온다.
+     */
+    var STORE_KEY = 'lxp.ai.qna.history.v1:' + (window._meId || 'anon');
+
+    /*
+     * 고정 키 시절에 쌓인 대화. 이미 브라우저에 남아 있으므로 **지운다.**
+     * 그냥 두면 지금 이 수정을 배포해도 기존 PC 에서는 계속 남의 대화가 보인다.
+     * (옮겨 담지 않는다 — 누구 것인지 알 수 없는 대화라 옮기면 유출을 그대로 이어받는다)
+     */
+    try { localStorage.removeItem('lxp.ai.qna.history.v1'); } catch (e) { /* 무시 */ }
+
     var MAX_KEEP = 100;   // 무한정 쌓이면 브라우저 저장 한도를 넘는다
 
     function loadHistory() {
@@ -149,19 +165,19 @@
             method: 'POST', headers: headers, credentials: 'same-origin',
             body: JSON.stringify({ courseId: Number(courseId), turns: turns })
         })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
+            .then(checkResponse)
             .then(function (d) {
                 if (!d.ok) { alert(d.message); return; }
                 if (confirm(d.message + '\n\n전달한 질문을 지금 확인할까요?')) {
                     window.location.href = '/trainee/qna/' + d.qnaId;
                 }
             })
-            .catch(function () {
+            .catch(function (e) {
                 // 실패를 성공처럼 보이게 하면 오지 않을 답을 기다리게 된다
-                alert('전달하지 못했어요. 잠시 후 다시 시도하거나 Q&A 화면에서 직접 남겨 주세요.');
+                logFailure('강사 전달', e);
+                alert(e && e.loginRequired
+                    ? '로그인이 풀려서 전달하지 못했어요.\n페이지를 새로고침해 다시 로그인한 뒤 시도해 주세요.'
+                    : '전달하지 못했어요. 잠시 후 다시 시도하거나 Q&A 화면에서 직접 남겨 주세요.');
             })
             .finally(function () {
                 btn.disabled = false;
@@ -277,20 +293,75 @@
             credentials: 'same-origin',
             body: JSON.stringify({ courseId: Number(courseId), question: text })
         })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
+            .then(checkResponse)
             .then(function (data) {
                 done({ answer: data.answer, sources: data.sources || [], general: data.general });
             })
-            .catch(function () {
-                done({
-                    answer: '답변을 가져오지 못했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.\n' +
-                            '계속 안 되면 아래 "강사님께 전달" 버튼을 눌러 주세요.',
-                    sources: []
-                });
+            .catch(function (e) {
+                logFailure('질문 전송', e);
+                done({ answer: failureMessage(e), sources: [] });
             });
+    }
+
+    /**
+     * 응답을 JSON 으로 넘기기 전에 <b>실패를 구분해 둔다.</b>
+     *
+     * 서버는 모델 오류·한도 초과까지 전부 200 + 안내문구로 내려준다. 그래서 여기까지
+     * 온 실패는 전부 "요청이 서버에 제대로 닿지 못한" 것이고, 원인마다 사용자가 할 일이
+     * 완전히 다르다 — 로그인이 풀렸으면 새로고침, 오래 걸려 끊겼으면 재시도다.
+     *
+     * 특히 <b>세션 만료는 res.ok 로 못 잡는다.</b> Spring Security 가 로그인 화면으로
+     * 리다이렉트하면 fetch 는 그걸 따라가 200 + HTML 을 받는다. 그대로 res.json() 을
+     * 부르면 파싱 오류로 떨어져 "네트워크 상태를 확인하세요" 가 뜬다 — 네트워크는
+     * 멀쩡한데 엉뚱한 곳을 보게 만드는 문구다.
+     */
+    function checkResponse(res) {
+        var contentType = res.headers.get('content-type') || '';
+        if (res.redirected || contentType.indexOf('json') < 0) {
+            var expired = new Error('LOGIN_REQUIRED');
+            expired.loginRequired = true;
+            throw expired;
+        }
+        if (!res.ok) {
+            var err = new Error('HTTP ' + res.status);
+            err.status = res.status;   // 버리면 원인 구분이 영영 불가능하다
+            throw err;
+        }
+        return res.json();
+    }
+
+    /** 원인별 안내. 사용자가 <b>지금 할 수 있는 행동</b>을 알려주는 것이 목적이다. */
+    function failureMessage(e) {
+        if (e && e.loginRequired) {
+            return '로그인이 풀렸어요. 페이지를 새로고침해 다시 로그인한 뒤 물어봐 주세요.\n' +
+                   '지금까지의 대화는 남아 있어요.';
+        }
+        var status = e && e.status;
+        if (status === 401 || status === 403) {
+            return '로그인 정보가 만료됐어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.';
+        }
+        if (status === 502 || status === 504 || status === 524) {
+            return '답변이 오래 걸려 연결이 끊겼어요. 질문을 조금 짧게 줄여 다시 시도해 주세요.\n' +
+                   '계속 안 되면 아래 "강사님께 전달" 버튼을 눌러 주세요.';
+        }
+        if (status >= 500) {
+            return '서버에서 오류가 났어요(' + status + '). 잠시 후 다시 시도하거나\n' +
+                   '아래 "강사님께 전달" 버튼을 눌러 주세요.';
+        }
+        return '답변을 가져오지 못했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.\n' +
+               '계속 안 되면 아래 "강사님께 전달" 버튼을 눌러 주세요.';
+    }
+
+    /**
+     * 콘솔에 상태 코드를 남긴다.
+     *
+     * 화면 문구는 훈련생용이라 원인을 다 담을 수 없다. 문의가 들어왔을 때
+     * "F12 콘솔에 뭐라고 찍혀 있나요" 한 줄로 302/403/500/524 를 가를 수 있어야 한다.
+     */
+    function logFailure(what, e) {
+        console.error('[AI] ' + what + ' 실패 — ' +
+            (e && e.loginRequired ? '로그인 필요(세션 만료 추정)'
+                                  : 'status=' + ((e && e.status) || '(응답 없음)')), e);
     }
 
     function push(who, text, sources, time, scroll, general) {

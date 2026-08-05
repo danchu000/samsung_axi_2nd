@@ -91,4 +91,26 @@ class AiScreenRenderTest {
     void 권한_경계() throws Exception {
         mvc.perform(get("/instructor/ai/diagnosis")).andExpect(status().isForbidden());
     }
+
+    /**
+     * AI 도우미 대화는 브라우저(localStorage)에 보관하고, 보관 키를 사용자 id 로 나눈다.
+     * 그 id 는 이 화면이 심어주는 {@code window._meId} 하나에서 온다.
+     *
+     * <p><b>이 값이 빠지면 조용히 망가진다.</b> JS 는 키를 'anon' 으로 되돌리고, 그러면
+     * 같은 PC 를 쓰는 모든 계정이 다시 같은 칸을 공유한다 — 화면은 멀쩡히 그려지고
+     * 에러도 안 나므로 다음 사람이 남의 대화를 볼 때까지 아무도 모른다.
+     * 실제로 그렇게 새고 있었다.</p>
+     */
+    @Test
+    @WithUserDetails("trainee1")
+    @DisplayName("AI 도우미 화면이 대화 보관 키용 사용자 id 를 내려준다")
+    void 대화보관키_사용자별_분리() throws Exception {
+        String html = mvc.perform(get("/trainee/ai/qna"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(html)
+                .as("window._meId 가 실제 id 로 렌더돼야 한다 — null/누락이면 계정끼리 대화가 섞인다")
+                .containsPattern("window\\._meId\\s*=\\s*\\d+");
+    }
 }

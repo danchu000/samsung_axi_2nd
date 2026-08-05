@@ -26,6 +26,8 @@
     -->
     <script th:inline="javascript">
         window._serverEscalated = /*[[${escalated}]]*/ [];
+        // 대화 보관 키를 사용자별로 나누기 위한 값 (ai-qna.js). 로그인 전이면 null.
+        window._meId = /*[[${meId}]]*/ null;
     </script>
 
     <main>

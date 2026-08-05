@@ -27,6 +27,8 @@
     <main class="main-content">
         <!-- 훈련생 관리 -->
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <!-- 필터 영역 -->
             <form class="filter-section" method="get" th:action="@{/instructor/notice}">
                 <div class="filter-row">

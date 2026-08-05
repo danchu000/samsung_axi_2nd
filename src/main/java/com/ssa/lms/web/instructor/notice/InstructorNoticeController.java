@@ -4,6 +4,8 @@ import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.notice.service.NoticeService;
 import com.ssa.lms.notice.service.NoticeVisibilityService;
 import lombok.RequiredArgsConstructor;
+import com.ssa.lms.demo.SampleScreenData;
+import com.ssa.lms.notice.dto.NoticeListRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -29,6 +31,7 @@ public class InstructorNoticeController {
     private static final int PAGE_SIZE = 10;
 
     private final NoticeService noticeService;
+    private final com.ssa.lms.demo.SampleInstructorData sampleData;
     private final NoticeVisibilityService visibilityService;
 
     @GetMapping
@@ -36,12 +39,17 @@ public class InstructorNoticeController {
                        @RequestParam(name = "page", defaultValue = "1") int page,
                        @AuthenticationPrincipal LoginUser loginUser,
                        Model model) {
-        Page<?> rows = noticeService.searchPublished(
+        Page<NoticeListRow> rows = noticeService.searchPublished(
                 visibilityService.instructorCourseIds(loginUser.getId()), keyword,
                 PageRequest.of(Math.max(page, 1) - 1, PAGE_SIZE,
                         Sort.by(Sort.Order.desc("pinned"), Sort.Order.desc("id"))));
 
-        model.addAttribute("rows", rows.getContent());
+        // 검색 결과 0건과 공지 자체가 없는 것은 다르다 — 검색어 없이 비었을 때만 예시로 채운다.
+        var filled = (keyword == null || keyword.isBlank())
+                ? sampleData.fill(rows.getContent(), sampleData::notices)
+                : new SampleScreenData.Filled<>(rows.getContent(), false);
+        model.addAttribute("rows", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         model.addAttribute("keyword", keyword);
         model.addAttribute("currentPage", Math.min(Math.max(page, 1), Math.max(rows.getTotalPages(), 1)));
         model.addAttribute("totalPages", Math.max(rows.getTotalPages(), 1));

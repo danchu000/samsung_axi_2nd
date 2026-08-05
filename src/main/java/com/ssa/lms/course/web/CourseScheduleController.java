@@ -2,6 +2,8 @@ package com.ssa.lms.course.web;
 
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.course.service.CourseQueryService;
+import com.ssa.lms.demo.SampleInstructorData;
+import com.ssa.lms.demo.SampleScreenData;
 import com.ssa.lms.course.service.CourseScheduleService;
 import com.ssa.lms.course.service.InstructorCourseService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.List;
 public class CourseScheduleController {
 
     private final CourseScheduleService courseScheduleService;
+    private final SampleInstructorData sampleData;
     private final InstructorCourseService instructorCourseService;
     private final CourseQueryService courseQueryService;
 
@@ -48,17 +51,30 @@ public class CourseScheduleController {
     public String instructorSchedule(@AuthenticationPrincipal LoginUser user,
                                      @RequestParam(required = false) Long courseId, Model model) {
         List<CourseQueryService.CourseOption> options = instructorCourseService.myCourseOptions(user.getId());
+        // 담당 과정이 없는 강사도 화면을 볼 수 있게 예시 과정을 끼워 넣는다.
+        boolean noCourse = options.isEmpty() && sampleData.isEnabled();
+        if (noCourse) {
+            options = sampleData.sampleCourseOptions();
+        }
         model.addAttribute("courseOptions", options);
 
         Long selected = (courseId != null) ? courseId
                 : (options.isEmpty() ? null : options.get(0).id());
         model.addAttribute("selectedCourseId", selected);
-        if (selected != null) {
+
+        boolean sample = false;
+        if (selected != null && !SampleScreenData.isSampleId(selected)) {
             instructorCourseService.requireOwnedCourse(user.getId(), selected);   // 권한 경계
-            model.addAttribute("schedule", courseScheduleService.scheduleOf(selected));
+            var filled = sampleData.fill(courseScheduleService.scheduleOf(selected), sampleData::schedule);
+            model.addAttribute("schedule", filled.rows());
+            sample = filled.sample();
+        } else if (selected != null) {
+            model.addAttribute("schedule", sampleData.schedule());
+            sample = true;
         } else {
             model.addAttribute("schedule", List.of());
         }
+        model.addAttribute("sampleData", sample);
         return "instructor/scheduler";
     }
 }

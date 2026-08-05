@@ -27,6 +27,8 @@
     <main class="main-content">
         <!-- 평가 모니터링 -->
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <!-- 필터 영역 -->
             <div class="filter-section">
                 <div class="filter-row">

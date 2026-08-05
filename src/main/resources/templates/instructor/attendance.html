@@ -36,6 +36,8 @@
 
     <main class="main-content">
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <div class="section-header">
                 <h2>출결현황</h2>
             </div>

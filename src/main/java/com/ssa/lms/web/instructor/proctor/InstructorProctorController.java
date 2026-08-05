@@ -1,6 +1,7 @@
 package com.ssa.lms.web.instructor.proctor;
 
 import com.ssa.lms.auth.LoginUser;
+import com.ssa.lms.demo.SampleScreenData;
 import com.ssa.lms.proctor.dto.EventLogRow;
 import com.ssa.lms.proctor.dto.ProctorWarningRow;
 import com.ssa.lms.proctor.service.ExamRecordingService;
@@ -46,12 +47,16 @@ public class InstructorProctorController {
     private final ProctorMonitorService proctorMonitorService;
     private final ProctorWarningService proctorWarningService;
     private final ExamRecordingService examRecordingService;
+    private final com.ssa.lms.demo.SampleInstructorData sampleData;
 
     /** 담당 과정 시험의 응시 현황 목록. */
     @GetMapping("/exams")
     public String list(@AuthenticationPrincipal LoginUser loginUser, Model model) {
-        model.addAttribute("rows",
-                proctorMonitorService.monitoringList(viewer(loginUser), DETAIL_PREFIX));
+        var filled = sampleData.fill(
+                proctorMonitorService.monitoringList(viewer(loginUser), DETAIL_PREFIX),
+                () -> sampleData.monitoringList(DETAIL_PREFIX));
+        model.addAttribute("rows", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         return LIST_VIEW;
     }
 
@@ -65,19 +70,37 @@ public class InstructorProctorController {
     public String detail(@PathVariable Long examId,
                          @AuthenticationPrincipal LoginUser loginUser,
                          Model model) {
+        if (SampleScreenData.isSampleId(examId)) {
+            var monitor = sampleData.liveMonitor(
+                    examId, "/instructor/proctor/attempt/", "/instructor/proctor/exams");
+            if (monitor == null) {
+                return "redirect:/instructor/proctor/exams";
+            }
+            model.addAttribute("monitor", monitor);
+            model.addAttribute("rows", sampleData.recordings());
+            addActionAttributes(model, DETAIL_PREFIX + examId);
+            model.addAttribute("sampleData", true);
+            return RECORDING_VIEW;
+        }
         // 담당 과정이 아니면 여기서 403 이 난다 (live() 안의 assertCanMonitor)
         model.addAttribute("monitor",
                 proctorMonitorService.live(examId, viewer(loginUser), urls()));
-        model.addAttribute("rows", examRecordingService.list(viewer(loginUser), STREAM_PREFIX));
+        var filled = sampleData.fill(
+                examRecordingService.list(viewer(loginUser), STREAM_PREFIX), sampleData::recordings);
+        model.addAttribute("rows", filled.rows());
         addActionAttributes(model, DETAIL_PREFIX + examId);
+        model.addAttribute("sampleData", filled.sample());
         return RECORDING_VIEW;
     }
 
     /** 녹화 목록. */
     @GetMapping("/recordings")
     public String recordings(@AuthenticationPrincipal LoginUser loginUser, Model model) {
-        model.addAttribute("rows", examRecordingService.list(viewer(loginUser), STREAM_PREFIX));
+        var filled = sampleData.fill(
+                examRecordingService.list(viewer(loginUser), STREAM_PREFIX), sampleData::recordings);
+        model.addAttribute("rows", filled.rows());
         addActionAttributes(model, "/instructor/proctor/recordings");
+        model.addAttribute("sampleData", filled.sample());
         return RECORDING_VIEW;
     }
 

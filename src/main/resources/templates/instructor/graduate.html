@@ -38,6 +38,8 @@
                 <h2>이수 관리</h2>
             </div>
 
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <p class="readonly-hint">
                 담당 과정의 이수 현황입니다. 조회 전용이며, 이수 기준 설정·자동 판정·확정·이수증 발급은 관리자 화면에서 진행됩니다.
             </p>

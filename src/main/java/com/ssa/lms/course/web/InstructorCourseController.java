@@ -3,6 +3,7 @@ package com.ssa.lms.course.web;
 import com.ssa.lms.auth.LoginUser;
 import com.ssa.lms.course.entity.Course;
 import com.ssa.lms.course.service.CourseQueryService;
+import com.ssa.lms.demo.SampleScreenData;
 import com.ssa.lms.course.service.CurriculumService;
 import com.ssa.lms.course.service.InstructorCourseService;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +27,15 @@ public class InstructorCourseController {
 
     private final InstructorCourseService instructorCourseService;
     private final CurriculumService curriculumService;
+    private final com.ssa.lms.demo.SampleInstructorData sampleData;
 
     /** 담당 과정 목록. */
     @GetMapping("/instructor/courses")
     public String courses(@AuthenticationPrincipal LoginUser user, Model model) {
-        model.addAttribute("courses", instructorCourseService.myCourses(user.getId()));
+        var filled = sampleData.fill(
+                instructorCourseService.myCourses(user.getId()), sampleData::myCourses);
+        model.addAttribute("courses", filled.rows());
+        model.addAttribute("sampleData", filled.sample());
         return "instructor/courses";
     }
 
@@ -49,13 +54,23 @@ public class InstructorCourseController {
     public String trainees(@AuthenticationPrincipal LoginUser user,
                            @RequestParam(required = false) Long courseId, Model model) {
         List<CourseQueryService.CourseOption> options = instructorCourseService.myCourseOptions(user.getId());
+        // 담당 과정이 없는 강사도 화면을 볼 수 있게 예시 과정을 끼워 넣는다.
+        boolean noCourse = options.isEmpty() && sampleData.isEnabled();
+        if (noCourse) {
+            options = sampleData.sampleCourseOptions();
+        }
         model.addAttribute("courseOptions", options);
 
         Long selected = (courseId != null) ? courseId
                 : (options.isEmpty() ? null : options.get(0).id());
         model.addAttribute("selectedCourseId", selected);
-        model.addAttribute("trainees",
-                selected == null ? List.of() : instructorCourseService.traineesOf(user.getId(), selected));
+
+        List<CourseQueryService.UserDisplay> real =
+                selected == null || SampleScreenData.isSampleId(selected)
+                        ? List.of() : instructorCourseService.traineesOf(user.getId(), selected);
+        var filled = sampleData.fill(real, sampleData::trainees);
+        model.addAttribute("trainees", selected == null ? List.of() : filled.rows());
+        model.addAttribute("sampleData", selected != null && filled.sample());
         return "instructor/trainees";
     }
 }

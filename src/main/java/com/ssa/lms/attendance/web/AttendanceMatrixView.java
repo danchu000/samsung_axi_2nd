@@ -50,6 +50,17 @@ public class AttendanceMatrixView {
      * @param sessions    일정이 잡힌 차시(seq 순)
      * @param attendances 과정의 출결 행 전체
      */
+    /**
+     * 이미 만들어진 열·행으로 조립한다.
+     *
+     * <p>엔티티에서 만드는 {@link #of(List, List, List)} 와 달리 영속 객체를 요구하지 않는다 —
+     * 화면 예시 데이터({@code SampleInstructorData})가 쓴다. 예시 때문에 엔티티를 가짜로
+     * 만드는 것보다 조립 경로를 하나 열어 두는 편이 안전하다.</p>
+     */
+    public static AttendanceMatrixView of(List<Col> columns, List<Row> rows) {
+        return new AttendanceMatrixView(columns, rows);
+    }
+
     public static AttendanceMatrixView of(List<User> trainees, List<Session> sessions,
                                           List<Attendance> attendances) {
         List<Col> columns = sessions.stream()

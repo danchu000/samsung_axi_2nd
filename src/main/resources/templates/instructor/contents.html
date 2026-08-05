@@ -20,6 +20,8 @@
 
     <main class="main-content">
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <!-- 과정 필터 + 등록 버튼 -->
             <div class="filter-section" style="margin-bottom:20px;">
                 <form method="get" th:action="@{/instructor/contents}" class="filter-row" style="align-items:flex-end; gap:12px;">

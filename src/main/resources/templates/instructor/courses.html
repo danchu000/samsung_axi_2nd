@@ -27,6 +27,8 @@
 
     <main class="main-content">
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <div class="section-header">
                 <h2>담당 과정</h2>
                 <span class="empty-hint" style="padding:0;">총 <strong th:text="${#lists.size(courses)}">0</strong>개</span>

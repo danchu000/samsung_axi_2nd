@@ -26,6 +26,8 @@
 
     <main class="main-content">
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <div class="section-header"><h2>일정 관리</h2></div>
 
             <!-- 과정 선택 (담당 과정 한정) -->

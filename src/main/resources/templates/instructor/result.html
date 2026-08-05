@@ -27,6 +27,7 @@
     <main class="main-content">
         <!-- 시험 채점 -->
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
             <!-- 필터 영역 -->
             <div class="filter-section">
                 <div class="filter-row">

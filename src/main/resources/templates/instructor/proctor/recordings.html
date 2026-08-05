@@ -27,6 +27,7 @@
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
+        <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
         <!-- 왼쪽 콘텐츠 영역 -->
         <section class="content-left">
             <p class="flash-message" th:if="${message}" th:text="${message}"

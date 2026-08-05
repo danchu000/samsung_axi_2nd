@@ -27,13 +27,16 @@ public class InstructorContentController {
     private static final String VIEW_DIR = "instructor/";
 
     private final ContentService contentService;
+    private final com.ssa.lms.demo.SampleInstructorData sampleData;
 
     /** 콘텐츠 목록 (선택: ?courseId= 로 과정 필터). */
     @GetMapping
     public String list(@RequestParam(required = false) Long courseId, Model model) {
-        model.addAttribute("contents", contentService.listViews(courseId));
+        var filled = sampleData.fill(contentService.listViews(courseId), sampleData::contents);
+        model.addAttribute("contents", filled.rows());
         model.addAttribute("courses", contentService.courseOptions());
         model.addAttribute("selectedCourseId", courseId);
+        model.addAttribute("sampleData", filled.sample());
         return VIEW_DIR + "contents";
     }
 

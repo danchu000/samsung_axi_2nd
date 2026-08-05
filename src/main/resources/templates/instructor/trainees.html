@@ -26,6 +26,8 @@
 
     <main class="main-content">
         <section class="main-content-inner">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
+
             <div class="section-header"><h2>담당 훈련생</h2></div>
 
             <!-- 과정 선택 -->

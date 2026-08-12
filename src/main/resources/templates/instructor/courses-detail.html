@@ -32,6 +32,7 @@
 
     <main class="main-content">
         <div class="form-wrap">
+            <div th:replace="${sampleData} ? ~{fragments/instructor :: sampleNotice} : ~{}"></div>
             <div class="top-actions">
                 <button type="button" class="btn btn-secondary" onclick="location.href='/instructor/courses'">← 목록</button>
             </div>

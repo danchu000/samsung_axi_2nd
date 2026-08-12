@@ -99,6 +99,35 @@ class InstructorScreenSampleRenderTest {
     }
 
     @Test
+    @DisplayName("예시 담당 과정의 상세도 열린다 (목록 예시 행 클릭 → 404 회귀 방지)")
+    @Transactional
+    void sampleCourseDetailOpens() throws Exception {
+        LoginUser fresh = freshInstructor("instructor-sample-course");
+
+        for (var course : sampleData.myCourses()) {
+            mvc.perform(get("/instructor/courses/" + course.id())
+                            .with(SecurityMockMvcRequestPostProcessors.user(fresh)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("화면 예시용 샘플 데이터")))
+                    .andExpect(content().string(containsString(course.courseName())))
+                    // 과목·차시 구성까지 실제로 렌더됐는지 (빈 화면이면 의미가 없다)
+                    .andExpect(content().string(containsString("차시")))
+                    .andExpect(content().string(containsString("</html>")));
+        }
+    }
+
+    @Test
+    @DisplayName("예시 구간이라도 목록에 없는 id 는 여전히 404 다")
+    @Transactional
+    void unknownSampleCourseIdStays404() throws Exception {
+        LoginUser fresh = freshInstructor("instructor-sample-course-404");
+
+        mvc.perform(get("/instructor/courses/909999")
+                        .with(SecurityMockMvcRequestPostProcessors.user(fresh)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @DisplayName("전역 목록 화면의 예시 데이터도 준비돼 있다 (콘텐츠·공지가 0건인 서버용)")
     void sharedScreenSamplesExist() {
         assertThat(sampleData.contents()).isNotEmpty();

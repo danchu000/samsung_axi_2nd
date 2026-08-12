@@ -43,9 +43,21 @@ public class InstructorCourseController {
     @GetMapping("/instructor/courses/{id}")
     public String courseDetail(@AuthenticationPrincipal LoginUser user,
                                @PathVariable Long id, Model model) {
+        // 담당 과정이 없는 강사의 목록은 예시 행이다 — 예시 id 는 실제 PK 가 아니라
+        // DB 조회로 가면 404 가 되므로, 목록과 같은 예시 데이터로 상세를 렌더한다.
+        if (SampleScreenData.isSampleId(id)) {
+            var sample = sampleData.courseDetail(id);
+            if (sample != null) {
+                model.addAttribute("course", sample);
+                model.addAttribute("subjects", sampleData.curriculum(id));
+                model.addAttribute("sampleData", true);
+                return "instructor/courses-detail";
+            }
+        }
         Course course = instructorCourseService.requireOwnedCourse(user.getId(), id);
         model.addAttribute("course", course);
         model.addAttribute("subjects", curriculumService.curriculum(id));
+        model.addAttribute("sampleData", false);
         return "instructor/courses-detail";
     }
 

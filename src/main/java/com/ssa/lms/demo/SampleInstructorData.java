@@ -10,6 +10,7 @@ import com.ssa.lms.course.service.CourseQueryService;
 import com.ssa.lms.course.service.CourseQueryService.CourseOption;
 import com.ssa.lms.course.web.CourseScheduleView;
 import com.ssa.lms.course.web.InstructorCourseView;
+import com.ssa.lms.course.web.SubjectView;
 import com.ssa.lms.grading.dto.AttemptGradingDetail;
 import com.ssa.lms.notice.dto.NoticeListRow;
 import com.ssa.lms.proctor.dto.LiveAttemptRow;
@@ -245,6 +246,63 @@ public class SampleInstructorData {
                         "K-디지털 트레이닝 백엔드 개발자 양성과정", "2기",
                         "KDT", CourseStatus.COMPLETED, CourseStatus.COMPLETED.getLabel(),
                         today.minusDays(280), today.minusDays(40), 25, 6, 23));
+    }
+
+    /** 과정 상세 화면(instructor/courses-detail.html)이 읽는 필드만 담은 조회용 record. */
+    public record CourseDetail(String courseCode, String courseName, String cohort, String category,
+                               CourseStatus status, LocalDate startDate, LocalDate endDate,
+                               int capacity, String description) {
+    }
+
+    /**
+     * 예시 담당 과정 상세. 목록({@link #myCourses})의 예시 행을 클릭했을 때 렌더한다 —
+     * 예시 id 는 실제 PK 가 아니어서 DB 조회로 가면 404 가 되기 때문. 목록과 같은 데이터에서
+     * 만들어 목록↔상세가 어긋나지 않게 한다. 모르는 id 면 null (→ 컨트롤러가 실제 조회 경로로).
+     */
+    public CourseDetail courseDetail(long id) {
+        return myCourses().stream()
+                .filter(c -> c.id() == id)
+                .findFirst()
+                .map(c -> new CourseDetail(c.courseCode(), c.courseName(), c.cohort(), c.category(),
+                        c.status(), c.startDate(), c.endDate(), c.capacity(),
+                        "실무 프로젝트 중심으로 기획부터 배포까지 서비스 개발 전 과정을 경험하는 K-디지털 트레이닝 과정입니다."))
+                .orElse(null);
+    }
+
+    /**
+     * 예시 과정의 과목·차시 구성. {@link SubjectView} 는 순수 조회용 record 라 예시로 만들어도
+     * 안전하다(JPA 엔티티 아님). 차시 일정은 과정 시작일부터 3일 간격으로 배치해 과정 상태
+     * (모집중/진행중/종료)와 날짜가 자연스럽게 맞도록 한다.
+     */
+    public List<SubjectView> curriculum(long id) {
+        return myCourses().stream()
+                .filter(c -> c.id() == id)
+                .findFirst()
+                .map(this::sampleCurriculum)
+                .orElse(List.of());
+    }
+
+    private List<SubjectView> sampleCurriculum(InstructorCourseView course) {
+        // 각 행의 첫 칸이 과목명, 나머지가 차시명
+        String[][] subjects = {
+                {"웹 프론트엔드 기초", "HTML/CSS 기본 구조", "JavaScript 기초 문법", "JavaScript DOM 제어"},
+                {"Java 백엔드", "Java 객체지향 기초", "Java 컬렉션과 스트림", "예외 처리와 테스트"},
+                {"데이터베이스", "데이터베이스와 SQL", "JPA 엔티티 매핑"},
+                {"Spring 프레임워크", "Spring Boot 시작하기", "Spring MVC와 Thymeleaf", "Spring Data JPA", "Spring Security"},
+        };
+        LocalDate lessonDate = course.startDate();
+        long subjectId = SAMPLE_COURSE_ID + 100;
+        long sessionId = SAMPLE_COURSE_ID + 200;
+        List<SubjectView> rows = new ArrayList<>(subjects.length);
+        for (int i = 0; i < subjects.length; i++) {
+            List<SubjectView.SessionView> sessions = new ArrayList<>(subjects[i].length - 1);
+            for (int j = 1; j < subjects[i].length; j++) {
+                sessions.add(new SubjectView.SessionView(sessionId++, j, subjects[i][j], lessonDate, 180));
+                lessonDate = lessonDate.plusDays(3);
+            }
+            rows.add(new SubjectView(subjectId++, subjects[i][0], null, i + 1, sessions));
+        }
+        return rows;
     }
 
     /** 일정 관리 (instructor/scheduler.html). 차시별 수업 일정. */

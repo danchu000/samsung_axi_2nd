@@ -116,6 +116,21 @@ public class User extends BaseEntity {
         this.password = encodedPassword;
     }
 
+    /**
+     * 로그인 아이디 변경 — 최고 관리자 전용 경로에서만 호출한다
+     * ({@code AccountCredentialService}). 중복 검사는 호출 측 책임.
+     *
+     * <p>access_log 의 login_id 는 그 시점의 스냅샷이므로 소급 수정하지 않는다(감사 로그 원칙).</p>
+     */
+    public void changeLoginId(String loginId) {
+        this.loginId = loginId;
+    }
+
+    /** 이메일만 단독 변경 — 프로필 전체를 덮어쓰지 않는 자격증명 화면용. */
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
     public void changeStatus(UserStatus status) {
         this.status = status;
     }

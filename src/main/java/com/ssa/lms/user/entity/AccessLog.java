@@ -20,7 +20,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AccessLog {
 
-    public enum Type { LOGIN, LOGOUT, LOGIN_FAIL, IDENTITY_VERIFY }
+    /**
+     * {@code CREDENTIAL_CHANGE} 는 최고 관리자가 <b>남의</b> 계정 아이디/이메일/비밀번호를 바꾼 기록이다.
+     * userId·loginId 는 대상 계정, ip/userAgent 는 작업한 최고 관리자의 것 — 대상자의 접속 이력 화면에서
+     * "언제 계정 정보가 손대졌는지"가 바로 보이게 하려는 배치다.
+     */
+    public enum Type { LOGIN, LOGOUT, LOGIN_FAIL, IDENTITY_VERIFY, CREDENTIAL_CHANGE }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

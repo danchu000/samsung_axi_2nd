@@ -22,6 +22,7 @@
         .type-logout { color: var(--gray-600); }
         .type-fail { color: var(--color-danger); font-weight: 600; }
         .type-verify { color: var(--color-success); font-weight: 600; }
+        .type-credential { color: var(--color-warning, #b26a00); font-weight: 600; }
         .pager { display: flex; gap: 8px; align-items: center; margin-top: 16px; font-size: 14px; }
         .ua-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
@@ -62,6 +63,7 @@
                             <span th:case="'LOGOUT'" class="type-logout">로그아웃</span>
                             <span th:case="'LOGIN_FAIL'" class="type-fail">로그인 실패</span>
                             <span th:case="'IDENTITY_VERIFY'" class="type-verify">본인인증</span>
+                            <span th:case="'CREDENTIAL_CHANGE'" class="type-credential">계정정보 변경(최고 관리자)</span>
                             <span th:case="*" th:text="${log.type}">-</span>
                         </td>
                         <td th:text="${log.ipAddress ?: '-'}">-</td>

@@ -39,6 +39,13 @@ lms:
   crypto:
     secret: ${LMS_CRYPTO_SECRET:samsung-lxp-local-dev-only-secret}
 
+  admin:
+    # 최고 관리자 계정의 로그인 아이디. 이 계정만 다른 계정의 아이디/이메일/비밀번호를
+    # 바꿀 수 있다(/admin/accounts/{id}/credentials). AdminAccountInitializer 가 만드는
+    # 부트스트랩 계정과 같은 값이어야 한다 — 다르면 그 기능을 쓸 수 있는 사람이 없어진다.
+    # 판별 기준이 아이디 자체라서 이 계정의 아이디는 화면에서 변경할 수 없다.
+    super-login-id: ${LMS_SUPER_ADMIN_LOGIN_ID:admin}
+
   # 화면정의서 캡처용 예시 데이터 (SampleScreenData).
   # 훈련생의 과제/시험/출결/이수/설문 화면에서 <b>본인 데이터가 0건일 때만</b> 예시 행을 보여준다.
   # DB 에는 아무것도 쓰지 않는다 — 요청마다 메모리에서 만들고 버린다.

@@ -83,6 +83,9 @@
                     <a th:href="@{/admin/users/{path}(path=${user.role.name() == 'INSTRUCTOR'} ? 'instructors' : 'trainees', selected=${user.id})}"
                        class="btn btn-back">되돌아가기</a>
                     <button type="submit" class="btn btn-save">저장하기</button>
+                    <!-- 아이디·비밀번호는 최고 관리자만 바꿀 수 있어 별도 화면으로 분리 -->
+                    <a th:if="${superAdmin}" th:href="@{/admin/accounts/{id}/credentials(id=${user.id})}"
+                       class="btn btn-secondary">계정정보 변경</a>
                 </div>
             </form>
         </section>

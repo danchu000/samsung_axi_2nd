@@ -80,6 +80,8 @@
                                 <div class="row-actions">
                                     <button class="btn-small btn-secondary"
                                             th:onclick="|location.href='/admin/admins/${admin.id}/edit'|">수정</button>
+                                    <button th:if="${superAdmin}" class="btn-small btn-secondary"
+                                            th:onclick="|location.href='/admin/accounts/${admin.id}/credentials'|">계정정보 변경</button>
                                     <form th:if="${admin.status.name() == 'ACTIVE'}"
                                           th:action="@{/admin/admins/{id}/deactivate(id=${admin.id})}" method="post"
                                           onsubmit="return confirm('이 관리자를 비활성화하시겠습니까?');">
